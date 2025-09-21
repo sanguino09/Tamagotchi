@@ -9,7 +9,9 @@ const catScene = document.getElementById("catScene");
 const catWanderer = document.getElementById("catWanderer");
 const cat = document.getElementById("cat");
 const identityAvatar = document.getElementById("identityAvatar");
-const pupilElements = document.querySelectorAll(".pupil");
+const catSpriteCanvas = document.getElementById("catSpriteCanvas");
+const catAccessoryOverlay = document.getElementById("accessory");
+const catSpriteController = createCatSpriteController(catSpriteCanvas);
 const hungerBar = document.getElementById("hungerBar");
 const hungerValue = document.getElementById("hungerValue");
 const energyBar = document.getElementById("energyBar");
@@ -69,7 +71,7 @@ const catSkins = [
   {
     id: "iria",
     name: "Iria",
-    emoji: "🐈‍⬜",
+    emoji: "🐱",
     colors: {
       furMain: "#f0e7d8",
       furSecondary: "#d2c2ad",
@@ -297,10 +299,18 @@ function applyCatSkinVisuals(skin) {
       cat.style.setProperty(cssVar, palette[key]);
     }
   });
-  if (palette.pupil) {
-    pupilElements.forEach((pupil) => pupil.setAttribute("fill", palette.pupil));
-    cat.style.setProperty("--pupil", palette.pupil);
-  }
+  catSpriteController?.setPalette({
+    outline: palette.outline,
+    furMain: palette.furMain,
+    furSecondary: palette.furSecondary,
+    furAccent: palette.furAccent,
+    belly: palette.belly,
+    earInner: palette.earInner,
+    cheek: palette.cheek,
+    paw: palette.paw,
+    nose: palette.nose,
+    pupil: palette.pupil,
+  });
   if (identityAvatar) {
     identityAvatar.textContent = skin.emoji;
     identityAvatar.setAttribute("aria-label", `Cambiar estilo del gato (actual: ${skin.name})`);
@@ -342,31 +352,39 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
   };
 }
 
-function setSkin(index, options = {}) {
-  const { preserveName = false, announce = false } = options;
-  if (catSkins.length === 0) return;
-  const previousSkinId = getCurrentSkinId();
-  if (previousSkinId) {
-    persistSkinProgress(previousSkinId);
-  }
-  currentSkinIndex = ((index % catSkins.length) + catSkins.length) % catSkins.length;
-  const skin = catSkins[currentSkinIndex];
-  state.skin = skin.id;
-  loadSkinProgress(state.skin);
-  applyCatSkinVisuals(skin);
-  if (!preserveName) {
-    state.name = skin.name;
-    catNameInput.value = skin.name;
-  } else if (catNameInput && catNameInput.value.trim() === "") {
-    catNameInput.value = state.name;
-  }
-  updateUI();
-  if (announce) {
-    pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺");
-    showToast("😺", `Ahora cuidas a ${skin.name}.`);
-  } else {
+  function setSkin(index, options = {}) {
+    const { preserveName = false, announce = false } = options;
+    if (catSkins.length === 0) return;
+    const previousSkinId = getCurrentSkinId();
+    if (previousSkinId) {
+      persistSkinProgress(previousSkinId);
+    }
+    currentSkinIndex = ((index % catSkins.length) + catSkins.length) % catSkins.length;
+    const skin = catSkins[currentSkinIndex];
+    state.skin = skin.id;
+    loadSkinProgress(state.skin);
+    applyCatSkinVisuals(skin);
+    if (!preserveName) {
+      state.name = skin.name;
+      catNameInput.value = skin.name;
+    } else if (catNameInput && catNameInput.value.trim() === "") {
+      catNameInput.value = state.name;
+    }
+    updateUI();
+    if (announce) {
+      pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺");
+      showToast("😺", `Ahora cuidas a ${skin.name}.`);
+    } else {
       saveState();
     }
+  }
+
+  function syncSpriteState({ moodKey } = {}) {
+    if (!catSpriteController) return;
+    const activity = cat?.dataset?.activity || "idle";
+    const motionState = cat?.dataset?.motion || "idle";
+    const moodState = moodKey || cat?.dataset?.mood || getMood().key;
+    catSpriteController.setState({ mood: moodState, activity, motion: motionState });
   }
 
   function cycleCatSkin() {
@@ -392,8 +410,10 @@ function setSkin(index, options = {}) {
           cat.dataset.motion = "idle";
         }
         motionTimeout = null;
+        syncSpriteState();
       }, duration);
     }
+    syncSpriteState();
   }
 
   function initialize() {
@@ -540,28 +560,30 @@ function setSkin(index, options = {}) {
       wanderCat(true);
     }
 
-    function setCatActivity(activityKey) {
-      if (!cat) return;
-      if (activityTimeout) {
-        clearTimeout(activityTimeout);
-        activityTimeout = null;
-      }
+  function setCatActivity(activityKey) {
+    if (!cat) return;
+    if (activityTimeout) {
+      clearTimeout(activityTimeout);
+      activityTimeout = null;
+    }
 
-      const isAnimatedAction = activityKey === "feed" || activityKey === "play" || activityKey === "nap";
-      const nextActivity = isAnimatedAction ? activityKey : "idle";
-      cat.dataset.activity = nextActivity;
-      setMotion("idle");
+    const isAnimatedAction = activityKey === "feed" || activityKey === "play" || activityKey === "nap";
+    const nextActivity = isAnimatedAction ? activityKey : "idle";
+    cat.dataset.activity = nextActivity;
+    setMotion("idle");
+    syncSpriteState({ moodKey: getMood().key });
 
-      if (!isAnimatedAction) {
-        updateCatFace(getMood().key);
-        return;
-      }
+    if (!isAnimatedAction) {
+      updateCatFace(getMood().key);
+      return;
+    }
 
       const duration = nextActivity === "nap" ? 5200 : 2800;
       activityTimeout = setTimeout(() => {
         cat.dataset.activity = "idle";
         activityTimeout = null;
         setMotion("idle");
+        syncSpriteState({ moodKey: getMood().key });
         updateCatFace(getMood().key);
       }, duration);
     }
@@ -625,73 +647,49 @@ function setSkin(index, options = {}) {
       xpBar.style.width = `${xpPercent}%`;
     }
 
-      function updateCatFace(moodKey) {
-        const mouth = document.getElementById("mouth");
-        const pupils = pupilElements;
-        const activity = cat?.dataset?.activity || "idle";
+    function updateCatFace(moodKey) {
+      const activity = cat?.dataset?.activity || "idle";
 
-        const setPupils = (cy, radius = 9) => {
-          pupils.forEach((pupil) => {
-            if (!pupil) return;
-            pupil.setAttribute("cy", cy);
-            pupil.setAttribute("r", radius);
-          });
-        };
+      const setPresentation = ({ bobSpeed, shadow, shadowScale = "1" }) => {
+        catWanderer.style.setProperty("--bob-speed", bobSpeed);
+        catWanderer.style.setProperty("--shadow-opacity", shadow);
+        catWanderer.style.setProperty("--shadow-scale", shadowScale);
+      };
 
-        const setScale = (scale, bobSpeed, shadow) => {
-          catWanderer.style.setProperty("--scale", scale);
-          catWanderer.style.setProperty("--bob-speed", bobSpeed);
-          catWanderer.style.setProperty("--shadow-opacity", shadow);
-        };
+      syncSpriteState({ moodKey });
 
-        if (activity === "nap") {
-          setPupils(110, 5);
-          mouth.setAttribute("d", "M148 132 C154 136 162 136 168 132");
-          setScale("0.95", "4.6s", "0.32");
-          return;
-        }
-
-        if (activity === "feed") {
-          setPupils(96, 11);
-          mouth.setAttribute("d", "M146 128 C154 142 162 142 170 128");
-          setScale("1.05", "2.1s", "0.52");
-          return;
-        }
-
-        if (activity === "play") {
-          setPupils(96, 12);
-          mouth.setAttribute("d", "M144 126 C154 146 164 146 174 126");
-          setScale("1.06", "2s", "0.55");
-          return;
-        }
-
-        switch (moodKey) {
-        case "feliz":
-          mouth.setAttribute("d", "M146 124 C154 136 162 136 170 124");
-          setPupils(98, 10);
-          setScale("1.04", "2.4s", "0.5");
-          break;
-        case "contento":
-          mouth.setAttribute("d", "M148 126 C156 134 162 134 168 126");
-          setPupils(100, 9);
-          setScale("1", "2.8s", "0.46");
-          break;
-        case "neutro":
-          mouth.setAttribute("d", "M150 128 C158 128 164 128 172 128");
-          setPupils(102, 8);
-          setScale("0.98", "3.1s", "0.42");
-          break;
-        case "triste":
-          mouth.setAttribute("d", "M150 132 C158 124 164 124 172 132");
-          setPupils(106, 7);
-          setScale("0.96", "3.4s", "0.38");
-          break;
-        default:
-          mouth.setAttribute("d", "M148 134 C156 120 164 120 172 134");
-          setPupils(108, 7);
-          setScale("0.94", "3.6s", "0.34");
-        }
+      if (activity === "nap") {
+        setPresentation({ bobSpeed: "4.6s", shadow: "0.32", shadowScale: "0.88" });
+        return;
       }
+
+      if (activity === "feed") {
+        setPresentation({ bobSpeed: "2.1s", shadow: "0.52", shadowScale: "1.04" });
+        return;
+      }
+
+      if (activity === "play") {
+        setPresentation({ bobSpeed: "2s", shadow: "0.55", shadowScale: "1.06" });
+        return;
+      }
+
+      switch (moodKey) {
+      case "feliz":
+        setPresentation({ bobSpeed: "2.4s", shadow: "0.5", shadowScale: "1" });
+        break;
+      case "contento":
+        setPresentation({ bobSpeed: "2.8s", shadow: "0.46", shadowScale: "0.98" });
+        break;
+      case "neutro":
+        setPresentation({ bobSpeed: "3.1s", shadow: "0.42", shadowScale: "0.96" });
+        break;
+      case "triste":
+        setPresentation({ bobSpeed: "3.4s", shadow: "0.38", shadowScale: "0.94" });
+        break;
+      default:
+        setPresentation({ bobSpeed: "3.6s", shadow: "0.34", shadowScale: "0.92" });
+      }
+    }
 
       function addLogEntry(entry) {
         const element = logEntryTemplate.content.cloneNode(true);
@@ -885,9 +883,574 @@ function setSkin(index, options = {}) {
       }
 
       function toggleAccessory(show) {
-        const accessory = document.getElementById("accessory");
-        accessory.style.opacity = show ? 1 : 0;
+        if (catAccessoryOverlay) {
+          catAccessoryOverlay.style.opacity = show ? 1 : 0;
+        }
+        catSpriteController?.setAccessory(show);
       }
+
+  function createCatSpriteController(canvas) {
+    if (!canvas || typeof canvas.getContext !== "function") {
+      return null;
+    }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.imageSmoothingEnabled = false;
+
+    const base = {
+      width: canvas.width,
+      height: canvas.height,
+      body: { x: 14, y: 16, width: 20, height: 16 },
+      head: { x: 16, y: 4, width: 16, height: 12 },
+      ear: { width: 6, height: 8 },
+      legWidth: 6,
+      legHeight: 9,
+      groundOffset: 2,
+    };
+
+    const palette = {
+      outline: "#08050f",
+      furMain: "#2f2c3d",
+      furSecondary: "#262338",
+      furAccent: "#454058",
+      belly: "#d8dbe8",
+      earInner: "#f3adc9",
+      cheek: "#f48fbf",
+      paw: "#e8ecf7",
+      nose: "#f3adc9",
+      pupil: "#0e1018",
+    };
+
+    const state = {
+      mood: "feliz",
+      activity: "idle",
+      motion: "idle",
+      accessory: false,
+    };
+
+    const walkCycle = [
+      {
+        frontNear: { lift: 4, forward: 2 },
+        frontFar: { lift: 1, forward: -2 },
+        backNear: { lift: 2, forward: -2 },
+        backFar: { lift: 4, forward: 2 },
+        headOffsetY: -1,
+        bodyOffsetY: -1,
+        tailSway: 2,
+      },
+      {
+        frontNear: { lift: 2, forward: 2 },
+        frontFar: { lift: 4, forward: -2 },
+        backNear: { lift: 4, forward: -2 },
+        backFar: { lift: 1, forward: 2 },
+        headOffsetY: 0,
+        bodyOffsetY: 0,
+        tailSway: 1,
+      },
+      {
+        frontNear: { lift: 1, forward: 0 },
+        frontFar: { lift: 3, forward: -1 },
+        backNear: { lift: 4, forward: 2 },
+        backFar: { lift: 2, forward: -2 },
+        headOffsetY: -1,
+        bodyOffsetY: -1,
+        tailSway: -1,
+      },
+      {
+        frontNear: { lift: 3, forward: 0 },
+        frontFar: { lift: 1, forward: -2 },
+        backNear: { lift: 1, forward: 2 },
+        backFar: { lift: 3, forward: -2 },
+        headOffsetY: 0,
+        bodyOffsetY: 0,
+        tailSway: -2,
+      },
+    ];
+
+    const feedCycle = [
+      { headOffsetY: -1, tailLift: 1, bodyOffsetY: 1 },
+      { headOffsetY: 0, tailLift: 0, bodyOffsetY: 2 },
+      { headOffsetY: -2, tailLift: 1, bodyOffsetY: 1 },
+      { headOffsetY: -1, tailLift: 0, bodyOffsetY: 2 },
+    ];
+
+    const playCycle = [
+      { headOffsetY: -1, tailLift: -2, tailSway: 2, bodyOffsetY: 3 },
+      { headOffsetY: 0, tailLift: -1, tailSway: 1, bodyOffsetY: 2 },
+      { headOffsetY: -2, tailLift: -3, tailSway: -1, bodyOffsetY: 3 },
+      { headOffsetY: -1, tailLift: -2, tailSway: -2, bodyOffsetY: 2 },
+    ];
+
+    const napCycle = [0, 1];
+
+    const animations = {
+      idle: { frames: 4, duration: 320, draw: drawIdleFrame },
+      walk: { frames: walkCycle.length, duration: 150, draw: drawWalkFrame },
+      feed: { frames: feedCycle.length, duration: 260, draw: drawFeedFrame },
+      play: { frames: playCycle.length, duration: 220, draw: drawPlayFrame },
+      nap: { frames: napCycle.length, duration: 620, draw: drawNapFrame },
+    };
+
+    const moodExpressions = {
+      feliz: { eyes: "happy", mouth: "smile" },
+      contento: { eyes: "open", mouth: "smallSmile" },
+      neutro: { eyes: "relaxed", mouth: "flat" },
+      triste: { eyes: "droop", mouth: "sad" },
+      enfadado: { eyes: "narrow", mouth: "angry" },
+    };
+
+    let animationKey = resolveAnimationKey(state);
+    let frameIndex = 0;
+    let intervalId = null;
+
+    function setPalette(newPalette) {
+      if (!newPalette) return;
+      Object.entries(newPalette).forEach(([key, value]) => {
+        if (value) {
+          palette[key] = value;
+        }
+      });
+      drawCurrentFrame();
+    }
+
+    function setAccessory(show) {
+      state.accessory = !!show;
+      drawCurrentFrame();
+    }
+
+    function setState(partial) {
+      Object.assign(state, partial);
+      const nextKey = resolveAnimationKey(state);
+      if (nextKey !== animationKey) {
+        animationKey = nextKey;
+        restartLoop();
+      } else {
+        drawCurrentFrame();
+      }
+    }
+
+    function resolveAnimationKey(localState) {
+      if (!localState) return "idle";
+      if (localState.activity === "nap") return "nap";
+      if (localState.activity === "feed") return "feed";
+      if (localState.activity === "play") return "play";
+      if (localState.motion === "walk") return "walk";
+      return "idle";
+    }
+
+    function restartLoop() {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      const settings = animations[animationKey] || animations.idle;
+      frameIndex = 0;
+      drawCurrentFrame();
+      intervalId = window.setInterval(() => {
+        frameIndex = (frameIndex + 1) % settings.frames;
+        drawCurrentFrame();
+      }, settings.duration);
+    }
+
+    function drawCurrentFrame() {
+      const settings = animations[animationKey] || animations.idle;
+      ctx.clearRect(0, 0, base.width, base.height);
+      settings.draw({ frameIndex });
+    }
+
+    function drawIdleFrame({ frameIndex }) {
+      const expression = buildExpression("idle", frameIndex);
+      const tailPattern = [0, 1, 0, -1];
+      const headPattern = [0, -1, 0, 1];
+      const bodyPattern = [0, 0, -1, 0];
+      renderStandingCat({
+        expression,
+        tailSway: tailPattern[frameIndex % tailPattern.length],
+        headOffsetY: headPattern[frameIndex % headPattern.length],
+        bodyOffsetY: bodyPattern[frameIndex % bodyPattern.length],
+      });
+    }
+
+    function drawWalkFrame({ frameIndex }) {
+      const cycle = walkCycle[frameIndex % walkCycle.length];
+      const expression = buildExpression("walk", frameIndex);
+      renderStandingCat({
+        expression,
+        tailSway: cycle.tailSway,
+        headOffsetY: cycle.headOffsetY,
+        bodyOffsetY: cycle.bodyOffsetY,
+        frontLegs: { near: cycle.frontNear, far: cycle.frontFar },
+        backLegs: { near: cycle.backNear, far: cycle.backFar },
+      });
+    }
+
+    function drawFeedFrame({ frameIndex }) {
+      const cycle = feedCycle[frameIndex % feedCycle.length];
+      const expression = buildExpression("feed", frameIndex);
+      renderStandingCat({
+        expression,
+        headOffsetY: cycle.headOffsetY,
+        tailLift: cycle.tailLift,
+        bodyOffsetY: cycle.bodyOffsetY,
+        bodySquash: 2,
+        frontLegs: { near: { lift: 3 }, far: { lift: 3 } },
+        backLegs: { near: { lift: 1 }, far: { lift: 0 } },
+      });
+    }
+
+    function drawPlayFrame({ frameIndex }) {
+      const cycle = playCycle[frameIndex % playCycle.length];
+      const expression = buildExpression("play", frameIndex);
+      renderStandingCat({
+        expression,
+        headOffsetY: cycle.headOffsetY,
+        tailLift: cycle.tailLift,
+        tailSway: cycle.tailSway,
+        bodyOffsetY: cycle.bodyOffsetY,
+        bodySquash: 3,
+        frontLegs: { near: { lift: 2, forward: 1 }, far: { lift: 1, forward: -1 } },
+        backLegs: { near: { lift: 1, forward: 1 }, far: { lift: 2, forward: -1 } },
+      });
+    }
+
+    function drawNapFrame({ frameIndex }) {
+      const breath = napCycle[frameIndex % napCycle.length];
+      const expression = buildExpression("nap", frameIndex);
+      renderSleepingCat({ breath, expression });
+    }
+
+    function buildExpression(animation, frame) {
+      const baseExpression = moodExpressions[state.mood] || moodExpressions.neutro;
+      const expression = { eyes: baseExpression.eyes, mouth: baseExpression.mouth };
+      if (animation === "idle" && frame % 4 === 3 && state.activity === "idle") {
+        expression.eyes = "blink";
+      }
+      if (state.activity === "nap" || animation === "nap") {
+        expression.eyes = "sleep";
+        expression.mouth = "sleep";
+      } else if (state.activity === "feed" || animation === "feed") {
+        expression.eyes = state.mood === "enfadado" ? "narrow" : "wide";
+        expression.mouth = "yum";
+        expression.tongue = true;
+      } else if (state.activity === "play" || animation === "play") {
+        expression.eyes = expression.eyes === "narrow" ? "narrow" : "happy";
+        expression.mouth = "grin";
+      }
+      if (state.mood === "enfadado" && expression.mouth === "smile") {
+        expression.mouth = "angry";
+      }
+      return expression;
+    }
+
+    function renderStandingCat({
+      expression,
+      tailSway = 0,
+      tailLift = 0,
+      headOffsetX = 0,
+      headOffsetY = 0,
+      bodyOffsetY = 0,
+      bodySquash = 0,
+      frontLegs = {},
+      backLegs = {},
+    }) {
+      const outline = palette.outline || "#08050f";
+      const furMain = palette.furMain || "#2f2c3d";
+      const furSecondary = palette.furSecondary || "#262338";
+      const furAccent = palette.furAccent || furSecondary;
+      const belly = palette.belly || "#d8dbe8";
+      const paw = palette.paw || "#e8ecf7";
+      const cheekColor = palette.cheek || "#f48fbf";
+      const bodyHeight = Math.max(12, base.body.height - bodySquash);
+      const bodyY = base.body.y + bodyOffsetY + Math.max(0, bodySquash * 0.4);
+      const bodyX = base.body.x;
+      const bodyWidth = base.body.width;
+      const groundY = bodyY + bodyHeight + base.groundOffset;
+
+      drawTail(bodyX, bodyY, tailSway, tailLift, furSecondary, furAccent, outline);
+
+      drawLeg({
+        x: bodyX + 2 + (backLegs.far?.forward ?? 0),
+        baseY: groundY,
+        width: base.legWidth,
+        height: base.legHeight,
+        lift: backLegs.far?.lift ?? 0,
+        color: furSecondary,
+        pawColor: paw,
+        outline,
+      });
+      drawLeg({
+        x: bodyX + bodyWidth - 12 + (frontLegs.far?.forward ?? 0),
+        baseY: groundY,
+        width: base.legWidth,
+        height: base.legHeight,
+        lift: frontLegs.far?.lift ?? 0,
+        color: furSecondary,
+        pawColor: paw,
+        outline,
+      });
+
+      drawOutlinedRect(bodyX, bodyY, bodyWidth, bodyHeight, furMain, outline);
+      drawRect(bodyX + 2, bodyY + 3, 6, bodyHeight - 5, furSecondary);
+      drawRect(bodyX + 10, bodyY + 4, 8, bodyHeight - 6, belly);
+      drawRect(bodyX + bodyWidth - 5, bodyY + 6, 3, bodyHeight - 8, furAccent);
+
+      drawLeg({
+        x: bodyX + 6 + (backLegs.near?.forward ?? 0),
+        baseY: groundY,
+        width: base.legWidth,
+        height: base.legHeight,
+        lift: backLegs.near?.lift ?? 0,
+        color: furMain,
+        pawColor: paw,
+        outline,
+      });
+      drawLeg({
+        x: bodyX + bodyWidth - 7 + (frontLegs.near?.forward ?? 0),
+        baseY: groundY,
+        width: base.legWidth,
+        height: base.legHeight,
+        lift: frontLegs.near?.lift ?? 0,
+        color: furMain,
+        pawColor: paw,
+        outline,
+      });
+
+      const headX = base.head.x + headOffsetX;
+      const headY = base.head.y + headOffsetY + Math.max(0, bodyOffsetY * 0.4);
+      drawOutlinedRect(headX, headY, base.head.width, base.head.height, furMain, outline);
+      drawRect(headX + base.head.width - 5, headY + 3, 4, base.head.height - 5, furSecondary);
+
+      drawEar(headX - 1, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
+      drawEar(headX + base.head.width - base.ear.width + 1, headY - base.ear.height + 2, true, furSecondary, furAccent, outline);
+
+      drawFace(expression, headX, headY, base.head.width, base.head.height, cheekColor);
+    }
+
+    function renderSleepingCat({ breath = 0, expression }) {
+      const outline = palette.outline || "#08050f";
+      const furMain = palette.furMain || "#2f2c3d";
+      const furSecondary = palette.furSecondary || "#262338";
+      const furAccent = palette.furAccent || furSecondary;
+      const belly = palette.belly || "#d8dbe8";
+      const paw = palette.paw || "#e8ecf7";
+      const cheekColor = palette.cheek || "#f48fbf";
+
+      const bodyHeight = Math.max(8, 12 - breath);
+      const bodyY = base.body.y + 20 + breath;
+      const bodyX = base.body.x + 2;
+
+      drawOutlinedRect(bodyX, bodyY, 28, bodyHeight, furMain, outline);
+      drawRect(bodyX + 10, bodyY + 4, 10, bodyHeight - 6, belly);
+      drawRect(bodyX + 3, bodyY + 3, 6, bodyHeight - 5, furSecondary);
+
+      drawOutlinedRect(bodyX - 6, bodyY + 4, 8, 6, furSecondary, outline);
+      drawOutlinedRect(bodyX - 10, bodyY, 6, 6, furAccent, outline);
+
+      drawLeg({
+        x: bodyX + 6,
+        baseY: bodyY + bodyHeight + base.groundOffset - 1,
+        width: base.legWidth,
+        height: base.legHeight - 3,
+        lift: 1,
+        color: furMain,
+        pawColor: paw,
+        outline,
+      });
+      drawLeg({
+        x: bodyX + 18,
+        baseY: bodyY + bodyHeight + base.groundOffset - 1,
+        width: base.legWidth,
+        height: base.legHeight - 3,
+        lift: 2,
+        color: furMain,
+        pawColor: paw,
+        outline,
+      });
+
+      const headX = bodyX + 18;
+      const headY = base.body.y + 14 + breath;
+      drawOutlinedRect(headX, headY, 16, 10, furMain, outline);
+      drawRect(headX + 11, headY + 3, 4, 5, furSecondary);
+
+      drawEar(headX - 1, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
+      drawEar(headX + 9, headY - base.ear.height + 3, true, furSecondary, furAccent, outline);
+
+      const faceExpression = expression && expression.eyes ? { ...expression } : { eyes: "sleep", mouth: "sleep" };
+      faceExpression.eyes = "sleep";
+      faceExpression.mouth = "sleep";
+      drawFace(faceExpression, headX, headY, 16, 10, cheekColor);
+    }
+
+    function drawFace(expression, headX, headY, headWidth, headHeight, cheekColor) {
+      const outline = palette.outline || "#08050f";
+      const eyeWhite = "#f8fbff";
+      const pupilColor = palette.pupil || outline;
+      const leftEyeX = headX + 4;
+      const rightEyeX = headX + headWidth - 8;
+      const eyeBaseline = headY + 5;
+
+      drawEye(expression.eyes, leftEyeX);
+      drawEye(expression.eyes, rightEyeX);
+
+      const noseColor = palette.nose || palette.earInner || outline;
+      drawRect(headX + Math.floor(headWidth / 2) - 1, headY + 9, 2, 2, noseColor);
+      drawRect(headX + Math.floor(headWidth / 2) - 1, headY + 11, 2, 1, outline);
+
+      drawMouth(expression.mouth);
+
+      if (cheekColor) {
+        drawRect(headX + 2, headY + 8, 3, 2, cheekColor);
+        drawRect(headX + headWidth - 5, headY + 8, 3, 2, cheekColor);
+      }
+
+      drawRect(headX - 5, headY + 9, 5, 1, outline);
+      drawRect(headX - 6, headY + 11, 6, 1, outline);
+      drawRect(headX + headWidth, headY + 9, 5, 1, outline);
+      drawRect(headX + headWidth - 1, headY + 11, 6, 1, outline);
+
+      function drawEye(style, x) {
+        switch (style) {
+          case "sleep":
+            drawRect(x, eyeBaseline + 3, 4, 1, outline);
+            drawRect(x + 1, eyeBaseline + 2, 2, 1, outline);
+            break;
+          case "blink":
+            drawRect(x, eyeBaseline + 2, 4, 1, outline);
+            break;
+          case "narrow":
+            drawRect(x, eyeBaseline + 2, 4, 2, outline);
+            drawRect(x + 1, eyeBaseline + 2, 2, 1, eyeWhite);
+            break;
+          case "droop":
+            drawOpenEye(x, eyeBaseline + 1, 3);
+            drawRect(x, eyeBaseline + 1, 4, 1, outline);
+            break;
+          case "wide":
+            drawOpenEye(x, eyeBaseline, 4);
+            break;
+          case "happy":
+            drawOpenEye(x, eyeBaseline, 3);
+            drawRect(x, eyeBaseline, 4, 1, outline);
+            break;
+          case "relaxed":
+            drawOpenEye(x, eyeBaseline + 1, 3);
+            break;
+          default:
+            drawOpenEye(x, eyeBaseline, 3);
+        }
+      }
+
+      function drawOpenEye(x, top, height) {
+        const h = Math.max(2, height);
+        const y = Math.round(top);
+        drawOutlinedRect(x, y, 4, h, eyeWhite, outline);
+        const pupilHeight = Math.max(1, h - 2);
+        drawRect(x + 1, y + h - pupilHeight - 1, 2, pupilHeight, pupilColor);
+        if (h >= 3) {
+          drawRect(x + 1, y + 1, 1, 1, "#ffffff");
+        }
+      }
+
+      function drawMouth(style) {
+        const mouthX = headX + Math.floor(headWidth / 2) - 3;
+        const mouthY = headY + headHeight - 4;
+        switch (style) {
+          case "smile":
+            drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
+            drawRect(mouthX + 4, mouthY - 1, 2, 1, outline);
+            drawRect(mouthX, mouthY, 6, 1, outline);
+            break;
+          case "smallSmile":
+            drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
+            drawRect(mouthX + 4, mouthY - 1, 2, 1, outline);
+            drawRect(mouthX, mouthY, 4, 1, outline);
+            break;
+          case "flat":
+            drawRect(mouthX, mouthY, 6, 1, outline);
+            break;
+          case "sad":
+            drawRect(mouthX - 1, mouthY, 2, 1, outline);
+            drawRect(mouthX + 5, mouthY, 2, 1, outline);
+            drawRect(mouthX, mouthY - 1, 6, 1, outline);
+            break;
+          case "angry":
+            drawRect(mouthX - 1, mouthY - 1, 3, 1, outline);
+            drawRect(mouthX + 3, mouthY - 1, 3, 1, outline);
+            drawRect(mouthX, mouthY, 6, 1, outline);
+            break;
+          case "grin":
+            drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
+            drawRect(mouthX + 5, mouthY - 1, 2, 1, outline);
+            drawRect(mouthX - 1, mouthY, 8, 2, outline);
+            drawRect(mouthX, mouthY + 1, 6, 1, palette.earInner || palette.nose || "#f3adc9");
+            break;
+          case "yum":
+            drawRect(mouthX, mouthY, 6, 2, outline);
+            drawRect(mouthX + 1, mouthY + 1, 4, 1, palette.earInner || palette.nose || "#f3adc9");
+            break;
+          case "sleep":
+            drawRect(mouthX + 1, mouthY, 4, 1, outline);
+            break;
+          default:
+            drawRect(mouthX, mouthY, 6, 1, outline);
+        }
+      }
+    }
+
+    function drawEar(x, y, mirror, outerColor, accentColor, outline) {
+      drawOutlinedRect(x, y, base.ear.width, base.ear.height, outerColor, outline);
+      drawRect(x + 1, y + 1, base.ear.width - 2, base.ear.height - 2, palette.furMain || outerColor);
+      const innerX = mirror ? x + base.ear.width - 3 : x + 2;
+      drawRect(innerX, y + 2, 2, base.ear.height - 4, palette.earInner || accentColor);
+    }
+
+    function drawTail(bodyX, bodyY, sway, lift, color, accent, outline) {
+      const baseX = bodyX - 6 + sway;
+      const baseY = bodyY + 4 - lift;
+      drawOutlinedRect(baseX, baseY, 8, 6, color, outline);
+      drawOutlinedRect(baseX - 4, baseY - 4, 6, 6, accent, outline);
+      drawRect(baseX - 3, baseY - 3, 2, 2, palette.belly || accent);
+    }
+
+    function drawLeg({ x, baseY, width, height, lift = 0, color, pawColor, outline }) {
+      const effectiveLift = Math.max(0, Math.min(height - 3, lift));
+      const legHeight = Math.max(5, height - effectiveLift);
+      const topY = baseY - legHeight;
+      drawOutlinedRect(x, topY, width, legHeight, color, outline);
+      if (effectiveLift < height - 2) {
+        const pawY = baseY - 2 - Math.max(0, effectiveLift - 1);
+        drawRect(x + 1, pawY, width - 2, 2, pawColor);
+      }
+    }
+
+    function drawOutlinedRect(x, y, width, height, fillColor, outlineColor) {
+      if (width <= 0 || height <= 0) return;
+      const px = Math.round(x);
+      const py = Math.round(y);
+      const pw = Math.round(width);
+      const ph = Math.round(height);
+      ctx.fillStyle = outlineColor || fillColor;
+      ctx.fillRect(px, py, pw, ph);
+      if (pw > 2 && ph > 2 && fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(px + 1, py + 1, pw - 2, ph - 2);
+      }
+    }
+
+    function drawRect(x, y, width, height, color) {
+      if (!color || width <= 0 || height <= 0) return;
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(x), Math.round(y), Math.round(width), Math.round(height));
+    }
+
+    restartLoop();
+
+    return {
+      setPalette,
+      setState,
+      setAccessory,
+      redraw: drawCurrentFrame,
+    };
+  }
 
       function getAutomaticDayMode(date = new Date()) {
         const hour = date.getHours();
@@ -952,6 +1515,7 @@ function setSkin(index, options = {}) {
           if (!force && cat.dataset.activity !== "idle") {
             return;
           }
+          const snapToGrid = (value, size = 2) => Math.round(value / size) * size;
           const sceneWidth = catScene.clientWidth;
           const catWidth = catWanderer.offsetWidth || 1;
           const maxOffset = (sceneWidth - catWidth) / 2 - 12;
@@ -962,11 +1526,12 @@ function setSkin(index, options = {}) {
           }
           const newY = -Math.random() * 18;
           const previousX = catMotion.x;
+          newX = snapToGrid(newX);
           const direction = newX < previousX ? -1 : 1;
           catMotion.x = newX;
-          catMotion.y = newY;
-          catWanderer.style.setProperty("--x", `${newX}px`);
-          catWanderer.style.setProperty("--y", `${newY}px`);
+          catMotion.y = snapToGrid(newY);
+          catWanderer.style.setProperty("--x", `${catMotion.x}px`);
+          catWanderer.style.setProperty("--y", `${catMotion.y}px`);
           catWanderer.style.setProperty("--flip", direction === -1 ? "-1" : "1");
           if (cat.dataset.activity === "idle") {
             const distance = Math.abs(newX - previousX);

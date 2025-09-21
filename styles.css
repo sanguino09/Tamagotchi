@@ -262,7 +262,7 @@
         --x: 0px;
         --y: 0px;
         --flip: 1;
-        --scale: 1;
+        --shadow-scale: 1;
         --bob-speed: 3.2s;
         --shadow-opacity: 0.45;
         position: absolute;
@@ -270,8 +270,9 @@
         bottom: 36px;
         width: clamp(180px, 48vw, 280px);
         transform: translate(calc(-50% + var(--x)), var(--y));
-        transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1);
+        transition: transform 2.4s steps(18, end);
         will-change: transform;
+        image-rendering: pixelated;
       }
 
       .cat-shadow {
@@ -280,21 +281,21 @@
         bottom: -18px;
         width: 64%;
         height: 32px;
-        background: rgba(0, 0, 0, 0.18);
-        border-radius: 50%;
-        transform: translateX(-50%) scaleX(calc(0.92 + (var(--scale) - 1) * 0.6));
-        filter: blur(6px);
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 18px;
+        image-rendering: pixelated;
+        transform: translateX(-50%) scaleX(var(--shadow-scale));
         opacity: var(--shadow-opacity);
-        transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1), opacity 0.6s ease;
+        transition: transform 0.4s steps(6, end), opacity 0.3s linear;
       }
 
       .cat {
         position: relative;
         width: 100%;
-        transform: scaleX(var(--flip)) scale(var(--scale));
+        transform: scaleX(var(--flip));
         transform-origin: center bottom;
-        animation: bob var(--bob-speed) ease-in-out infinite;
-        filter: drop-shadow(0 16px 24px rgba(112, 41, 104, 0.18));
+        animation: pixel-bob var(--bob-speed) steps(2, end) infinite;
+        image-rendering: pixelated;
         --fur-main: #2f2c3d;
         --fur-secondary: #262338;
         --fur-accent: #454058;
@@ -305,89 +306,107 @@
         --paw: #e8ecf7;
         --collar: #6ee7ff;
         --collar-stroke: #4aa5ff;
-        --pupil: #0e1018;
         --nose: #f3adc9;
       }
 
-      .cat svg {
+      .cat-sprite {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 48 / 40;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        image-rendering: pixelated;
+      }
+
+      #catSpriteCanvas {
         width: 100%;
         height: auto;
-        shape-rendering: geometricPrecision;
+        image-rendering: pixelated;
       }
 
-      #catBody,
-      #tail,
-      #torso,
-      #legsFront,
-      #legsBack,
-      #head,
-      #faceFeatures,
-      #ears,
-      #whiskers,
-      #activityProps g,
-      #accessory {
-        transform-box: fill-box;
-        transform-origin: center;
-      }
-
-      #tail {
-        transform-origin: 34% 82%;
-        transition: transform 0.5s ease;
-      }
-
-      #torso {
-        transition: transform 0.45s ease;
-      }
-
-      #legsBack,
-      #legsFront {
-        transition: transform 0.45s ease;
-      }
-
-      #legsBack .leg,
-      #legsFront .leg {
-        transform-origin: 50% 12%;
-        transition: transform 0.35s ease;
-      }
-
-      #head {
-        transform-origin: 50% 78%;
-        transition: transform 0.45s ease;
-      }
-
-      #faceFeatures {
-        transform-origin: 50% 50%;
-        transition: transform 0.4s ease;
-      }
-
-      #eyesOpen,
-      #eyesClosed {
-        transition: opacity 0.3s ease;
-      }
-
-      #eyesClosed {
+      .cat-accessory {
+        position: absolute;
+        inset: auto 0 22%;
+        height: 12%;
+        pointer-events: none;
         opacity: 0;
       }
 
-      #whiskers {
-        transition: transform 0.35s ease;
+      .cat-accessory::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 60%;
+        height: 80%;
+        transform: translate(-50%, -50%);
+        background:
+          linear-gradient(
+            to right,
+            transparent 0%,
+            var(--collar-stroke, #4aa5ff) 10%,
+            var(--collar, #6ee7ff) 50%,
+            var(--collar-stroke, #4aa5ff) 90%,
+            transparent 100%
+          );
+        border-radius: 999px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+        filter: saturate(1.1);
       }
 
-      #activityProps g {
+      .activity-props {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .pixel-prop {
+        position: absolute;
+        left: 50%;
+        bottom: 4%;
+        transform: translateX(-50%);
+        width: 28%;
+        aspect-ratio: 1;
         opacity: 0;
-        transition: opacity 0.35s ease, transform 0.35s ease;
+        image-rendering: pixelated;
       }
 
       #propBowl {
-        transform: translateY(32px) scale(0.94);
+        background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0) 0 20%, rgba(0, 0, 0, 0.14) 20% 32%, rgba(0, 0, 0, 0) 32% 100%),
+          conic-gradient(from 180deg, #c86c3a 0deg 60deg, #f7b589 60deg 300deg, #c86c3a 300deg 360deg);
+        border-radius: 30% 30% 45% 45% / 40% 40% 55% 55%;
+        transform: translate(-50%, 20%) scale(0.92);
       }
 
       #propYarn {
-        transform: translate(-32px, 20px) rotate(-14deg);
+        background:
+          repeating-conic-gradient(#c64f8a 0deg 20deg, #ff7ebd 20deg 40deg);
+        border-radius: 50%;
+        box-shadow: inset -0.4vw 0.4vw 0 rgba(0, 0, 0, 0.12);
+        transform: translate(-65%, 8%) rotate(-12deg) scale(0.86);
+      }
+
+      #propYarn::after {
+        content: "";
+        position: absolute;
+        width: 70%;
+        height: 14%;
+        top: 58%;
+        left: 46%;
+        border-radius: 999px;
+        background: rgba(255, 207, 238, 0.7);
+        transform: rotate(-12deg);
       }
 
       #propSleep {
-        transform: translate(-6px, -18px);
+        font-family: "Press Start 2P", system-ui;
+        font-size: clamp(0.6rem, 2vw, 0.85rem);
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.9);
+        text-align: center;
+        transform: translate(-40%, -30%) rotate(-8deg);
       }
 
       .cat[data-activity="feed"] #propBowl {
@@ -408,224 +427,38 @@
       @keyframes bowlBounce {
         0%,
         100% {
-          transform: translateY(32px) scale(0.94);
+          transform: translate(-50%, 20%) scale(0.92);
         }
         50% {
-          transform: translateY(26px) scale(1);
+          transform: translate(-50%, 12%) scale(1);
         }
       }
 
       @keyframes yarnBounce {
         0%,
         100% {
-          transform: translate(-32px, 20px) rotate(-14deg);
+          transform: translate(-65%, 8%) rotate(-12deg) scale(0.86);
         }
         50% {
-          transform: translate(-34px, 6px) rotate(6deg);
+          transform: translate(-68%, -4%) rotate(6deg) scale(0.95);
         }
       }
 
       @keyframes floatZ {
         0% {
-          transform: translate(-6px, -18px);
+          transform: translate(-40%, -30%) rotate(-8deg);
         }
         100% {
-          transform: translate(-6px, -28px);
+          transform: translate(-40%, -46%) rotate(-8deg);
         }
       }
 
-      .cat[data-activity="feed"] #head {
-        transform: rotate(-12deg) translate(-14px, 6px);
-      }
-
-      .cat[data-activity="feed"] #torso {
-        transform: translateY(8px);
-      }
-
-      .cat[data-activity="feed"] #legsFront {
-        transform: translateY(12px);
-      }
-
-      .cat[data-activity="feed"] #legsBack {
-        transform: translateY(6px);
-      }
-
-      .cat[data-activity="feed"] #tail {
-        transform: rotate(-26deg) translateY(12px);
-      }
-
-      .cat[data-activity="feed"] #faceFeatures {
-        transform: translateY(-4px);
-      }
-
-      .cat[data-activity="feed"] #whiskers {
-        transform: translateY(-6px);
-      }
-
-      .cat[data-activity="play"] #head {
-        transform: rotate(10deg) translate(12px, -6px);
-      }
-
-      .cat[data-activity="play"] #faceFeatures {
-        transform: translateY(-8px) rotate(3deg);
-      }
-
-      .cat[data-activity="play"] #tail {
-        animation: tailPlay 0.6s ease-in-out infinite;
-      }
-
-      .cat[data-activity="play"] #legsFront .leg {
-        animation: pounceFront 0.6s ease-in-out infinite;
-      }
-
-      .cat[data-activity="play"] #legsBack .leg {
-        animation: pounceBack 0.6s ease-in-out infinite;
-      }
-
-      .cat[data-activity="nap"] #head {
-        transform: translateY(6px) rotate(-6deg);
-      }
-
-      .cat[data-activity="nap"] #torso {
-        transform: translateY(10px) scaleY(0.98);
-      }
-
-      .cat[data-activity="nap"] #tail {
-        transform: rotate(-18deg) translateY(18px);
-      }
-
-      .cat[data-activity="nap"] #legsFront,
-      .cat[data-activity="nap"] #legsBack {
-        transform: translateY(10px);
-      }
-
-      .cat[data-activity="nap"] #faceFeatures {
-        transform: translateY(2px);
-      }
-
-      .cat[data-activity="nap"] #eyesOpen {
-        opacity: 0;
-      }
-
-      .cat[data-activity="nap"] #eyesClosed {
-        opacity: 1;
-      }
-
-      .cat[data-motion="walk"] #legsFront .leg,
-      .cat[data-motion="walk"] #legsBack .leg {
-        animation-duration: 0.9s;
-        animation-timing-function: ease-in-out;
-        animation-iteration-count: infinite;
-      }
-
-      .cat[data-motion="walk"] #frontLegFar,
-      .cat[data-motion="walk"] #backLegNear {
-        animation-name: legSwingForward;
-      }
-
-      .cat[data-motion="walk"] #frontLegNear,
-      .cat[data-motion="walk"] #backLegFar {
-        animation-name: legSwingBackward;
-      }
-
-      .cat[data-motion="walk"] #tail {
-        animation: tailWalk 1.2s ease-in-out infinite;
-      }
-
-      .cat[data-motion="walk"] #head {
-        animation: headBob 1.2s ease-in-out infinite;
-      }
-
-      .cat[data-motion="walk"] #faceFeatures {
-        animation: faceBounce 1.2s ease-in-out infinite;
-      }
-
-      @keyframes legSwingForward {
-        0%,
-        100% {
-          transform: rotate(6deg) translateY(-1px);
-        }
-        50% {
-          transform: rotate(-12deg) translateY(3px);
-        }
-      }
-
-      @keyframes legSwingBackward {
-        0%,
-        100% {
-          transform: rotate(-8deg) translateY(2px);
-        }
-        50% {
-          transform: rotate(10deg) translateY(-3px);
-        }
-      }
-
-      @keyframes tailWalk {
-        0%,
-        100% {
-          transform: rotate(-4deg) translateY(0);
-        }
-        50% {
-          transform: rotate(10deg) translateY(-4px);
-        }
-      }
-
-      @keyframes headBob {
-        0%,
-        100% {
-          transform: translateY(0) rotate(0deg);
-        }
-        50% {
-          transform: translateY(-3px) rotate(1.5deg);
-        }
-      }
-
-      @keyframes faceBounce {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-2px);
-        }
-      }
-
-      @keyframes pounceFront {
-        0%,
-        100% {
-          transform: rotate(-6deg) translateY(6px);
-        }
-        50% {
-          transform: rotate(8deg) translateY(-4px);
-        }
-      }
-
-      @keyframes pounceBack {
-        0%,
-        100% {
-          transform: rotate(6deg) translateY(-2px);
-        }
-        50% {
-          transform: rotate(-10deg) translateY(4px);
-        }
-      }
-
-      @keyframes tailPlay {
-        0%,
-        100% {
-          transform: rotate(6deg) translateY(-2px);
-        }
-        50% {
-          transform: rotate(-14deg) translateY(6px);
-        }
-      }
-
-      .cat[data-mood="feliz"] svg {
+      .cat[data-mood="feliz"] .cat-sprite {
         filter: saturate(1.08) brightness(1.04) drop-shadow(0 18px 26px rgba(112, 41, 104, 0.2));
       }
 
-      .cat[data-mood="triste"] svg,
-      .cat[data-mood="enfadado"] svg {
+      .cat[data-mood="triste"] .cat-sprite,
+      .cat[data-mood="enfadado"] .cat-sprite {
         filter: saturate(0.82) brightness(0.92) drop-shadow(0 12px 20px rgba(112, 41, 104, 0.18));
       }
 
@@ -988,13 +821,13 @@
         border-radius: 999px;
       }
 
-      @keyframes bob {
+      @keyframes pixel-bob {
         0%,
         100% {
-          transform: scaleX(var(--flip)) scale(var(--scale)) translateY(0);
+          transform: scaleX(var(--flip)) translateY(0);
         }
         50% {
-          transform: scaleX(var(--flip)) scale(calc(var(--scale) + 0.02)) translateY(-6px);
+          transform: scaleX(var(--flip)) translateY(-4px);
         }
       }
 
