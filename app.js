@@ -921,6 +921,27 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       pupil: "#0e1018",
     };
 
+    function shiftColor(color, amount = 0) {
+      if (!color || typeof color !== "string") return color;
+      const match = color.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (!match) {
+        return color;
+      }
+      let hex = match[1];
+      if (hex.length === 3) {
+        hex = hex
+          .split("")
+          .map((char) => char + char)
+          .join("");
+      }
+      const numeric = parseInt(hex, 16);
+      const delta = Math.round(amount * 255);
+      const r = Math.max(0, Math.min(255, ((numeric >> 16) & 0xff) + delta));
+      const g = Math.max(0, Math.min(255, ((numeric >> 8) & 0xff) + delta));
+      const b = Math.max(0, Math.min(255, (numeric & 0xff) + delta));
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    }
+
     const state = {
       mood: "feliz",
       activity: "idle",
@@ -1164,6 +1185,12 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       const bodyX = base.body.x;
       const bodyWidth = base.body.width;
       const groundY = bodyY + bodyHeight + base.groundOffset;
+      const mainHighlight = shiftColor(furMain, 0.18);
+      const mainShadow = shiftColor(furSecondary, -0.16);
+      const accentHighlight = shiftColor(furAccent, 0.12);
+      const accentShadow = shiftColor(furAccent, -0.18);
+      const bellyHighlight = shiftColor(belly, 0.12);
+      const bellyShadow = shiftColor(belly, -0.2);
 
       drawTail(bodyX, bodyY, tailSway, tailLift, furSecondary, furAccent, outline);
 
@@ -1188,10 +1215,21 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         outline,
       });
 
-      drawOutlinedRect(bodyX, bodyY, bodyWidth, bodyHeight, furMain, outline);
-      drawRect(bodyX + 2, bodyY + 3, 6, bodyHeight - 5, furSecondary);
-      drawRect(bodyX + 10, bodyY + 4, 8, bodyHeight - 6, belly);
-      drawRect(bodyX + bodyWidth - 5, bodyY + 6, 3, bodyHeight - 8, furAccent);
+      drawOutlinedRect(bodyX - 1, bodyY, bodyWidth + 2, bodyHeight, furMain, outline);
+      drawRect(bodyX, bodyY + 1, bodyWidth, 2, mainHighlight);
+      drawRect(bodyX + 1, bodyY + 3, 6, bodyHeight - 6, furSecondary);
+      drawRect(bodyX + 2, bodyY + 4, 4, bodyHeight - 8, shiftColor(furSecondary, -0.08));
+      drawRect(bodyX + 9, bodyY + 3, 9, bodyHeight - 6, belly);
+      drawRect(bodyX + 10, bodyY + 4, 7, bodyHeight - 8, bellyHighlight);
+      drawRect(bodyX + 9, bodyY + bodyHeight - 3, 9, 1, bellyShadow);
+      drawRect(bodyX + bodyWidth - 6, bodyY + 4, 3, bodyHeight - 7, accentShadow);
+      drawRect(bodyX + bodyWidth - 8, bodyY + 5, 2, bodyHeight - 9, accentHighlight);
+      drawRect(bodyX + 7, bodyY + bodyHeight - 5, 8, 2, belly);
+      drawRect(bodyX + 7, bodyY + bodyHeight - 5, 8, 1, bellyHighlight);
+      drawRect(bodyX + 3, bodyY + bodyHeight - 3, bodyWidth - 4, 1, mainShadow);
+      drawRect(bodyX + 2, bodyY + 2, 3, 1, mainHighlight);
+      drawRect(bodyX + 4, bodyY + 5, 1, bodyHeight - 8, shiftColor(furSecondary, -0.12));
+      drawRect(bodyX + bodyWidth - 4, bodyY + 6, 1, bodyHeight - 8, accentShadow);
 
       drawLeg({
         x: bodyX + 6 + (backLegs.near?.forward ?? 0),
@@ -1216,14 +1254,17 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
       const headX = base.head.x + headOffsetX;
       const headY = base.head.y + headOffsetY + Math.max(0, bodyOffsetY * 0.4);
-      drawOutlinedRect(headX, headY, base.head.width, base.head.height, furMain, outline);
-      drawRect(headX + base.head.width - 5, headY + 3, 4, base.head.height - 5, furSecondary);
+      drawOutlinedRect(headX - 1, headY, base.head.width + 2, base.head.height + 1, furMain, outline);
+      drawRect(headX, headY + 1, base.head.width, 1, mainHighlight);
+      drawRect(headX + base.head.width - 4, headY + 3, 3, base.head.height - 4, shiftColor(furSecondary, -0.12));
+      drawRect(headX + 1, headY + base.head.height - 2, base.head.width - 2, 1, mainShadow);
 
-      drawEar(headX - 1, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
+      drawEar(headX - 2, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
       drawEar(headX + base.head.width - base.ear.width + 1, headY - base.ear.height + 2, true, furSecondary, furAccent, outline);
 
       drawFace(expression, headX, headY, base.head.width, base.head.height, cheekColor);
     }
+
 
     function renderSleepingCat({ breath = 0, expression }) {
       const outline = palette.outline || "#08050f";
@@ -1236,20 +1277,42 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
       const bodyHeight = Math.max(8, 12 - breath);
       const bodyY = base.body.y + 20 + breath;
-      const bodyX = base.body.x + 2;
+      const bodyX = base.body.x + 1;
 
-      drawOutlinedRect(bodyX, bodyY, 28, bodyHeight, furMain, outline);
-      drawRect(bodyX + 10, bodyY + 4, 10, bodyHeight - 6, belly);
-      drawRect(bodyX + 3, bodyY + 3, 6, bodyHeight - 5, furSecondary);
+      const topHighlight = shiftColor(furMain, 0.16);
+      const bodyShadow = shiftColor(furSecondary, -0.18);
+      const accentHighlight = shiftColor(furAccent, 0.12);
+      const accentShadow = shiftColor(furAccent, -0.2);
+      const bellyHighlight = shiftColor(belly, 0.12);
+      const bellyShadow = shiftColor(belly, -0.18);
 
-      drawOutlinedRect(bodyX - 6, bodyY + 4, 8, 6, furSecondary, outline);
-      drawOutlinedRect(bodyX - 10, bodyY, 6, 6, furAccent, outline);
+      drawOutlinedRect(bodyX - 1, bodyY, 30, bodyHeight, furMain, outline);
+      drawRect(bodyX, bodyY + 1, 28, 2, topHighlight);
+      drawRect(bodyX + 2, bodyY + 3, 8, bodyHeight - 5, furSecondary);
+      drawRect(bodyX + 3, bodyY + 4, 6, bodyHeight - 7, shiftColor(furSecondary, -0.08));
+      drawRect(bodyX + 12, bodyY + 4, 12, bodyHeight - 6, belly);
+      drawRect(bodyX + 13, bodyY + 5, 10, bodyHeight - 8, bellyHighlight);
+      drawRect(bodyX + 12, bodyY + bodyHeight - 3, 12, 1, bellyShadow);
+      drawRect(bodyX + 20, bodyY + 6, 4, bodyHeight - 9, accentShadow);
+      drawRect(bodyX + 19, bodyY + 6, 2, bodyHeight - 10, accentHighlight);
+      drawRect(bodyX + 6, bodyY + bodyHeight - 2, 18, 1, bodyShadow);
+      drawRect(bodyX + 14, bodyY + bodyHeight - 5, 10, 2, bellyHighlight);
+
+      const tailBaseX = bodyX - 4;
+      const tailBaseY = bodyY + 3;
+      drawOutlinedRect(tailBaseX, tailBaseY, 9, 6, furSecondary, outline);
+      drawRect(tailBaseX + 1, tailBaseY + 1, 7, 1, shiftColor(furSecondary, 0.16));
+      drawRect(tailBaseX + 1, tailBaseY + 4, 7, 2, shiftColor(furSecondary, -0.16));
+      drawOutlinedRect(tailBaseX - 6, tailBaseY + 2, 7, 6, furAccent, outline);
+      drawRect(tailBaseX - 5, tailBaseY + 3, 5, 1, accentHighlight);
+      drawRect(tailBaseX - 5, tailBaseY + 6, 5, 1, accentShadow);
+      drawRect(tailBaseX - 4, tailBaseY + 4, 3, 2, palette.belly || bellyHighlight);
 
       drawLeg({
         x: bodyX + 6,
         baseY: bodyY + bodyHeight + base.groundOffset - 1,
         width: base.legWidth,
-        height: base.legHeight - 3,
+        height: base.legHeight - 2,
         lift: 1,
         color: furMain,
         pawColor: paw,
@@ -1259,7 +1322,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         x: bodyX + 18,
         baseY: bodyY + bodyHeight + base.groundOffset - 1,
         width: base.legWidth,
-        height: base.legHeight - 3,
+        height: base.legHeight - 2,
         lift: 2,
         color: furMain,
         pawColor: paw,
@@ -1269,7 +1332,9 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       const headX = bodyX + 18;
       const headY = base.body.y + 14 + breath;
       drawOutlinedRect(headX, headY, 16, 10, furMain, outline);
-      drawRect(headX + 11, headY + 3, 4, 5, furSecondary);
+      drawRect(headX + 1, headY + 1, 14, 1, topHighlight);
+      drawRect(headX + 11, headY + 3, 4, 5, shiftColor(furSecondary, -0.12));
+      drawRect(headX + 1, headY + 8, 14, 1, bodyShadow);
 
       drawEar(headX - 1, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
       drawEar(headX + 9, headY - base.ear.height + 3, true, furSecondary, furAccent, outline);
@@ -1279,80 +1344,121 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       faceExpression.mouth = "sleep";
       drawFace(faceExpression, headX, headY, 16, 10, cheekColor);
     }
-
     function drawFace(expression, headX, headY, headWidth, headHeight, cheekColor) {
       const outline = palette.outline || "#08050f";
+      const furMain = palette.furMain || "#2f2c3d";
+      const furSecondary = palette.furSecondary || furMain;
       const eyeWhite = "#f8fbff";
       const pupilColor = palette.pupil || outline;
+      const irisColor = palette.earInner ? shiftColor(palette.earInner, -0.22) : shiftColor(furSecondary, -0.08);
+      const irisShadow = shiftColor(irisColor, -0.2);
+      const eyeShine = shiftColor(eyeWhite, 0.2);
+      const eyelidColor = shiftColor(furMain, -0.12);
+      const lowerLidColor = shiftColor(furSecondary, -0.2);
       const leftEyeX = headX + 4;
       const rightEyeX = headX + headWidth - 8;
-      const eyeBaseline = headY + 5;
+      const eyeBaseline = headY + 6;
+      const muzzleWidth = 8;
+      const muzzleX = headX + Math.floor(headWidth / 2) - Math.floor(muzzleWidth / 2);
+      const muzzleY = headY + headHeight - 6;
+      const muzzleColor = palette.belly || "#e4e8f6";
+      const muzzleHighlight = shiftColor(muzzleColor, 0.18);
+      const muzzleShadow = shiftColor(muzzleColor, -0.18);
+      const whiskerColor = palette.paw || "#f8fbff";
+
+      drawRect(headX + 1, headY + 2, headWidth - 2, 1, shiftColor(furMain, 0.12));
+      drawRect(headX + 1, headY + headHeight - 3, headWidth - 2, 1, shiftColor(furSecondary, -0.18));
 
       drawEye(expression.eyes, leftEyeX);
       drawEye(expression.eyes, rightEyeX);
 
-      const noseColor = palette.nose || palette.earInner || outline;
-      drawRect(headX + Math.floor(headWidth / 2) - 1, headY + 9, 2, 2, noseColor);
-      drawRect(headX + Math.floor(headWidth / 2) - 1, headY + 11, 2, 1, outline);
-
-      drawMouth(expression.mouth);
-
       if (cheekColor) {
-        drawRect(headX + 2, headY + 8, 3, 2, cheekColor);
-        drawRect(headX + headWidth - 5, headY + 8, 3, 2, cheekColor);
+        drawRect(headX + 1, headY + headHeight - 5, 3, 2, cheekColor);
+        drawRect(headX + headWidth - 4, headY + headHeight - 5, 3, 2, cheekColor);
       }
 
-      drawRect(headX - 5, headY + 9, 5, 1, outline);
-      drawRect(headX - 6, headY + 11, 6, 1, outline);
-      drawRect(headX + headWidth, headY + 9, 5, 1, outline);
-      drawRect(headX + headWidth - 1, headY + 11, 6, 1, outline);
+      drawRect(muzzleX - 1, muzzleY - 1, muzzleWidth + 2, 2, shiftColor(furMain, 0.1));
+      drawRect(muzzleX, muzzleY, muzzleWidth, 4, muzzleColor);
+      drawRect(muzzleX + 1, muzzleY + 1, muzzleWidth - 2, 1, muzzleHighlight);
+      drawRect(muzzleX + 1, muzzleY + 2, muzzleWidth - 2, 1, muzzleShadow);
+
+      const noseColor = palette.nose || palette.earInner || outline;
+      const noseX = headX + Math.floor(headWidth / 2) - 1;
+      const noseY = muzzleY - 1;
+      drawRect(noseX, noseY, 2, 2, noseColor);
+      drawRect(noseX, noseY, 1, 1, shiftColor(noseColor, 0.18));
+      drawRect(noseX, noseY + 2, 2, 1, outline);
+      drawRect(noseX, noseY + 3, 1, 1, outline);
+
+      drawRect(muzzleX - 1, muzzleY + 1, 1, 2, outline);
+      drawRect(muzzleX + muzzleWidth, muzzleY + 1, 1, 2, outline);
+      drawRect(muzzleX - 5, muzzleY + 1, 4, 1, whiskerColor);
+      drawRect(muzzleX - 6, muzzleY + 2, 5, 1, whiskerColor);
+      drawRect(muzzleX + muzzleWidth + 1, muzzleY + 1, 4, 1, whiskerColor);
+      drawRect(muzzleX + muzzleWidth, muzzleY + 2, 5, 1, whiskerColor);
+      drawRect(muzzleX - 2, muzzleY + 1, 1, 1, outline);
+      drawRect(muzzleX + muzzleWidth + 1, muzzleY + 1, 1, 1, outline);
+
+      drawMouth(expression.mouth, muzzleX, muzzleY, muzzleWidth);
 
       function drawEye(style, x) {
         switch (style) {
           case "sleep":
-            drawRect(x, eyeBaseline + 3, 4, 1, outline);
-            drawRect(x + 1, eyeBaseline + 2, 2, 1, outline);
+            drawRect(x - 1, eyeBaseline + 2, 6, 1, outline);
+            drawRect(x, eyeBaseline + 1, 4, 1, outline);
             break;
           case "blink":
             drawRect(x, eyeBaseline + 2, 4, 1, outline);
+            drawRect(x, eyeBaseline + 1, 4, 1, eyelidColor);
             break;
           case "narrow":
-            drawRect(x, eyeBaseline + 2, 4, 2, outline);
-            drawRect(x + 1, eyeBaseline + 2, 2, 1, eyeWhite);
+            drawOpenEye(x, eyeBaseline, 3, { upperLid: true, lowerLid: false });
+            drawRect(x, eyeBaseline + 2, 4, 1, outline);
             break;
           case "droop":
-            drawOpenEye(x, eyeBaseline + 1, 3);
-            drawRect(x, eyeBaseline + 1, 4, 1, outline);
-            break;
-          case "wide":
-            drawOpenEye(x, eyeBaseline, 4);
+            drawOpenEye(x, eyeBaseline, 4, { upperLid: true, lowerLid: true });
+            drawRect(x, eyeBaseline, 4, 1, eyelidColor);
+            drawRect(x + 1, eyeBaseline + 3, 2, 1, outline);
             break;
           case "happy":
-            drawOpenEye(x, eyeBaseline, 3);
-            drawRect(x, eyeBaseline, 4, 1, outline);
+            drawOpenEye(x, eyeBaseline - 1, 5, { upperLid: false, lowerLid: true });
+            drawRect(x, eyeBaseline + 3, 4, 1, shiftColor(palette.earInner || irisColor, -0.18));
+            break;
+          case "wide":
+            drawOpenEye(x, eyeBaseline - 1, 5, { upperLid: false, lowerLid: true });
             break;
           case "relaxed":
-            drawOpenEye(x, eyeBaseline + 1, 3);
+            drawOpenEye(x, eyeBaseline, 4, { upperLid: true, lowerLid: true });
             break;
           default:
-            drawOpenEye(x, eyeBaseline, 3);
+            drawOpenEye(x, eyeBaseline - 1, 5, { upperLid: true, lowerLid: true });
         }
       }
 
-      function drawOpenEye(x, top, height) {
-        const h = Math.max(2, height);
+      function drawOpenEye(x, top, height, { upperLid = true, lowerLid = true } = {}) {
+        const h = Math.max(3, height);
         const y = Math.round(top);
         drawOutlinedRect(x, y, 4, h, eyeWhite, outline);
-        const pupilHeight = Math.max(1, h - 2);
-        drawRect(x + 1, y + h - pupilHeight - 1, 2, pupilHeight, pupilColor);
-        if (h >= 3) {
-          drawRect(x + 1, y + 1, 1, 1, "#ffffff");
+        const irisHeight = Math.max(1, h - 2);
+        const irisTop = y + 1;
+        drawRect(x + 1, irisTop, 2, irisHeight, irisColor);
+        const pupilHeight = Math.max(1, Math.min(irisHeight, h - 3));
+        drawRect(x + 1, irisTop + irisHeight - pupilHeight, 2, pupilHeight, pupilColor);
+        drawRect(x + 2, irisTop + irisHeight - 1, 1, 1, irisShadow);
+        drawRect(x + 1, irisTop, 1, 1, eyeShine);
+        if (upperLid) {
+          drawRect(x, y, 4, 1, eyelidColor);
+        }
+        if (lowerLid) {
+          drawRect(x, y + h - 1, 4, 1, lowerLidColor);
         }
       }
 
-      function drawMouth(style) {
-        const mouthX = headX + Math.floor(headWidth / 2) - 3;
-        const mouthY = headY + headHeight - 4;
+      function drawMouth(style, muzzleBaseX, muzzleBaseY, muzzleBaseWidth) {
+        const mouthCenterX = muzzleBaseX + Math.floor(muzzleBaseWidth / 2);
+        const mouthY = muzzleBaseY + 3;
+        const mouthX = mouthCenterX - 3;
+        const tongueColor = palette.earInner || palette.nose || "#f3adc9";
         switch (style) {
           case "smile":
             drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
@@ -1381,11 +1487,13 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
             drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
             drawRect(mouthX + 5, mouthY - 1, 2, 1, outline);
             drawRect(mouthX - 1, mouthY, 8, 2, outline);
-            drawRect(mouthX, mouthY + 1, 6, 1, palette.earInner || palette.nose || "#f3adc9");
+            drawRect(mouthX, mouthY + 1, 6, 1, tongueColor);
+            drawRect(mouthX, mouthY, 6, 1, outline);
             break;
           case "yum":
-            drawRect(mouthX, mouthY, 6, 2, outline);
-            drawRect(mouthX + 1, mouthY + 1, 4, 1, palette.earInner || palette.nose || "#f3adc9");
+            drawRect(mouthX, mouthY - 1, 6, 3, outline);
+            drawRect(mouthX + 1, mouthY, 4, 2, tongueColor);
+            drawRect(mouthX + 1, mouthY, 4, 1, shiftColor(tongueColor, 0.16));
             break;
           case "sleep":
             drawRect(mouthX + 1, mouthY, 4, 1, outline);
@@ -1395,33 +1503,69 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         }
       }
     }
-
     function drawEar(x, y, mirror, outerColor, accentColor, outline) {
-      drawOutlinedRect(x, y, base.ear.width, base.ear.height, outerColor, outline);
-      drawRect(x + 1, y + 1, base.ear.width - 2, base.ear.height - 2, palette.furMain || outerColor);
+      const outer = outerColor || palette.furSecondary || "#262338";
+      const inner = palette.earInner || accentColor;
+      const highlight = shiftColor(outer, 0.18);
+      const shadow = shiftColor(outer, -0.16);
+      const innerHighlight = inner ? shiftColor(inner, 0.16) : inner;
+      const innerShadow = inner ? shiftColor(inner, -0.12) : inner;
+
+      drawOutlinedRect(x, y, base.ear.width, base.ear.height, outer, outline);
+      drawRect(x + 1, y + 1, base.ear.width - 2, base.ear.height - 2, palette.furMain || outer);
+      drawRect(x + 1, y + 1, base.ear.width - 2, 1, highlight);
+      drawRect(x + 1, y + base.ear.height - 2, base.ear.width - 2, 1, shadow);
       const innerX = mirror ? x + base.ear.width - 3 : x + 2;
-      drawRect(innerX, y + 2, 2, base.ear.height - 4, palette.earInner || accentColor);
+      if (inner) {
+        drawRect(innerX, y + 2, 2, base.ear.height - 4, innerShadow);
+        drawRect(innerX, y + 2, 2, 1, innerHighlight);
+      }
     }
-
     function drawTail(bodyX, bodyY, sway, lift, color, accent, outline) {
-      const baseX = bodyX - 6 + sway;
-      const baseY = bodyY + 4 - lift;
-      drawOutlinedRect(baseX, baseY, 8, 6, color, outline);
-      drawOutlinedRect(baseX - 4, baseY - 4, 6, 6, accent, outline);
-      drawRect(baseX - 3, baseY - 3, 2, 2, palette.belly || accent);
+      const baseX = bodyX - 2 + sway;
+      const baseY = bodyY + 6 - lift;
+      const segments = [
+        { offsetX: -2, offsetY: 0, width: 7, height: 5, useAccent: false },
+        { offsetX: -5, offsetY: -3, width: 6, height: 5, useAccent: false },
+        { offsetX: -6, offsetY: -6, width: 5, height: 4, useAccent: Boolean(accent) },
+        { offsetX: -4, offsetY: -8, width: 4, height: 4, useAccent: Boolean(accent) },
+      ];
+      segments.forEach((segment) => {
+        const fill = segment.useAccent ? accent || color : color;
+        const x = baseX + segment.offsetX;
+        const y = baseY + segment.offsetY;
+        drawOutlinedRect(x, y, segment.width, segment.height, fill, outline);
+        if (segment.width > 2 && segment.height > 2) {
+          drawRect(x + 1, y + 1, segment.width - 2, 1, shiftColor(fill, 0.16));
+          drawRect(x + 1, y + segment.height - 2, segment.width - 2, 1, shiftColor(fill, -0.18));
+        }
+        if (segment.useAccent && accent) {
+          drawRect(x + segment.width - 2, y + 1, 1, segment.height - 2, shiftColor(accent, -0.1));
+        }
+      });
+      if (accent) {
+        drawRect(baseX - 6, baseY - 4, 4, 2, accent);
+        drawRect(baseX - 6, baseY - 4, 4, 1, shiftColor(accent, 0.16));
+        drawRect(baseX - 5, baseY - 2, 3, 1, shiftColor(accent, -0.16));
+      }
     }
-
     function drawLeg({ x, baseY, width, height, lift = 0, color, pawColor, outline }) {
       const effectiveLift = Math.max(0, Math.min(height - 3, lift));
       const legHeight = Math.max(5, height - effectiveLift);
       const topY = baseY - legHeight;
-      drawOutlinedRect(x, topY, width, legHeight, color, outline);
-      if (effectiveLift < height - 2) {
+      const legColor = color || palette.furMain || "#2f2c3d";
+      drawOutlinedRect(x, topY, width, legHeight, legColor, outline);
+      if (width > 2 && legHeight > 2) {
+        drawRect(x + 1, topY + 1, width - 2, 1, shiftColor(legColor, 0.18));
+        drawRect(x + width - 2, topY + 2, 1, legHeight - 3, shiftColor(legColor, -0.18));
+      }
+      if (effectiveLift < height - 2 && pawColor) {
         const pawY = baseY - 2 - Math.max(0, effectiveLift - 1);
         drawRect(x + 1, pawY, width - 2, 2, pawColor);
+        drawRect(x + 1, pawY, width - 2, 1, shiftColor(pawColor, 0.12));
+        drawRect(x + 1, pawY + 1, width - 2, 1, shiftColor(pawColor, -0.15));
       }
     }
-
     function drawOutlinedRect(x, y, width, height, fillColor, outlineColor) {
       if (width <= 0 || height <= 0) return;
       const px = Math.round(x);
