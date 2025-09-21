@@ -1,1 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catagotchi · Cuida a tu gato virtual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-primary: radial-gradient(circle at 20% 20%, #3f2b96, #1f054d 60%, #090014);
+        --bg-secondary: linear-gradient(135deg, rgba(76, 172, 255, 0.35), rgba(255, 112, 214, 0.25));
+        --card-bg: rgba(20, 11, 46, 0.7);
+        --card-border: rgba(147, 127, 255, 0.6);
+        --accent: #ffc857;
+        --accent-strong: #f76bff;
+        --success: #44ffb1;
+        --danger: #ff5f8f;
+        --text-primary: #f6f7ff;
+        --text-secondary: rgba(237, 239, 255, 0.72);
+        --glow: 0 0 22px rgba(255, 200, 87, 0.5);
+        --shadow: 0 20px 40px rgba(7, 3, 26, 0.6);
+      }
 
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Poppins", sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        overflow-x: hidden;
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      body::before {
+        background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 2px, transparent 2px);
+        background-size: 60px 60px;
+        opacity: 0.4;
+        animation: drift 40s linear infinite;
+      }
+
+      body::after {
+        background: var(--bg-secondary);
+        mix-blend-mode: screen;
+        opacity: 0.7;
+      }
+
+      @keyframes drift {
+        0% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(-40px, -20px, 0) scale(1.05);
+        }
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+      }
+
+      main {
+        position: relative;
+        width: min(1100px, 94vw);
+        margin: 48px auto;
+        padding: 36px clamp(24px, 4vw, 48px);
+        background: var(--card-bg);
+        border-radius: 32px;
+        border: 1.5px solid var(--card-border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px) saturate(140%);
+        overflow: hidden;
+      }
+
+      main::before {
+        content: "";
+        position: absolute;
+        inset: -120px;
+        background: radial-gradient(circle at center, rgba(255, 200, 87, 0.2) 0%, rgba(0, 0, 0, 0) 65%);
+        z-index: 0;
+        animation: pulse 12s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(0.9) rotate(0deg);
+        }
+        50% {
+          transform: scale(1.03) rotate(2deg);
+        }
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        margin-bottom: clamp(28px, 5vw, 48px);
+      }
+
+      .logo {
+        font-family: "Press Start 2P", system-ui, sans-serif;
+        letter-spacing: 0.1rem;
+        text-transform: uppercase;
+        font-size: clamp(1.1rem, 1.4vw + 0.6rem, 2rem);
+        color: var(--accent);
+        text-shadow: 0 0 12px rgba(255, 200, 87, 0.75);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .logo span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: clamp(38px, 4vw, 52px);
+        aspect-ratio: 1;
+        border-radius: 18px;
+        background: rgba(255, 200, 87, 0.12);
+        border: 2px solid rgba(255, 200, 87, 0.4);
+      }
+
+      .session-info {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        flex-wrap: wrap;
+      }
+
+      .session-info strong {
+        color: var(--accent);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 2.2fr 1.2fr;
+        gap: clamp(24px, 4vw, 40px);
+        position: relative;
+        z-index: 2;
+      }
+
+      .panel {
+        background: rgba(15, 8, 40, 0.6);
+        border-radius: 24px;
+        border: 1px solid rgba(119, 96, 255, 0.4);
+        padding: clamp(20px, 3vw, 32px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(247, 107, 255, 0.15), transparent 40%, transparent 60%, rgba(68, 255, 177, 0.12));
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      h2 {
+        margin: 0 0 18px;
+        font-size: clamp(1.1rem, 0.8vw + 1rem, 1.6rem);
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      h2 .spark {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 14px rgba(255, 200, 87, 0.8);
+        position: relative;
+      }
+
+      h2 .spark::after,
+      h2 .spark::before {
+        content: "";
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 200, 87, 0.6);
+      }
+
+      .cat-stage {
+        display: grid;
+        grid-template-columns: minmax(240px, 320px) 1fr;
+        gap: clamp(18px, 3vw, 32px);
+        align-items: center;
+      }
+
+      .cat-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1/1;
+        border-radius: 30px;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 200, 87, 0.35), rgba(15, 8, 40, 0.7));
+        border: 1px solid rgba(255, 200, 87, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 12px 32px rgba(8, 2, 26, 0.55);
+      }
+
+      .cat-container::after {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border-radius: 24px;
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .cat {
+        position: relative;
+        width: clamp(220px, 25vw, 300px);
+        transition: transform 0.6s ease;
+      }
+
+      .cat[data-mood="enfadado"] {
+        transform: translateY(4px) scale(0.95) rotate(-1deg);
+      }
+
+      .cat[data-mood="feliz"] {
+        transform: translateY(-6px) scale(1.03);
+      }
+
+      .cat svg {
+        width: 100%;
+        height: auto;
+        filter: drop-shadow(0 8px 16px rgba(10, 4, 28, 0.45));
+      }
+
+      .status-board {
+        display: grid;
+        gap: 16px;
+      }
+
+      .stat {
+        background: rgba(27, 16, 56, 0.6);
+        border-radius: 18px;
+        padding: 16px 18px;
+        border: 1px solid rgba(147, 127, 255, 0.35);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        right: 18px;
+        top: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .stat-title {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .progress-bar {
+        position: relative;
+        width: 100%;
+        height: 16px;
+        background: rgba(7, 2, 22, 0.8);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        --color: var(--accent);
+        width: var(--value, 50%);
+        height: 100%;
+        background: linear-gradient(90deg, rgba(255, 200, 87, 0.8), rgba(255, 120, 244, 0.85));
+        border-radius: inherit;
+        box-shadow: 0 0 18px rgba(255, 200, 87, 0.35);
+        transition: width 0.6s ease, background 0.6s ease;
+      }
+
+      .stat[data-theme="cool"] .progress-fill {
+        background: linear-gradient(90deg, rgba(76, 172, 255, 0.9), rgba(157, 233, 255, 0.8));
+        box-shadow: 0 0 18px rgba(76, 172, 255, 0.35);
+      }
+
+      .stat[data-theme="fun"] .progress-fill {
+        background: linear-gradient(90deg, rgba(247, 107, 255, 0.9), rgba(255, 163, 214, 0.8));
+        box-shadow: 0 0 18px rgba(247, 107, 255, 0.35);
+      }
+
+      .stat-value {
+        position: absolute;
+        right: 18px;
+        top: 16px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+      }
+
+      .action-btn {
+        background: rgba(34, 17, 68, 0.8);
+        border: 1px solid rgba(147, 127, 255, 0.4);
+        border-radius: 18px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+        justify-content: flex-start;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 200, 87, 0.12), transparent 60%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .action-btn:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 28px rgba(12, 5, 32, 0.55);
+        border-color: rgba(255, 200, 87, 0.6);
+      }
+
+      .action-btn:hover::after {
+        opacity: 1;
+      }
+
+      .action-icon {
+        font-size: 1.8rem;
+      }
+
+      .action-btn span {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .action-btn small {
+        color: rgba(240, 242, 255, 0.7);
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+
+      .activity-log {
+        max-height: 340px;
+        overflow-y: auto;
+        padding-right: 8px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .log-entry {
+        background: rgba(28, 17, 58, 0.6);
+        border-radius: 16px;
+        padding: 14px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: grid;
+        gap: 4px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .log-entry strong {
+        color: var(--accent);
+      }
+
+      .log-time {
+        font-size: 0.75rem;
+        color: rgba(240, 242, 255, 0.55);
+        letter-spacing: 0.05em;
+      }
+
+      .leveling {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 24px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255, 200, 87, 0.18);
+        border: 1px solid rgba(255, 200, 87, 0.4);
+        font-weight: 600;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+      }
+
+      .xp-bar {
+        flex: 1;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%) translateY(120%);
+        background: rgba(15, 8, 40, 0.88);
+        border: 1px solid rgba(255, 200, 87, 0.4);
+        border-radius: 18px;
+        padding: 14px 24px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        box-shadow: 0 20px 40px rgba(8, 2, 26, 0.6);
+        opacity: 0;
+        transition: transform 0.4s ease, opacity 0.4s ease;
+        z-index: 100;
+      }
+
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+
+      .toast .emoji {
+        font-size: 1.6rem;
+      }
+
+      .day-switch {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(16, 9, 38, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+
+      .day-switch:hover {
+        transform: translateY(-3px);
+      }
+
+      .cat-facts {
+        margin-top: 26px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(33, 19, 64, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: grid;
+        gap: 12px;
+      }
+
+      .cat-facts h3 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .cat-facts ul {
+        margin: 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: rgba(231, 233, 255, 0.76);
+      }
+
+      .name-input {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: rgba(25, 14, 50, 0.8);
+        border: 1px solid rgba(255, 200, 87, 0.3);
+        color: var(--text-primary);
+      }
+
+      .name-input input {
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        width: 150px;
+      }
+
+      .name-input input::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .name-input input:focus {
+        outline: none;
+      }
+
+      @media (max-width: 1024px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .cat-stage {
+          grid-template-columns: 1fr;
+          justify-items: center;
+        }
+        .cat-container {
+          max-width: 360px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .session-info {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        main {
+          padding: 28px 18px;
+        }
+
+        .action-btn {
+          padding: 16px;
+        }
+
+        .toast {
+          width: calc(100% - 32px);
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(12, 5, 30, 0.7);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, rgba(255, 200, 87, 0.6), rgba(247, 107, 255, 0.6));
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="logo"><span>🐾</span>Catagotchi</div>
+        <div class="session-info">
+          <label class="name-input">
+            <span>🐱</span>
+            <input id="catName" maxlength="16" placeholder="Ponle un nombre" />
+          </label>
+          <div>Veterinario en <strong id="vet-timer">--:--</strong></div>
+          <div>Nivel <strong id="level-label">1</strong></div>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section class="panel" aria-labelledby="panel-estado">
+          <div class="day-switch" id="daySwitch" role="button" tabindex="0">
+            <span id="dayEmoji">🌞</span>
+            <span id="dayLabel">Día brillante</span>
+          </div>
+          <h2 id="panel-estado"><span class="spark"></span> Estado del gato</h2>
+          <div class="cat-stage">
+            <div class="cat-container">
+              <div class="cat" id="cat" data-mood="feliz" aria-live="polite">
+                <svg viewBox="0 0 320 320" role="img" aria-label="Gato virtual">
+                  <defs>
+                    <radialGradient id="furGradient" cx="50%" cy="35%" r="70%">
+                      <stop offset="0%" stop-color="#ffe6cc" />
+                      <stop offset="60%" stop-color="#f3b37b" />
+                      <stop offset="100%" stop-color="#d48f5a" />
+                    </radialGradient>
+                    <radialGradient id="earGradient" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#ffb6d9" />
+                      <stop offset="100%" stop-color="#f38cc7" />
+                    </radialGradient>
+                  </defs>
+                  <g filter="url(#shadow)">
+                    <ellipse cx="160" cy="256" rx="96" ry="30" fill="rgba(15, 8, 40, 0.55)" />
+                  </g>
+                  <g id="cat-body">
+                    <path
+                      d="M60 120 C40 40, 90 40, 120 90 C140 45, 180 45, 200 90 C220 45, 260 45, 280 120 C290 160, 290 240, 240 270 C220 285, 190 295, 160 295 C130 295, 100 285, 80 270 C30 240, 30 160, 40 120 Z"
+                      fill="url(#furGradient)"
+                      stroke="#d48f5a"
+                      stroke-width="4"
+                    />
+                    <path
+                      d="M60 120 C40 40, 90 40, 120 90 C140 45, 180 45, 200 90 C220 45, 260 45, 280 120"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.3)"
+                      stroke-width="6"
+                      stroke-linecap="round"
+                    />
+                    <path d="M120 90 Q160 40 200 90" fill="rgba(255, 255, 255, 0.08)" />
+                    <path d="M100 110 C140 135, 180 135, 220 110" stroke="rgba(255, 255, 255, 0.2)" stroke-width="6" />
+                  </g>
+                  <g id="ears">
+                    <path d="M90 96 L68 36 Q108 24 126 70 Z" fill="#d48f5a" />
+                    <path d="M90 96 L74 52 Q110 42 122 74 Z" fill="url(#earGradient)" opacity="0.85" />
+                    <path d="M230 96 L252 36 Q212 24 194 70 Z" fill="#d48f5a" />
+                    <path d="M230 96 L246 52 Q210 42 198 74 Z" fill="url(#earGradient)" opacity="0.85" />
+                  </g>
+                  <g id="face" fill="#1b0a2c">
+                    <ellipse class="eye" cx="125" cy="160" rx="18" ry="22" />
+                    <ellipse class="eye" cx="195" cy="160" rx="18" ry="22" />
+                    <circle class="pupil" cx="125" cy="160" r="9" fill="#0a0315" />
+                    <circle class="pupil" cx="195" cy="160" r="9" fill="#0a0315" />
+                    <path id="mouth" d="M150 190 Q160 205 170 190" stroke="#1b0a2c" stroke-width="6" fill="none" stroke-linecap="round" />
+                    <path d="M160 174 Q160 190 148 192" stroke="#f59cb3" stroke-width="4" stroke-linecap="round" />
+                    <path d="M160 174 Q160 190 172 192" stroke="#f59cb3" stroke-width="4" stroke-linecap="round" />
+                    <circle cx="140" cy="176" r="10" fill="#f59cb3" opacity="0.7" />
+                    <circle cx="180" cy="176" r="10" fill="#f59cb3" opacity="0.7" />
+                  </g>
+                  <g id="tail">
+                    <path
+                      d="M278 210 C310 190, 310 150, 280 120"
+                      stroke="#d48f5a"
+                      stroke-width="18"
+                      stroke-linecap="round"
+                      fill="none"
+                    />
+                  </g>
+                  <g id="accessory" opacity="0">
+                    <path
+                      d="M130 232 C150 220, 170 220, 190 232 L180 246 C167 242, 153 242, 140 246 Z"
+                      fill="#6ee7ff"
+                      stroke="#4aa5ff"
+                      stroke-width="3"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+            <div class="status-board">
+              <div class="leveling">
+                <div class="badge" id="moodLabel">✨ Feliz</div>
+                <div class="xp-bar stat" data-tooltip="Experiencia" data-theme="fun">
+                  <div class="stat-title">Exp</div>
+                  <div class="progress-bar"><div class="progress-fill" id="xpBar"></div></div>
+                </div>
+              </div>
+              <article class="stat" data-tooltip="Mantén la panza llena">
+                <div class="stat-title">Panza llena</div>
+                <div class="progress-bar"><div class="progress-fill" id="hungerBar"></div></div>
+                <div class="stat-value" id="hungerValue">80%</div>
+              </article>
+              <article class="stat" data-theme="cool" data-tooltip="Necesita energía para jugar">
+                <div class="stat-title">Energía</div>
+                <div class="progress-bar"><div class="progress-fill" id="energyBar"></div></div>
+                <div class="stat-value" id="energyValue">80%</div>
+              </article>
+              <article class="stat" data-theme="fun" data-tooltip="La diversión evita el aburrimiento">
+                <div class="stat-title">Diversión</div>
+                <div class="progress-bar"><div class="progress-fill" id="funBar"></div></div>
+                <div class="stat-value" id="funValue">80%</div>
+              </article>
+              <article class="stat" data-tooltip="Un gato limpio es un gato feliz">
+                <div class="stat-title">Aseo</div>
+                <div class="progress-bar"><div class="progress-fill" id="cleanBar"></div></div>
+                <div class="stat-value" id="cleanValue">80%</div>
+              </article>
+              <article class="stat" data-theme="cool" data-tooltip="La salud depende de los demás cuidados">
+                <div class="stat-title">Salud</div>
+                <div class="progress-bar"><div class="progress-fill" id="healthBar"></div></div>
+                <div class="stat-value" id="healthValue">80%</div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="panel-acciones">
+          <h2 id="panel-acciones"><span class="spark"></span> Cuida a tu Catagotchi</h2>
+          <div class="actions">
+            <button class="action-btn" data-action="feed">
+              <div class="action-icon">🍣</div>
+              <span>Alimentar</span>
+              <small>Salmón fresco y crujiente. Recupera la panza y un poco de alegría.</small>
+            </button>
+            <button class="action-btn" data-action="play">
+              <div class="action-icon">🧶</div>
+              <span>Jugar</span>
+              <small>Una sesión intensa con ovillos de lana. Aumenta la diversión pero gasta energía.</small>
+            </button>
+            <button class="action-btn" data-action="groom">
+              <div class="action-icon">🛁</div>
+              <span>Baño y cepillado</span>
+              <small>Deja el pelaje brillante. Mejora el aseo y la salud.</small>
+            </button>
+            <button class="action-btn" data-action="nap">
+              <div class="action-icon">😴</div>
+              <span>Siestita</span>
+              <small>Recarga energía rápidamente. Pierde algo de diversión y apetito.</small>
+            </button>
+            <button class="action-btn" data-action="vet">
+              <div class="action-icon">💉</div>
+              <span>Visita al veterinario</span>
+              <small>Solo cuando sea necesario. Recupera salud, pero estresa un poco al gato.</small>
+            </button>
+            <button class="action-btn" data-action="surprise">
+              <div class="action-icon">🎁</div>
+              <span>Sorpresa</span>
+              <small>Un juguete misterioso o un premio. ¿Qué ocurrirá hoy?</small>
+            </button>
+          </div>
+
+          <div class="cat-facts">
+            <h3>📚 Consejos felinos</h3>
+            <ul>
+              <li>Haz que juegue a diario para desbloquear accesorios exclusivos.</li>
+              <li>Si la salud baja de 40, programa una visita urgente al veterinario.</li>
+              <li>Los cambios entre día y noche influyen en la velocidad a la que se cansa.</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel" aria-labelledby="panel-registro" style="margin-top: clamp(28px, 5vw, 48px);">
+        <h2 id="panel-registro"><span class="spark"></span> Diario de aventuras</h2>
+        <div class="activity-log" id="log" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <div class="toast" role="status" aria-live="assertive" id="toast">
+      <span class="emoji" id="toastEmoji"></span>
+      <div id="toastMessage"></div>
+    </div>
+
+    <template id="logEntryTemplate">
+      <article class="log-entry">
+        <div class="log-time"></div>
+        <div class="log-text"></div>
+      </article>
+    </template>
+
+    <script>
+      const MAX_STAT = 100;
+      const MIN_STAT = 0;
+      const STORAGE_KEY = "catagotchi-state";
+
+      const cat = document.getElementById("cat");
+      const moodLabel = document.getElementById("moodLabel");
+      const xpBar = document.getElementById("xpBar");
+      const hungerBar = document.getElementById("hungerBar");
+      const energyBar = document.getElementById("energyBar");
+      const funBar = document.getElementById("funBar");
+      const cleanBar = document.getElementById("cleanBar");
+      const healthBar = document.getElementById("healthBar");
+      const hungerValue = document.getElementById("hungerValue");
+      const energyValue = document.getElementById("energyValue");
+      const funValue = document.getElementById("funValue");
+      const cleanValue = document.getElementById("cleanValue");
+      const healthValue = document.getElementById("healthValue");
+      const log = document.getElementById("log");
+      const logEntryTemplate = document.getElementById("logEntryTemplate");
+      const toast = document.getElementById("toast");
+      const toastEmoji = document.getElementById("toastEmoji");
+      const toastMessage = document.getElementById("toastMessage");
+      const catNameInput = document.getElementById("catName");
+      const vetTimer = document.getElementById("vet-timer");
+      const daySwitch = document.getElementById("daySwitch");
+      const dayLabel = document.getElementById("dayLabel");
+      const dayEmoji = document.getElementById("dayEmoji");
+      const levelLabel = document.getElementById("level-label");
+
+      const defaultState = {
+        name: "Pixel",
+        hunger: 80,
+        energy: 74,
+        fun: 72,
+        clean: 70,
+        health: 86,
+        xp: 10,
+        level: 1,
+        coins: 25,
+        accessoriesUnlocked: false,
+        vetCooldown: 0,
+        dayMode: "day",
+        lastTick: Date.now(),
+        history: [],
+      };
+
+      const state = loadState();
+
+      const actions = {
+        feed: {
+          emoji: "🍣",
+          text: () => `${getName()} disfruta del mejor salmón nigiri.`,
+          effects: { hunger: +24, fun: +6, energy: -4, clean: -6 },
+          xp: 12,
+        },
+        play: {
+          emoji: "🧶",
+          text: () => `${getName()} persigue el ovillo como si fuera la última vez.`,
+          effects: { fun: +24, energy: -12, hunger: -8, health: +3 },
+          xp: 16,
+        },
+        groom: {
+          emoji: "🛁",
+          text: () => `Sesión de spa: ${getName()} queda impecable y relajado.`,
+          effects: { clean: +26, health: +10, fun: -4 },
+          xp: 14,
+        },
+        nap: {
+          emoji: "😴",
+          text: () => `${getName()} ronronea mientras duerme la siesta.`,
+          effects: { energy: +32, hunger: -8, fun: -6, health: +4 },
+          xp: 10,
+        },
+        vet: {
+          emoji: "💉",
+          text: () => `Visita médica: ${getName()} recibe una revisión completa.`,
+          effects: { health: +28, fun: -12, energy: -6, clean: -4 },
+          xp: 18,
+          cooldown: 120000,
+        },
+        surprise: {
+          emoji: "🎁",
+          text: () => {
+            const surprises = [
+              `¡Nueva pluma brillante! ${getName()} salta de emoción.`,
+              `${getName()} descubre un rayo de sol perfecto para dormir.`,
+              `Encuentras una caja misteriosa. Dentro había snacks crujientes.`,
+              `${getName()} aprende un truco nuevo y lo presume orgulloso.`,
+            ];
+            return surprises[Math.floor(Math.random() * surprises.length)];
+          },
+          effects: () => randomSurpriseEffects(),
+          xp: 20,
+        },
+      };
+
+      const baseDegradeRates = {
+        hunger: -2.6,
+        energy: -2.2,
+        fun: -2.4,
+        clean: -1.8,
+        health: -0.5,
+      };
+
+      let degradeRates = { ...baseDegradeRates };
+
+      const tickInterval = 2500;
+
+      initialize();
+      setInterval(tick, tickInterval);
+
+      function initialize() {
+        catNameInput.value = state.name;
+        catNameInput.addEventListener("change", () => {
+          state.name = catNameInput.value.trim() || "Pixel";
+          saveState();
+          pushLog(`Ahora se llama ${state.name}.`, "✨");
+        });
+
+        document.querySelectorAll(".action-btn").forEach((btn) => {
+          btn.addEventListener("click", () => handleAction(btn.dataset.action));
+        });
+
+        daySwitch.addEventListener("click", toggleDayMode);
+        daySwitch.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleDayMode();
+          }
+        });
+
+        if (state.history.length === 0) {
+          pushLog(`Comienza una nueva aventura con ${state.name}.`, "🚀");
+        } else {
+          state.history.forEach((entry) => addLogEntry(entry));
+        }
+
+        updateUI();
+        updateDayMode();
+        updateVetTimer();
+      }
+
+      function loadState() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (!stored) return structuredClone(defaultState);
+          const parsed = JSON.parse(stored);
+          return { ...structuredClone(defaultState), ...parsed };
+        } catch (error) {
+          console.error("Error cargando estado", error);
+          return structuredClone(defaultState);
+        }
+      }
+
+      function saveState() {
+        try {
+          const copy = { ...state, history: state.history.slice(-25) };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+        } catch (error) {
+          console.error("Error guardando estado", error);
+        }
+      }
+
+      function tick() {
+        const now = Date.now();
+        const delta = (now - state.lastTick) / 1000;
+        state.lastTick = now;
+
+        Object.entries(degradeRates).forEach(([stat, rate]) => {
+          modifyStat(stat, rate * delta);
+        });
+
+        if (state.hunger < 35 || state.clean < 30 || state.fun < 30) {
+          modifyStat("health", -1.5 * delta);
+        }
+        if (state.energy < 25) {
+          modifyStat("fun", -1.2 * delta);
+        }
+
+        if (state.vetCooldown > 0) {
+          state.vetCooldown = Math.max(0, state.vetCooldown - tickInterval);
+        }
+
+        updateUI();
+        saveState();
+        updateVetTimer();
+      }
+
+      function modifyStat(stat, amount) {
+        const prev = state[stat];
+        state[stat] = clamp(state[stat] + amount, MIN_STAT, MAX_STAT);
+        if (stat === "health" && prev > 20 && state.health <= 20) {
+          showToast("⚠️", `${getName()} necesita atención urgente.`);
+        }
+      }
+
+      function handleAction(actionKey) {
+        const action = actions[actionKey];
+        if (!action) return;
+
+        if (actionKey === "vet" && state.vetCooldown > 0) {
+          const seconds = Math.ceil(state.vetCooldown / 1000);
+          showToast("⏳", `Aún faltan ${seconds}s para la próxima visita.`);
+          return;
+        }
+
+        let effects = action.effects;
+        if (typeof effects === "function") {
+          effects = effects();
+        }
+
+        Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value));
+        gainXp(action.xp);
+        addLogEntry({ emoji: action.emoji, message: action.text(), timestamp: Date.now() });
+
+        if (action.cooldown) {
+          state.vetCooldown = action.cooldown;
+          updateVetTimer();
+        }
+
+        if (!state.accessoriesUnlocked && state.level >= 3) {
+          state.accessoriesUnlocked = true;
+          toggleAccessory(true);
+          pushLog(`${getName()} desbloquea su primer accesorio exclusivo.`, "🌟");
+        }
+
+        const mood = getMood();
+        cat.dataset.mood = mood.key;
+        showToast(action.emoji, action.text());
+        updateUI();
+        saveState();
+      }
+
+      function gainXp(amount) {
+        state.xp += amount;
+        const levelThreshold = state.level * 120;
+        if (state.xp >= levelThreshold) {
+          state.xp -= levelThreshold;
+          state.level += 1;
+          pushLog(`${getName()} sube al nivel ${state.level}.`, "🏅");
+          showToast("🏅", `${getName()} alcanza el nivel ${state.level}.`);
+        }
+      }
+
+      function getMood() {
+        const avg = (state.hunger + state.energy + state.fun + state.clean + state.health) / 5;
+        if (avg > 80) return { key: "feliz", label: "✨ Feliz" };
+        if (avg > 60) return { key: "contento", label: "😺 Contento" };
+        if (avg > 40) return { key: "neutro", label: "😐 Pensativo" };
+        if (avg > 20) return { key: "triste", label: "🥺 Tristón" };
+        return { key: "enfadado", label: "😾 Enfadado" };
+      }
+
+      function updateUI() {
+        updateStat(hungerBar, hungerValue, state.hunger);
+        updateStat(energyBar, energyValue, state.energy);
+        updateStat(funBar, funValue, state.fun);
+        updateStat(cleanBar, cleanValue, state.clean);
+        updateStat(healthBar, healthValue, state.health);
+        updateXP();
+
+        const mood = getMood();
+        moodLabel.textContent = mood.label;
+        cat.dataset.mood = mood.key;
+        updateCatFace(mood.key);
+        levelLabel.textContent = state.level;
+        document.title = `${getName()} · Nivel ${state.level} | Catagotchi`;
+      }
+
+      function updateStat(bar, valueLabel, statValue) {
+        bar.style.setProperty("--value", `${statValue}%`);
+        bar.style.width = `${statValue}%`;
+        valueLabel.textContent = `${Math.round(statValue)}%`;
+        if (statValue < 30) {
+          valueLabel.style.color = "var(--danger)";
+        } else if (statValue > 70) {
+          valueLabel.style.color = "var(--success)";
+        } else {
+          valueLabel.style.color = "var(--text-secondary)";
+        }
+      }
+
+      function updateXP() {
+        const levelThreshold = state.level * 120;
+        const xpPercent = Math.min(100, (state.xp / levelThreshold) * 100);
+        xpBar.style.setProperty("--value", `${xpPercent}%`);
+        xpBar.style.width = `${xpPercent}%`;
+      }
+
+      function updateCatFace(moodKey) {
+        const mouth = document.getElementById("mouth");
+        const pupils = document.querySelectorAll(".pupil");
+        switch (moodKey) {
+          case "feliz":
+            mouth.setAttribute("d", "M140 190 Q160 215 180 190");
+            pupils.forEach((p) => p.setAttribute("cy", "158"));
+            break;
+          case "contento":
+            mouth.setAttribute("d", "M145 190 Q160 200 175 190");
+            pupils.forEach((p) => p.setAttribute("cy", "160"));
+            break;
+          case "neutro":
+            mouth.setAttribute("d", "M145 188 Q160 188 175 188");
+            pupils.forEach((p) => p.setAttribute("cy", "162"));
+            break;
+          case "triste":
+            mouth.setAttribute("d", "M145 192 Q160 178 175 192");
+            pupils.forEach((p) => p.setAttribute("cy", "166"));
+            break;
+          default:
+            mouth.setAttribute("d", "M138 192 Q160 170 182 192");
+            pupils.forEach((p) => p.setAttribute("cy", "170"));
+        }
+      }
+
+      function addLogEntry(entry) {
+        const element = logEntryTemplate.content.cloneNode(true);
+        const timeElement = element.querySelector(".log-time");
+        const textElement = element.querySelector(".log-text");
+        const date = new Date(entry.timestamp || Date.now());
+        const time = date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+        timeElement.textContent = `${entry.emoji} ${time}`;
+        textElement.textContent = entry.message;
+        log.prepend(element);
+        state.history.push(entry);
+        state.history = state.history.slice(-40);
+      }
+
+      function pushLog(message, emoji = "✨") {
+        const entry = { emoji, message, timestamp: Date.now() };
+        addLogEntry(entry);
+        saveState();
+      }
+
+      function showToast(emoji, message) {
+        toastEmoji.textContent = emoji;
+        toastMessage.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(showToast.timeoutId);
+        showToast.timeoutId = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3200);
+      }
+
+      function randomSurpriseEffects() {
+        const outcomes = [
+          { hunger: +12, fun: +18, clean: -6, energy: -4 },
+          { fun: +24, health: +6 },
+          { energy: +14, fun: +10 },
+          { health: +12, clean: +8 },
+          { hunger: +16, fun: -4 },
+        ];
+        return outcomes[Math.floor(Math.random() * outcomes.length)];
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function updateVetTimer() {
+        if (state.vetCooldown <= 0) {
+          vetTimer.textContent = "listo";
+          return;
+        }
+        const minutes = Math.floor(state.vetCooldown / 60000);
+        const seconds = Math.floor((state.vetCooldown % 60000) / 1000);
+        vetTimer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function toggleAccessory(show) {
+        const accessory = document.getElementById("accessory");
+        accessory.style.opacity = show ? 1 : 0;
+      }
+
+      function toggleDayMode() {
+        state.dayMode = state.dayMode === "day" ? "night" : "day";
+        updateDayMode();
+        saveState();
+        pushLog(`El entorno cambia a modo ${state.dayMode === "day" ? "día" : "noche"}.`, "🌗");
+      }
+
+      function updateDayMode() {
+        if (state.dayMode === "day") {
+          document.documentElement.style.setProperty(
+            "--bg-primary",
+            "radial-gradient(circle at 20% 20%, #3f2b96, #1f054d 60%, #090014)"
+          );
+          dayEmoji.textContent = "🌞";
+          dayLabel.textContent = "Día brillante";
+          degradeRates = { ...baseDegradeRates };
+        } else {
+          document.documentElement.style.setProperty(
+            "--bg-primary",
+            "radial-gradient(circle at 70% 20%, #12072f, #04010c 65%, #000000)"
+          );
+          dayEmoji.textContent = "🌙";
+          dayLabel.textContent = "Noche tranquila";
+          degradeRates = { ...baseDegradeRates, energy: -1.4 };
+        }
+      }
+
+      function getName() {
+        return state.name || "Pixel";
+      }
+
+      window.addEventListener("visibilitychange", () => {
+        state.lastTick = Date.now();
+      });
+
+      window.addEventListener("beforeunload", saveState);
+    </script>
+  </body>
+</html>
