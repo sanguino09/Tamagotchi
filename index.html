@@ -10,1023 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <style>
-      :root {
-        color-scheme: light;
-        --bg-primary: radial-gradient(circle at top, #ffe3f1 0%, #ffb7d5 36%, #ff86c6 70%, #f564a5 100%);
-        --shell-main: #ff85c5;
-        --shell-highlight: #ffd6ec;
-        --shell-shadow: #d43c8c;
-        --screen-sky: #bde9ff;
-        --screen-ground: #ffe7b5;
-        --screen-glow: rgba(255, 255, 255, 0.36);
-        --screen-border: #ffbcd9;
-        --hud-bg: rgba(255, 255, 255, 0.36);
-        --hud-border: #ff9cca;
-        --hud-text: #4a1031;
-        --stat-bg: rgba(255, 255, 255, 0.42);
-        --stat-border: #ff87c9;
-        --progress-bg: rgba(255, 255, 255, 0.5);
-        --progress-fill: linear-gradient(90deg, #ff9bc6 0%, #ffda85 100%);
-        --progress-fill-cool: linear-gradient(90deg, #8bc6ff 0%, #74f2ff 100%);
-        --progress-fill-fun: linear-gradient(90deg, #f996ff 0%, #ffa4d4 100%);
-        --text-primary: #351026;
-        --text-secondary: #6d1c45;
-        --button-bg: #ffe5f3;
-        --button-shadow: #ffa4d0;
-        --device-shadow: rgba(218, 44, 129, 0.28);
-      }
+    <link rel="stylesheet" href="styles.css" />
 
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg-primary);
-        font-family: "Poppins", sans-serif;
-        color: var(--text-primary);
-        padding: 32px 18px;
-      }
-
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.4), transparent 55%),
-          radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.35), transparent 45%);
-        pointer-events: none;
-        opacity: 0.45;
-      }
-
-      main.device {
-        position: relative;
-        width: min(480px, 92vw);
-        padding: 42px 34px 58px;
-        border-radius: 220px 220px 280px 280px;
-        background: radial-gradient(circle at 50% 18%, var(--shell-highlight), var(--shell-main) 55%, var(--shell-shadow) 120%);
-        box-shadow: 0 40px 80px var(--device-shadow), inset 0 0 0 6px rgba(255, 255, 255, 0.4);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 18px;
-      }
-
-      main.device::before {
-        content: "";
-        position: absolute;
-        inset: 16px 22px;
-        border-radius: 180px 180px 240px 240px;
-        border: 4px solid rgba(255, 255, 255, 0.45);
-        pointer-events: none;
-      }
-
-      .status-strip {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 16px;
-        padding: 12px 16px;
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.45);
-        border: 3px solid rgba(255, 255, 255, 0.65);
-        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.35);
-        font-weight: 600;
-        color: var(--text-secondary);
-      }
-
-      .identity {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex: 1;
-      }
-
-      .identity-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.85);
-        border: 2px solid rgba(255, 134, 201, 0.55);
-        display: grid;
-        place-items: center;
-        font-size: 1.8rem;
-        font-family: inherit;
-        box-shadow: 0 6px 0 rgba(255, 118, 197, 0.35);
-        flex-shrink: 0;
-        appearance: none;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        line-height: 1;
-        padding: 0;
-        color: inherit;
-        user-select: none;
-      }
-
-      .identity-avatar:focus-visible {
-        outline: 2px solid rgba(89, 148, 255, 0.9);
-        outline-offset: 3px;
-      }
-
-      .identity-avatar:active {
-        transform: translateY(2px);
-        box-shadow: 0 3px 0 rgba(255, 118, 197, 0.35);
-      }
-
-      .identity-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 0;
-        align-items: flex-start;
-      }
-
-      .name-field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        font-family: "Press Start 2P", system-ui;
-        font-size: 0.54rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .name-field input {
-        border: none;
-        background: rgba(255, 255, 255, 0.7);
-        border-radius: 10px;
-        padding: 6px 8px 4px;
-        font: inherit;
-        color: var(--text-primary);
-        width: 118px;
-        max-width: 100%;
-        text-transform: uppercase;
-      }
-
-      .name-field input::placeholder {
-        color: rgba(122, 54, 88, 0.55);
-      }
-
-      .name-field input:focus {
-        outline: 2px solid rgba(255, 118, 197, 0.75);
-        outline-offset: 2px;
-      }
-
-      .level-pill {
-        align-self: flex-start;
-        font-family: "Press Start 2P", system-ui;
-        font-size: 0.56rem;
-        letter-spacing: 0.08em;
-        background: rgba(255, 255, 255, 0.78);
-        color: var(--text-primary);
-        padding: 4px 9px 3px;
-        border-radius: 999px;
-        border: 2px solid rgba(255, 118, 197, 0.45);
-        box-shadow: 0 4px 0 rgba(255, 118, 197, 0.35);
-      }
-
-      .screen-section {
-        width: 100%;
-      }
-
-      .screen {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        background: linear-gradient(180deg, var(--screen-sky) 0%, var(--screen-ground) 70%);
-        border-radius: 36px;
-        border: 4px solid var(--screen-border);
-        box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6), inset 0 0 45px var(--screen-glow);
-        padding: 20px 18px 18px;
-        font-family: "Press Start 2P", system-ui;
-        letter-spacing: 0.05em;
-        color: var(--hud-text);
-      }
-
-      .environment-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border-radius: 999px;
-        padding: 8px 12px 6px;
-        font: inherit;
-        font-size: 0.62rem;
-        text-transform: uppercase;
-        background: rgba(255, 255, 255, 0.5);
-        border: 2px solid rgba(255, 255, 255, 0.75);
-        color: inherit;
-        white-space: nowrap;
-        flex-shrink: 0;
-        letter-spacing: 0.08em;
-      }
-
-      .environment-indicator span:first-child {
-        font-size: 1.1rem;
-        line-height: 1;
-      }
-
-      .scene {
-        position: relative;
-        height: clamp(260px, 48vw, 320px);
-        border-radius: 28px;
-        overflow: hidden;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 60%, transparent 100%);
-        border: 2px dashed rgba(255, 255, 255, 0.4);
-      }
-
-      .scene::before,
-      .scene::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-
-      .scene::before {
-        background: radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.7), transparent 60%),
-          radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.5), transparent 55%);
-        opacity: 0.75;
-      }
-
-      .scene::after {
-        bottom: -14px;
-        top: auto;
-        height: 160px;
-        background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.32) 0 2px, transparent 2px 8px);
-        opacity: 0.5;
-      }
-
-      .scene-floor {
-        position: absolute;
-        inset: auto 0 0;
-        height: 42%;
-        background: linear-gradient(180deg, rgba(255, 229, 184, 0.7), rgba(255, 190, 150, 0.4));
-        border-top: 2px solid rgba(255, 255, 255, 0.6);
-      }
-
-      .cat-wanderer {
-        --x: 0px;
-        --y: 0px;
-        --flip: 1;
-        --scale: 1;
-        --bob-speed: 3.2s;
-        --shadow-opacity: 0.45;
-        position: absolute;
-        left: 50%;
-        bottom: 32px;
-        width: clamp(150px, 38vw, 208px);
-        transform: translate(calc(-50% + var(--x)), var(--y));
-        transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1);
-        will-change: transform;
-      }
-
-      .cat-shadow {
-        position: absolute;
-        left: 50%;
-        bottom: -14px;
-        width: 70%;
-        height: 26px;
-        background: rgba(0, 0, 0, 0.18);
-        border-radius: 50%;
-        transform: translateX(-50%) scaleX(calc(0.95 + (var(--scale) - 1) * 0.6));
-        filter: blur(4px);
-        opacity: var(--shadow-opacity);
-        transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1), opacity 0.6s ease;
-      }
-
-      .cat {
-        position: relative;
-        width: 100%;
-        transform: scaleX(var(--flip)) scale(var(--scale));
-        transform-origin: center bottom;
-        animation: bob var(--bob-speed) ease-in-out infinite;
-        filter: drop-shadow(0 10px 18px rgba(112, 41, 104, 0.25));
-        --fur-main: #2f2c3d;
-        --fur-secondary: #262338;
-        --fur-accent: #454058;
-        --belly: #d8dbe8;
-        --ear-inner: #f3adc9;
-        --cheek: #f48fbf;
-        --outline: #08050f;
-        --paw: #e8ecf7;
-        --collar: #6ee7ff;
-        --collar-stroke: #4aa5ff;
-        --pupil: #0e1018;
-        --nose: #f3adc9;
-      }
-
-      .cat svg {
-        width: 100%;
-        height: auto;
-        image-rendering: pixelated;
-        shape-rendering: crispEdges;
-      }
-
-      #faceFeatures {
-        transform-box: fill-box;
-        transform-origin: center;
-        transform: translateY(-6px);
-        transition: transform 0.35s ease;
-      }
-
-      #eyesOpen,
-      #eyesClosed {
-        transition: opacity 0.3s ease;
-      }
-
-      #eyesClosed {
-        opacity: 0;
-      }
-
-      .cat[data-activity="feed"] #faceFeatures {
-        transform: translateY(-8px);
-      }
-
-      .cat[data-activity="play"] #faceFeatures {
-        transform: translateY(-4px);
-      }
-
-      .cat[data-activity="nap"] #faceFeatures {
-        transform: translateY(-2px);
-      }
-
-      .cat[data-activity="nap"] #eyesOpen {
-        opacity: 0;
-      }
-
-      .cat[data-activity="nap"] #eyesClosed {
-        opacity: 1;
-      }
-
-      #whiskers {
-        transform-box: fill-box;
-        transform-origin: center;
-        transition: transform 0.3s ease;
-      }
-
-      .cat[data-activity="feed"] #whiskers {
-        transform: translateY(-1px);
-      }
-
-      .cat[data-activity="nap"] #whiskers {
-        transform: translateY(1px);
-      }
-
-      .cat[data-activity="play"] #whiskers {
-        animation: whiskerWiggle 0.9s ease-in-out infinite;
-      }
-
-      @keyframes whiskerWiggle {
-        0%,
-        100% {
-          transform: translateY(-1px) rotate(-3deg);
-        }
-        50% {
-          transform: translateY(1px) rotate(3deg);
-        }
-      }
-
-      #activityProps g {
-        opacity: 0;
-        transform-box: fill-box;
-        transform-origin: center;
-        transition: opacity 0.35s ease;
-      }
-
-      #propBowl {
-        transform: translateY(14px);
-      }
-
-      .cat[data-activity="feed"] #propBowl {
-        opacity: 1;
-        animation: bowlBounce 1.2s ease-in-out infinite;
-      }
-
-      @keyframes bowlBounce {
-        0% {
-          transform: translateY(14px);
-        }
-        50% {
-          transform: translateY(-4px);
-        }
-        100% {
-          transform: translateY(0);
-        }
-      }
-
-      #propYarn {
-        transform: translateY(8px) rotate(-12deg);
-      }
-
-      .cat[data-activity="play"] #propYarn {
-        opacity: 1;
-        animation: yarnBounce 1.05s ease-in-out infinite;
-      }
-
-      @keyframes yarnBounce {
-        0% {
-          transform: translateY(6px) rotate(-12deg);
-        }
-        50% {
-          transform: translateY(-6px) rotate(10deg);
-        }
-        100% {
-          transform: translateY(6px) rotate(-12deg);
-        }
-      }
-
-      #propSleep {
-        transform: translateY(8px);
-      }
-
-      .cat[data-activity="nap"] #propSleep {
-        opacity: 1;
-        animation: floatZ 1.8s ease-in-out infinite alternate;
-      }
-
-      @keyframes floatZ {
-        0% {
-          transform: translateY(0);
-        }
-        100% {
-          transform: translateY(-8px);
-        }
-      }
-
-      .cat[data-mood="feliz"] svg {
-        filter: saturate(1.1) brightness(1.05) drop-shadow(0 10px 18px rgba(112, 41, 104, 0.25));
-      }
-
-      .cat[data-mood="triste"] svg,
-      .cat[data-mood="enfadado"] svg {
-        filter: saturate(0.85) brightness(0.92) drop-shadow(0 10px 18px rgba(112, 41, 104, 0.2));
-      }
-
-      .screen-hud {
-        background: var(--hud-bg);
-        border: 3px solid var(--hud-border);
-        border-radius: 24px;
-        padding: 14px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.35);
-      }
-
-      .hud-top {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .mood-chip {
-        padding: 6px 12px 5px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.75);
-        border: 2px solid rgba(255, 118, 197, 0.45);
-        font-size: 0.65rem;
-        letter-spacing: 0.08em;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .xp-bar {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.62rem;
-        text-transform: uppercase;
-      }
-
-      .progress-track {
-        flex: 1;
-        height: 10px;
-        border-radius: 999px;
-        background: var(--progress-bg);
-        border: 2px solid rgba(255, 255, 255, 0.7);
-        overflow: hidden;
-      }
-
-      .progress-fill {
-        width: var(--value, 50%);
-        height: 100%;
-        background: var(--progress-fill);
-        border-radius: inherit;
-        transition: width 0.6s ease;
-      }
-
-      .stat-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 12px;
-        font-size: 0.58rem;
-      }
-
-      .stat {
-        position: relative;
-        padding: 10px 12px 12px;
-        border-radius: 18px;
-        background: var(--stat-bg);
-        border: 2px solid var(--stat-border);
-        box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.28);
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .stat[data-theme="cool"] .progress-fill {
-        background: var(--progress-fill-cool);
-      }
-
-      .stat[data-theme="fun"] .progress-fill {
-        background: var(--progress-fill-fun);
-      }
-
-      .stat-title {
-        display: flex;
-        justify-content: space-between;
-        text-transform: uppercase;
-      }
-
-      .stat-value {
-        position: absolute;
-        top: 10px;
-        right: 12px;
-      }
-
-      .progress-bar {
-        width: 100%;
-        height: 9px;
-        border-radius: 999px;
-        border: 2px solid rgba(255, 255, 255, 0.7);
-        background: var(--progress-bg);
-        overflow: hidden;
-      }
-
-      .activity-log {
-        max-height: 180px;
-        overflow-y: auto;
-        display: grid;
-        gap: 10px;
-        font-family: "Poppins", sans-serif;
-        font-size: 0.85rem;
-        color: var(--text-primary);
-      }
-
-      .log-window {
-        width: 100%;
-        background: rgba(255, 255, 255, 0.48);
-        border-radius: 26px;
-        border: 3px solid rgba(255, 255, 255, 0.7);
-        padding: 18px 18px 20px;
-        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.32);
-      }
-
-      .log-title {
-        font-family: "Press Start 2P", system-ui;
-        font-size: 0.72rem;
-        letter-spacing: 0.08em;
-        margin: 0 0 14px;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .log-entry {
-        background: rgba(255, 255, 255, 0.78);
-        border: 2px dashed rgba(255, 134, 201, 0.65);
-        border-radius: 16px;
-        padding: 10px 12px;
-        display: grid;
-        gap: 6px;
-      }
-
-      .log-time {
-        font-family: "Press Start 2P", system-ui;
-        font-size: 0.55rem;
-        letter-spacing: 0.08em;
-        color: rgba(130, 52, 92, 0.7);
-      }
-
-      .log-text {
-        line-height: 1.45;
-      }
-
-      .button-row {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
-        gap: 18px;
-        justify-items: center;
-        margin: 4px 0 0;
-      }
-
-      .device-button {
-        position: relative;
-        width: 58px;
-        height: 58px;
-        border-radius: 50%;
-        border: none;
-        background: var(--button-bg);
-        box-shadow: 0 10px 0 var(--button-shadow);
-        display: grid;
-        place-items: center;
-        font-size: 1.8rem;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-
-      .device-button::after {
-        content: attr(data-label);
-        position: absolute;
-        bottom: -28px;
-        left: 50%;
-        transform: translateX(-50%) translateY(4px);
-        background: rgba(255, 255, 255, 0.82);
-        color: var(--text-primary);
-        font-family: "Press Start 2P", system-ui;
-        font-size: 0.48rem;
-        padding: 4px 6px;
-        border-radius: 6px;
-        border: 1px solid rgba(255, 134, 201, 0.5);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-        white-space: nowrap;
-      }
-
-      .device-button:hover,
-      .device-button:focus-visible {
-        transform: translateY(2px);
-        box-shadow: 0 6px 0 var(--button-shadow);
-      }
-
-      .device-button:hover::after,
-      .device-button:focus-visible::after {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-
-      .device-button:active {
-        transform: translateY(6px);
-        box-shadow: 0 4px 0 var(--button-shadow);
-      }
-
-      .device-button:focus-visible {
-        outline: 2px solid rgba(89, 148, 255, 0.8);
-        outline-offset: 3px;
-      }
-
-      .toast {
-        position: fixed;
-        left: 50%;
-        bottom: 24px;
-        transform: translate(-50%, 120%);
-        background: rgba(255, 255, 255, 0.92);
-        color: var(--text-primary);
-        border-radius: 18px;
-        border: 2px solid rgba(255, 134, 201, 0.6);
-        padding: 12px 16px;
-        display: inline-flex;
-        gap: 10px;
-        align-items: center;
-        font-weight: 600;
-        box-shadow: 0 20px 32px rgba(215, 64, 150, 0.25);
-        transition: transform 0.4s ease;
-        z-index: 10;
-      }
-
-      .toast.show {
-        transform: translate(-50%, 0);
-      }
-
-      .toast span:first-child {
-        font-size: 1.4rem;
-      }
-
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
-
-      body[data-mode="night"] {
-        --bg-primary: radial-gradient(circle at top, #2b1b68 0%, #1d0f51 42%, #10063a 75%, #040019 100%);
-        --screen-sky: #2e3c8c;
-        --screen-ground: #4d2d7a;
-        --screen-glow: rgba(122, 162, 255, 0.2);
-        --screen-border: #8f88ff;
-        --hud-bg: rgba(24, 18, 61, 0.55);
-        --hud-border: rgba(141, 129, 255, 0.6);
-        --hud-text: #f3efff;
-        --stat-bg: rgba(39, 29, 84, 0.65);
-        --stat-border: rgba(165, 153, 255, 0.55);
-        --progress-bg: rgba(255, 255, 255, 0.35);
-        --text-primary: #ffffff;
-        --text-secondary: #d8d2ff;
-        --button-bg: #ede9ff;
-        --button-shadow: #a29dff;
-        color: var(--text-primary);
-      }
-
-      body[data-mode="night"] .scene::before {
-        background: radial-gradient(circle at 20% 24%, rgba(255, 255, 255, 0.35), transparent 50%),
-          radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.4), transparent 45%),
-          radial-gradient(circle at 40% 18%, rgba(255, 255, 255, 0.35), transparent 45%);
-        opacity: 0.5;
-      }
-
-      body[data-mode="night"] .scene::after {
-        background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.25) 0 2px, transparent 2px 7px);
-        opacity: 0.35;
-      }
-
-      body[data-mode="night"] .cat-shadow {
-        background: rgba(6, 2, 30, 0.4);
-      }
-
-
-      body[data-mode="night"] .log-window {
-        background: rgba(24, 18, 61, 0.65);
-        border: 3px solid rgba(141, 129, 255, 0.55);
-      }
-
-      body[data-mode="night"] .log-entry {
-        background: rgba(35, 26, 80, 0.85);
-        border-color: rgba(170, 158, 255, 0.55);
-        color: var(--text-primary);
-      }
-
-      body[data-mode="night"] .log-time {
-        color: rgba(212, 206, 255, 0.75);
-      }
-
-      body[data-mode="night"] .device-button::after {
-        background: rgba(32, 24, 74, 0.85);
-        color: #f6f4ff;
-        border-color: rgba(170, 158, 255, 0.55);
-      }
-
-      body[data-mode="night"] .toast {
-        background: rgba(29, 21, 68, 0.92);
-        color: var(--text-primary);
-        border-color: rgba(141, 129, 255, 0.55);
-        box-shadow: 0 20px 32px rgba(37, 23, 85, 0.4);
-      }
-
-      @media (max-width: 520px) {
-        main.device {
-          padding: 34px 24px 48px;
-        }
-
-        .stat-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .screen {
-          padding: 18px 14px 16px;
-        }
-
-        .name-field input {
-          width: 100px;
-        }
-
-        .device-button::after {
-          bottom: -24px;
-        }
-      }
-
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.4);
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, rgba(255, 134, 201, 0.8), rgba(255, 214, 138, 0.9));
-        border-radius: 999px;
-      }
-
-      @keyframes bob {
-        0%,
-        100% {
-          transform: scaleX(var(--flip)) scale(var(--scale)) translateY(0);
-        }
-        50% {
-          transform: scaleX(var(--flip)) scale(calc(var(--scale) + 0.02)) translateY(-6px);
-        }
-      }
-
-      @media (max-width: 520px) {
-        body {
-          padding: 16px 12px;
-        }
-
-        main.device {
-          width: min(360px, 100%);
-          max-height: calc(100vh - 20px);
-          padding: 28px 20px 36px;
-          border-radius: 180px 180px 220px 220px;
-          gap: 14px;
-        }
-
-        main.device::before {
-          inset: 12px 18px;
-          border-radius: 160px 160px 200px 200px;
-        }
-
-        .status-strip {
-          gap: 12px;
-          padding: 10px 14px;
-        }
-
-        .identity {
-          gap: 10px;
-        }
-
-        .identity-avatar {
-          width: 42px;
-          height: 42px;
-          border-radius: 14px;
-          font-size: 1.5rem;
-        }
-
-        .name-field {
-          font-size: 0.5rem;
-        }
-
-        .name-field input {
-          width: 108px;
-          padding: 5px 7px 4px;
-        }
-
-        .level-pill {
-          font-size: 0.5rem;
-          padding: 4px 8px 3px;
-        }
-
-        .screen {
-          padding: 16px 14px;
-          gap: 14px;
-        }
-
-        .environment-indicator {
-          font-size: 0.55rem;
-          padding: 6px 9px 5px;
-        }
-
-        .scene {
-          height: clamp(210px, 60vw, 260px);
-          border-radius: 24px;
-        }
-
-        .screen-hud {
-          padding: 12px 12px;
-          gap: 12px;
-        }
-
-        .hud-top {
-          gap: 10px;
-        }
-
-        .mood-chip {
-          font-size: 0.58rem;
-          padding: 5px 10px 4px;
-        }
-
-        .xp-bar {
-          font-size: 0.56rem;
-          gap: 8px;
-        }
-
-        .progress-track {
-          height: 9px;
-        }
-
-        .stat-grid {
-          gap: 10px;
-          font-size: 0.52rem;
-        }
-
-        .stat {
-          padding: 9px 10px 11px;
-        }
-
-        .log-window {
-          padding: 14px;
-        }
-
-        .log-title {
-          font-size: 0.64rem;
-          margin-bottom: 12px;
-        }
-
-        .activity-log {
-          max-height: 120px;
-          font-size: 0.78rem;
-        }
-
-        .button-row {
-          gap: 14px;
-          margin-top: 4px;
-        }
-
-        .device-button {
-          width: 52px;
-          height: 52px;
-          box-shadow: 0 8px 0 var(--button-shadow);
-          font-size: 1.6rem;
-        }
-
-        .device-button::after {
-          bottom: -24px;
-          font-size: 0.45rem;
-        }
-      }
-
-      @media (max-width: 360px) {
-        body {
-          padding: 14px 10px;
-        }
-
-        main.device {
-          max-width: 320px;
-          padding: 24px 18px 32px;
-          gap: 12px;
-        }
-
-        .name-field input {
-          width: 96px;
-        }
-
-        .identity-avatar {
-          width: 38px;
-          height: 38px;
-          border-radius: 12px;
-        }
-
-        .screen {
-          padding: 14px 12px;
-        }
-
-        .scene {
-          height: clamp(185px, 64vw, 230px);
-        }
-
-        .activity-log {
-          max-height: 110px;
-        }
-      }
-
-      @media (max-height: 680px) {
-        body {
-          padding: 12px 10px;
-        }
-
-        main.device {
-          max-height: calc(100vh - 16px);
-          gap: 12px;
-        }
-
-        .screen {
-          gap: 12px;
-        }
-
-        .scene {
-          height: clamp(170px, 52vh, 220px);
-        }
-
-        .screen-hud {
-          gap: 10px;
-        }
-
-        .activity-log {
-          max-height: 100px;
-        }
-      }
-
-    </style>
   </head>
   <body data-mode="day">
     <main class="device">
@@ -1066,121 +51,236 @@
             <div class="cat-wanderer" id="catWanderer">
               <div class="cat-shadow"></div>
               <div class="cat" id="cat" data-mood="feliz" data-activity="idle">
-                <svg viewBox="0 0 96 104" role="img" aria-label="Gato virtual">
-                  <g id="catBody">
+                <svg viewBox="0 0 240 200" role="img" aria-label="Gato virtual">
+                  <g id="catBody" fill="none" fill-rule="evenodd">
                     <g id="tail">
-                      <rect x="12" y="60" width="12" height="28" fill="var(--outline)" />
-                      <rect x="16" y="64" width="8" height="20" fill="var(--fur-main)" />
-                      <rect x="16" y="64" width="8" height="6" fill="var(--fur-accent, var(--fur-main))" />
-                      <rect x="16" y="76" width="8" height="6" fill="var(--fur-accent, var(--fur-main))" />
-                      <rect x="16" y="84" width="8" height="4" fill="var(--belly)" />
+                      <path
+                        d="M92 142 C 36 126 42 70 104 64 C 56 48 82 20 134 26 C 166 30 188 52 194 78"
+                        stroke="var(--outline)"
+                        stroke-width="26"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        fill="none"
+                      />
+                      <path
+                        d="M92 142 C 36 126 42 70 104 64 C 56 48 82 20 134 26 C 166 30 188 52 194 78"
+                        stroke="var(--fur-secondary)"
+                        stroke-width="20"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        fill="none"
+                      />
+                      <path
+                        d="M156 46 C 178 54 190 70 194 78"
+                        stroke="var(--fur-accent, var(--fur-secondary))"
+                        stroke-width="20"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        fill="none"
+                      />
+                    </g>
+                    <g id="legsBack">
+                      <g id="backLegFar" class="leg leg-back">
+                        <rect
+                          x="78"
+                          y="124"
+                          width="40"
+                          height="60"
+                          rx="18"
+                          ry="18"
+                          fill="var(--fur-secondary)"
+                          stroke="var(--outline)"
+                          stroke-width="6"
+                        />
+                        <rect x="86" y="176" width="24" height="12" rx="6" fill="var(--paw)" />
+                      </g>
+                      <g id="backLegNear" class="leg leg-back">
+                        <rect
+                          x="112"
+                          y="128"
+                          width="44"
+                          height="60"
+                          rx="20"
+                          ry="20"
+                          fill="var(--fur-main)"
+                          stroke="var(--outline)"
+                          stroke-width="6"
+                        />
+                        <rect x="122" y="182" width="26" height="12" rx="6" fill="var(--paw)" />
+                      </g>
                     </g>
                     <g id="torso">
-                      <rect x="16" y="56" width="64" height="36" fill="var(--outline)" />
-                      <rect x="20" y="60" width="56" height="28" fill="var(--fur-main)" />
-                      <rect x="20" y="60" width="56" height="4" fill="var(--fur-secondary, var(--fur-main))" />
-                      <rect x="32" y="66" width="32" height="18" fill="var(--belly)" />
-                      <rect x="24" y="70" width="8" height="6" fill="var(--fur-accent, var(--fur-main))" />
-                      <rect x="56" y="70" width="8" height="6" fill="var(--fur-accent, var(--fur-main))" />
-                      <rect x="32" y="84" width="32" height="4" fill="var(--belly)" />
+                      <rect
+                        id="bodyBase"
+                        x="82"
+                        y="60"
+                        width="136"
+                        height="112"
+                        rx="58"
+                        ry="58"
+                        fill="var(--fur-main)"
+                        stroke="var(--outline)"
+                        stroke-width="6"
+                      />
+                      <path
+                        id="belly"
+                        d="M122 114 C122 92 142 76 150 76 C170 76 198 94 198 126 C198 152 180 170 150 170 C134 170 122 154 122 136 Z"
+                        fill="var(--belly)"
+                      />
+                      <path
+                        id="torsoShade"
+                        d="M86 110 C90 82 118 62 150 62 C174 62 196 72 210 94 C204 64 182 48 150 48 C110 48 86 72 86 110 Z"
+                        fill="var(--fur-secondary)"
+                        opacity="0.2"
+                      />
                     </g>
-                    <g id="legs">
-                      <g>
-                        <rect x="20" y="76" width="12" height="20" fill="var(--outline)" />
-                        <rect x="24" y="80" width="8" height="16" fill="var(--fur-main)" />
-                        <rect x="24" y="92" width="8" height="4" fill="var(--paw)" />
+                    <g id="legsFront">
+                      <g id="frontLegFar" class="leg leg-front">
+                        <rect
+                          x="162"
+                          y="128"
+                          width="40"
+                          height="62"
+                          rx="18"
+                          ry="18"
+                          fill="var(--fur-main)"
+                          stroke="var(--outline)"
+                          stroke-width="6"
+                        />
+                        <rect x="172" y="184" width="22" height="12" rx="6" fill="var(--paw)" />
                       </g>
-                      <g>
-                        <rect x="36" y="76" width="12" height="20" fill="var(--outline)" />
-                        <rect x="40" y="80" width="8" height="16" fill="var(--fur-main)" />
-                        <rect x="40" y="92" width="8" height="4" fill="var(--paw)" />
-                      </g>
-                      <g>
-                        <rect x="52" y="76" width="12" height="20" fill="var(--outline)" />
-                        <rect x="56" y="80" width="8" height="16" fill="var(--fur-main)" />
-                        <rect x="56" y="92" width="8" height="4" fill="var(--paw)" />
-                      </g>
-                      <g>
-                        <rect x="68" y="76" width="12" height="20" fill="var(--outline)" />
-                        <rect x="72" y="80" width="8" height="16" fill="var(--fur-main)" />
-                        <rect x="72" y="84" width="8" height="4" fill="var(--fur-accent, var(--fur-main))" />
-                        <rect x="72" y="92" width="8" height="4" fill="var(--paw)" />
+                      <g id="frontLegNear" class="leg leg-front">
+                        <rect
+                          x="194"
+                          y="124"
+                          width="42"
+                          height="60"
+                          rx="18"
+                          ry="18"
+                          fill="var(--fur-secondary)"
+                          stroke="var(--outline)"
+                          stroke-width="6"
+                        />
+                        <rect x="204" y="178" width="24" height="12" rx="6" fill="var(--paw)" />
                       </g>
                     </g>
                     <g id="head">
-                      <rect x="20" y="20" width="56" height="44" fill="var(--outline)" />
-                      <rect x="24" y="24" width="48" height="36" fill="var(--fur-main)" />
-                      <rect x="24" y="24" width="8" height="36" fill="var(--fur-secondary, var(--fur-main))" />
-                      <rect x="64" y="24" width="8" height="36" fill="var(--fur-secondary, var(--fur-main))" />
-                      <rect x="36" y="28" width="24" height="6" fill="var(--fur-accent, var(--fur-main))" />
-                      <rect x="36" y="36" width="24" height="4" fill="var(--fur-main)" />
-                      <rect x="28" y="44" width="8" height="6" fill="var(--fur-secondary, var(--fur-main))" />
-                      <rect x="60" y="44" width="8" height="6" fill="var(--fur-secondary, var(--fur-main))" />
-                      <rect x="24" y="52" width="48" height="6" fill="var(--fur-main)" />
+                      <path
+                        id="headOutline"
+                        d="M126 34 L138 14 C144 4 158 4 164 14 L176 34 C202 34 222 54 222 80 L222 110 C222 134 202 154 178 154 L112 154 C88 154 68 134 68 110 L68 80 C68 54 88 34 114 34 Z"
+                        fill="var(--fur-main)"
+                        stroke="var(--outline)"
+                        stroke-width="6"
+                        stroke-linejoin="round"
+                      />
                       <g id="ears">
-                        <rect x="24" y="12" width="12" height="12" fill="var(--outline)" />
-                        <rect x="28" y="16" width="8" height="8" fill="var(--fur-secondary, var(--fur-main))" />
-                        <rect x="30" y="18" width="4" height="4" fill="var(--ear-inner)" />
-                        <rect x="60" y="12" width="12" height="12" fill="var(--outline)" />
-                        <rect x="64" y="16" width="8" height="8" fill="var(--fur-secondary, var(--fur-main))" />
-                        <rect x="66" y="18" width="4" height="4" fill="var(--ear-inner)" />
+                        <path
+                          id="earLeftOuter"
+                          d="M110 24 L126 6 C136 -4 148 8 144 22 L138 46 Z"
+                          fill="var(--fur-accent, var(--fur-secondary))"
+                          stroke="var(--outline)"
+                          stroke-width="6"
+                          stroke-linejoin="round"
+                        />
+                        <path
+                          id="earRightOuter"
+                          d="M188 24 L172 6 C162 -4 150 8 154 22 L160 46 Z"
+                          fill="var(--fur-accent, var(--fur-secondary))"
+                          stroke="var(--outline)"
+                          stroke-width="6"
+                          stroke-linejoin="round"
+                        />
+                        <path id="earLeftInner" d="M122 22 L132 12 L136 28 L130 44 Z" fill="var(--ear-inner)" />
+                        <path id="earRightInner" d="M178 22 L168 12 L164 28 L170 44 Z" fill="var(--ear-inner)" />
                       </g>
+                      <path
+                        id="mask"
+                        d="M92 72 C106 52 128 44 150 44 C172 44 194 52 208 72 L208 112 C208 132 192 148 172 148 L128 148 C108 148 92 132 92 112 Z"
+                        fill="var(--fur-secondary)"
+                        opacity="0.28"
+                      />
                       <g id="faceFeatures">
                         <g id="eyesOpen">
-                          <rect x="32" y="36" width="10" height="10" fill="#f5f8ff" />
-                          <rect x="34" y="38" width="6" height="6" class="pupil" fill="var(--pupil)" />
-                          <rect x="34" y="38" width="2" height="2" fill="#ffffff" opacity="0.85" />
-                          <rect x="54" y="36" width="10" height="10" fill="#f5f8ff" />
-                          <rect x="56" y="38" width="6" height="6" class="pupil" fill="var(--pupil)" />
-                          <rect x="56" y="38" width="2" height="2" fill="#ffffff" opacity="0.85" />
+                          <ellipse cx="132" cy="98" rx="18" ry="16" fill="#f6fbff" stroke="var(--outline)" stroke-width="4" />
+                          <circle cx="132" cy="98" r="9" class="pupil" fill="var(--pupil)" />
+                          <circle cx="132" cy="92" r="3" fill="#ffffff" opacity="0.75" />
+                          <ellipse cx="180" cy="98" rx="18" ry="16" fill="#f6fbff" stroke="var(--outline)" stroke-width="4" />
+                          <circle cx="180" cy="98" r="9" class="pupil" fill="var(--pupil)" />
+                          <circle cx="180" cy="92" r="3" fill="#ffffff" opacity="0.75" />
                         </g>
                         <g id="eyesClosed" opacity="0">
-                          <rect x="32" y="40" width="10" height="2" fill="var(--outline)" />
-                          <rect x="54" y="40" width="10" height="2" fill="var(--outline)" />
+                          <path d="M116 98 C126 94 138 94 148 98" stroke="var(--outline)" stroke-width="4" stroke-linecap="round" />
+                          <path d="M164 98 C174 94 186 94 196 98" stroke="var(--outline)" stroke-width="4" stroke-linecap="round" />
                         </g>
-                        <rect id="nose" x="46" y="46" width="4" height="4" fill="var(--nose, var(--ear-inner))" />
-                        <g id="mouth">
-                          <rect x="46" y="50" width="4" height="2" fill="var(--outline)" />
-                          <rect x="44" y="52" width="6" height="2" fill="var(--outline)" />
-                          <rect x="52" y="52" width="6" height="2" fill="var(--outline)" />
-                        </g>
-                        <rect x="28" y="50" width="6" height="4" fill="var(--cheek)" />
-                        <rect x="62" y="50" width="6" height="4" fill="var(--cheek)" />
+                        <path
+                          id="nose"
+                          d="M154 114 C158 110 162 110 166 114 C162 120 158 120 154 114 Z"
+                          fill="var(--nose, var(--ear-inner))"
+                          stroke="var(--outline)"
+                          stroke-width="3"
+                        />
+                        <path
+                          id="mouth"
+                          d="M150 126 C154 134 162 134 166 126"
+                          stroke="var(--outline)"
+                          stroke-width="4"
+                          stroke-linecap="round"
+                          fill="none"
+                        />
+                        <path d="M146 122 C150 138 170 138 174 122" stroke="var(--outline)" stroke-width="2" opacity="0.25" fill="none" />
+                        <ellipse cx="130" cy="120" rx="10" ry="8" fill="var(--cheek)" opacity="0.85" />
+                        <ellipse cx="182" cy="120" rx="10" ry="8" fill="var(--cheek)" opacity="0.85" />
                         <g id="whiskers">
-                          <rect x="20" y="46" width="12" height="2" fill="var(--outline)" />
-                          <rect x="20" y="50" width="12" height="2" fill="var(--outline)" opacity="0.7" />
-                          <rect x="64" y="46" width="12" height="2" fill="var(--outline)" />
-                          <rect x="64" y="50" width="12" height="2" fill="var(--outline)" opacity="0.7" />
+                          <path d="M114 110 H78" stroke="var(--outline)" stroke-width="4" stroke-linecap="round" />
+                          <path d="M114 122 H82" stroke="var(--outline)" stroke-width="3" stroke-linecap="round" opacity="0.7" />
+                          <path d="M198 110 H234" stroke="var(--outline)" stroke-width="4" stroke-linecap="round" />
+                          <path d="M196 122 H230" stroke="var(--outline)" stroke-width="3" stroke-linecap="round" opacity="0.7" />
                         </g>
                       </g>
                     </g>
                   </g>
                   <g id="accessory" opacity="0">
                     <path
-                      d="M30 60 H66 V66 H54 V78 H42 V66 H30 Z"
+                      d="M128 130 C128 120 140 114 150 114 L162 114 C174 114 186 120 186 130 C186 140 174 146 162 146 L150 146 C140 146 128 140 128 130 Z"
                       fill="var(--collar, #6ee7ff)"
                       stroke="var(--collar-stroke, #4aa5ff)"
-                      stroke-width="1"
-                      stroke-linejoin="miter"
-                      vector-effect="non-scaling-stroke"
+                      stroke-width="4"
                     />
+                    <circle cx="156" cy="142" r="8" fill="rgba(255, 255, 255, 0.5)" />
                   </g>
                   <g id="activityProps">
                     <g id="propBowl">
-                      <rect x="30" y="86" width="36" height="8" fill="#f4a261" />
-                      <rect x="30" y="94" width="36" height="4" fill="#d6803a" />
-                      <rect x="34" y="82" width="28" height="4" fill="#ffe6c6" />
+                      <path
+                        d="M90 176 C90 164 110 156 150 156 C190 156 210 164 210 176 C210 188 190 196 150 196 C110 196 90 188 90 176 Z"
+                        fill="#f7b589"
+                        stroke="#c86c3a"
+                        stroke-width="4"
+                      />
+                      <path
+                        d="M102 164 C114 158 132 154 150 154 C168 154 186 158 198 164"
+                        stroke="#fff3de"
+                        stroke-width="6"
+                        stroke-linecap="round"
+                        fill="none"
+                      />
+                      <path d="M130 168 C138 160 150 158 162 168" stroke="#ff867b" stroke-width="5" stroke-linecap="round" fill="none" />
+                      <path d="M144 168 C150 162 158 162 164 168" stroke="#ffdac7" stroke-width="3" stroke-linecap="round" fill="none" />
                     </g>
                     <g id="propYarn">
-                      <rect x="18" y="88" width="12" height="12" fill="#ff8ad9" />
-                      <rect x="14" y="92" width="6" height="4" fill="#d15fa8" />
-                      <rect x="22" y="84" width="8" height="4" fill="#d15fa8" />
-                      <rect x="30" y="92" width="12" height="2" fill="#d15fa8" />
+                      <circle cx="84" cy="174" r="22" fill="#ff7ebd" stroke="#c64f8a" stroke-width="4" />
+                      <path
+                        d="M66 168 C50 160 46 146 64 138 C80 132 92 142 110 140"
+                        stroke="#c64f8a"
+                        stroke-width="4"
+                        fill="none"
+                        stroke-linecap="round"
+                      />
+                      <path d="M68 182 C86 176 96 186 110 178" stroke="#ffa7d8" stroke-width="3" fill="none" />
                     </g>
                     <g id="propSleep">
-                      <text x="74" y="32" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="10">Z</text>
-                      <text x="80" y="24" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="8">Z</text>
-                      <text x="84" y="18" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="6">Z</text>
+                      <text x="206" y="70" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="16">Z</text>
+                      <text x="220" y="52" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="12">Z</text>
+                      <text x="232" y="38" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="10">Z</text>
                     </g>
                   </g>
                 </svg>
@@ -1244,965 +344,7 @@
       </article>
     </template>
 
-    <script>
-      const STORAGE_KEY = "catagotchi-state-v2";
-      const MIN_STAT = 0;
-      const MAX_STAT = 100;
-      const catNameInput = document.getElementById("catName");
-      const levelLabel = document.getElementById("level-label");
-      const dayEmoji = document.getElementById("dayEmoji");
-      const dayLabel = document.getElementById("dayLabel");
-      const catScene = document.getElementById("catScene");
-      const catWanderer = document.getElementById("catWanderer");
-      const cat = document.getElementById("cat");
-      const identityAvatar = document.getElementById("identityAvatar");
-      const pupilElements = document.querySelectorAll(".pupil");
-      const hungerBar = document.getElementById("hungerBar");
-      const hungerValue = document.getElementById("hungerValue");
-      const energyBar = document.getElementById("energyBar");
-      const energyValue = document.getElementById("energyValue");
-      const funBar = document.getElementById("funBar");
-      const funValue = document.getElementById("funValue");
-      const xpBar = document.getElementById("xpBar");
-      const moodLabel = document.getElementById("moodLabel");
-      const toast = document.getElementById("toast");
-      const toastEmoji = document.getElementById("toastEmoji");
-      const toastMessage = document.getElementById("toastMessage");
-      const log = document.getElementById("log");
-      const logEntryTemplate = document.getElementById("logEntryTemplate");
+    <script src="app.js" defer></script>
 
-      let currentSkinIndex = 0;
-      let lastMoodKey = null;
-
-      const catSkins = [
-        {
-          id: "lukis",
-          name: "Lukis",
-          emoji: "🐈‍⬛",
-          colors: {
-            furMain: "#2f2c3d",
-            furSecondary: "#262338",
-            furAccent: "#454058",
-            belly: "#d8dbe8",
-            earInner: "#f3adc9",
-            cheek: "#f48fbf",
-            outline: "#08050f",
-            paw: "#e8ecf7",
-            collar: "#6ee7ff",
-            collarStroke: "#4aa5ff",
-            nose: "#f3adc9",
-            pupil: "#0e1018",
-          },
-        },
-        {
-          id: "arwen",
-          name: "Arwen",
-          emoji: "🐈",
-          colors: {
-            furMain: "#cbd5e0",
-            furSecondary: "#b3bcc8",
-            furAccent: "#e1e7ef",
-            belly: "#f5f8ff",
-            earInner: "#f5c3da",
-            cheek: "#f7a6c6",
-            outline: "#364154",
-            paw: "#ffffff",
-            collar: "#7ed8ff",
-            collarStroke: "#4a9bd4",
-            nose: "#f5c3da",
-            pupil: "#1a1c26",
-          },
-        },
-        {
-          id: "iria",
-          name: "Iria",
-          emoji: "🐈‍⬜",
-          colors: {
-            furMain: "#dca676",
-            furSecondary: "#c27e4d",
-            furAccent: "#f1c58d",
-            belly: "#f6e2c8",
-            earInner: "#f2a57f",
-            cheek: "#f79f86",
-            outline: "#5b3824",
-            paw: "#f8e6d5",
-            collar: "#ffce6d",
-            collarStroke: "#e39b3a",
-            nose: "#f2a57f",
-            pupil: "#221510",
-          },
-        },
-      ];
-
-      const defaultProgressBySkin = catSkins.reduce((acc, skin) => {
-        acc[skin.id] = { level: 1, xp: 0 };
-        return acc;
-      }, {});
-
-      const defaultState = {
-        name: catSkins[0].name,
-        hunger: 80,
-        energy: 80,
-        fun: 80,
-        xp: 0,
-        level: 1,
-        lastTick: Date.now(),
-        history: [],
-        accessoriesUnlocked: false,
-        dayMode: "day",
-        skin: catSkins[0].id,
-        progressBySkin: structuredClone(defaultProgressBySkin),
-      };
-
-      const state = loadState();
-
-      state.dayMode = getAutomaticDayMode();
-
-      if (!state.skin || !catSkins.some((skin) => skin.id === state.skin)) {
-        state.skin = catSkins[0].id;
-      }
-
-      currentSkinIndex = catSkins.findIndex((skin) => skin.id === state.skin);
-      if (currentSkinIndex === -1) {
-        currentSkinIndex = 0;
-        state.skin = catSkins[0].id;
-      }
-
-      if (!state.name || state.name === "Pixel") {
-        state.name = catSkins[currentSkinIndex].name;
-      }
-
-      loadSkinProgress(state.skin);
-
-      const actions = {
-        feed: {
-          emoji: "🍣",
-          text: () => `${getName()} disfruta del mejor salmón nigiri.`,
-          effects: { hunger: +26, fun: +6, energy: -4 },
-          xp: 12,
-        },
-        play: {
-          emoji: "🧶",
-          text: () => `${getName()} persigue el ovillo como si fuera la última vez.`,
-          effects: { fun: +24, energy: -12, hunger: -8 },
-          xp: 16,
-        },
-        nap: {
-          emoji: "😴",
-          text: () => `${getName()} ronronea mientras duerme la siesta.`,
-          effects: { energy: +32, hunger: -8, fun: -4 },
-          xp: 10,
-        },
-      };
-
-      const samplePlayer = createSamplePlayer();
-      const soundEngine = createSoundEngine();
-
-      function createMeowPattern({ base = 460, stretch = 1, volume = 0.5 } = {}) {
-        const sustain = 0.18 * stretch;
-        return [
-          {
-            freq: base,
-            duration: sustain,
-            type: "triangle",
-            volume,
-            slide: 160,
-          },
-          {
-            freq: base + 160,
-            duration: 0.22 * stretch,
-            type: "triangle",
-            volume: volume * 0.9,
-            delay: 0.04,
-            slide: -240,
-          },
-          {
-            freq: base - 40,
-            duration: 0.2 * stretch,
-            type: "sine",
-            volume: volume * 0.75,
-            delay: 0.02,
-          },
-        ];
-      }
-
-      function createPurrPattern({ base = 90, cycles = 6, volume = 0.3 } = {}) {
-        return Array.from({ length: cycles }, (_, index) => {
-          const offset = index % 2 === 0 ? -8 : 8;
-          return {
-            freq: base + offset,
-            duration: 0.18,
-            type: "sine",
-            volume: volume * (index === 0 ? 1 : 0.85),
-            delay: index === 0 ? 0 : 0.06,
-            slide: offset > 0 ? -14 : 14,
-          };
-        });
-      }
-
-      const soundPatterns = {
-        feed: () => createMeowPattern({ base: 400, stretch: 1.15, volume: 0.48 }),
-        play: () => [
-          ...createMeowPattern({ base: 540, stretch: 0.9, volume: 0.52 }),
-          { freq: 720, duration: 0.12, type: "triangle", volume: 0.3, delay: 0.04, slide: -200 },
-        ],
-        nap: () => [
-          { freq: 220, duration: 0.24, type: "sine", volume: 0.22, slide: -80 },
-          ...createPurrPattern({ base: 86, cycles: 6, volume: 0.26 }),
-        ],
-        meow: () => createMeowPattern({ base: 460, stretch: 1, volume: 0.52 }),
-        purr: () => createPurrPattern({ base: 88, cycles: 8, volume: 0.28 }),
-      };
-
-      function playSoundEffect(effectKey) {
-        if (samplePlayer) {
-          const playback = samplePlayer.play(effectKey);
-          if (playback && typeof playback.catch === "function") {
-            playback.catch(() => playSynthEffect(effectKey));
-            return;
-          }
-          if (playback) {
-            return;
-          }
-        }
-        playSynthEffect(effectKey);
-      }
-
-      function playSynthEffect(effectKey) {
-        if (!soundEngine) return;
-        const generator = soundPatterns[effectKey];
-        if (!generator) return;
-        const pattern = typeof generator === "function" ? generator() : generator;
-        if (!Array.isArray(pattern) || pattern.length === 0) return;
-        soundEngine.playPattern(pattern);
-      }
-
-      function playActionSound(actionKey) {
-        switch (actionKey) {
-          case "feed":
-            playSoundEffect("feed");
-            playSoundEffect("purr");
-            break;
-          case "nap":
-            playSoundEffect("nap");
-            playSoundEffect("purr");
-            break;
-          case "play":
-            playSoundEffect("play");
-            playSoundEffect("meow");
-            break;
-          default:
-            playSoundEffect("meow");
-        }
-      }
-
-      function playMoodSound(moodKey) {
-        if (moodKey === "feliz") {
-          playSoundEffect("purr");
-        } else if (moodKey === "triste" || moodKey === "enfadado") {
-          playSoundEffect("meow");
-        }
-      }
-
-      const baseDegradeRates = {
-        hunger: -2.5,
-        energy: -2,
-        fun: -2.3,
-      };
-
-      let degradeRates = { ...baseDegradeRates };
-      const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
-      let dayModeIntervalId;
-      const tickInterval = 2500;
-      let wanderIntervalId;
-      let activityTimeout;
-      const catMotion = { x: 0, y: 0 };
-
-      initialize();
-      setInterval(tick, tickInterval);
-
-      function applyCatSkinVisuals(skin) {
-        if (!skin) return;
-        const palette = skin.colors || {};
-        const variableMap = {
-          furMain: "--fur-main",
-          furSecondary: "--fur-secondary",
-          furAccent: "--fur-accent",
-          belly: "--belly",
-          earInner: "--ear-inner",
-          cheek: "--cheek",
-          outline: "--outline",
-          paw: "--paw",
-          collar: "--collar",
-          collarStroke: "--collar-stroke",
-          nose: "--nose",
-        };
-        Object.entries(variableMap).forEach(([key, cssVar]) => {
-          if (palette[key]) {
-            cat.style.setProperty(cssVar, palette[key]);
-          }
-        });
-        if (palette.pupil) {
-          pupilElements.forEach((pupil) => pupil.setAttribute("fill", palette.pupil));
-          cat.style.setProperty("--pupil", palette.pupil);
-        }
-        if (identityAvatar) {
-          identityAvatar.textContent = skin.emoji;
-          identityAvatar.setAttribute("aria-label", `Cambiar estilo del gato (actual: ${skin.name})`);
-          identityAvatar.setAttribute("title", `${skin.name} · Toca para cambiar de estilo`);
-        }
-        cat.dataset.skin = skin.id;
-        if (catNameInput) {
-          catNameInput.setAttribute("placeholder", skin.name.toUpperCase());
-        }
-      }
-
-      function getCurrentSkinId() {
-        return catSkins[currentSkinIndex]?.id || state.skin;
-      }
-
-      function ensureSkinProgress(skinId) {
-        if (!skinId) return { level: 1, xp: 0 };
-        if (!state.progressBySkin) {
-          state.progressBySkin = structuredClone(defaultProgressBySkin);
-        }
-        if (!state.progressBySkin[skinId]) {
-          state.progressBySkin[skinId] = { level: 1, xp: 0 };
-        }
-        return state.progressBySkin[skinId];
-      }
-
-      function loadSkinProgress(skinId) {
-        const progress = ensureSkinProgress(skinId);
-        state.level = Math.max(1, Math.floor(Number(progress.level) || 1));
-        state.xp = Math.max(0, Number(progress.xp) || 0);
-      }
-
-      function persistSkinProgress(skinId = getCurrentSkinId()) {
-        if (!skinId) return;
-        ensureSkinProgress(skinId);
-        state.progressBySkin[skinId] = {
-          level: state.level,
-          xp: state.xp,
-        };
-      }
-
-      function setSkin(index, options = {}) {
-        const { preserveName = false, announce = false } = options;
-        if (catSkins.length === 0) return;
-        const previousSkinId = getCurrentSkinId();
-        if (previousSkinId) {
-          persistSkinProgress(previousSkinId);
-        }
-        currentSkinIndex = ((index % catSkins.length) + catSkins.length) % catSkins.length;
-        const skin = catSkins[currentSkinIndex];
-        state.skin = skin.id;
-        loadSkinProgress(state.skin);
-        applyCatSkinVisuals(skin);
-        if (!preserveName) {
-          state.name = skin.name;
-          catNameInput.value = skin.name;
-        } else if (catNameInput && catNameInput.value.trim() === "") {
-          catNameInput.value = state.name;
-        }
-        updateUI();
-        if (announce) {
-          pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺");
-          showToast("😺", `Ahora cuidas a ${skin.name}.`);
-        } else {
-          saveState();
-        }
-      }
-
-      function cycleCatSkin() {
-        const nextIndex = (currentSkinIndex + 1) % catSkins.length;
-        setSkin(nextIndex, { announce: true });
-      }
-
-      function initialize() {
-        setSkin(currentSkinIndex, { preserveName: true });
-        catNameInput.value = state.name;
-        catNameInput.addEventListener("change", () => {
-          const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
-          state.name = catNameInput.value.trim() || fallbackName;
-          saveState();
-          pushLog(`Ahora se llama ${state.name}.`, "✨");
-        });
-
-        document.querySelectorAll(".device-button").forEach((btn) => {
-          btn.addEventListener("click", () => handleAction(btn.dataset.action));
-        });
-
-        if (identityAvatar) {
-          identityAvatar.addEventListener("click", cycleCatSkin);
-        }
-
-        if (state.history.length === 0) {
-          pushLog(`Comienza una nueva aventura con ${state.name}.`, "🚀");
-        } else {
-          state.history.forEach((entry) => addLogEntry(entry));
-        }
-
-        if (cat && !cat.dataset.activity) {
-          cat.dataset.activity = "idle";
-        }
-
-        updateUI();
-        startDayModeWatcher();
-        startCatWander();
-      }
-
-      function loadState() {
-        try {
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (!stored) return structuredClone(defaultState);
-          const parsed = JSON.parse(stored);
-          const merged = { ...structuredClone(defaultState), ...parsed };
-          const { clean, health, vetCooldown, ...safeState } = merged;
-          const baseProgress = structuredClone(defaultProgressBySkin);
-          const storedProgress = parsed?.progressBySkin || merged.progressBySkin || {};
-          const fallbackLevel = Math.max(1, Math.floor(Number(parsed?.level ?? merged.level ?? 1)));
-          const fallbackXp = Math.max(0, Number(parsed?.xp ?? merged.xp ?? 0));
-          Object.entries(storedProgress || {}).forEach(([skinId, progress]) => {
-            if (!progress) return;
-            const level = Math.max(1, Math.floor(Number(progress.level) || 1));
-            const xp = Math.max(0, Number(progress.xp) || 0);
-            baseProgress[skinId] = { level, xp };
-          });
-          catSkins.forEach((skin) => {
-            if (!baseProgress[skin.id]) {
-              baseProgress[skin.id] = { level: 1, xp: 0 };
-            }
-          });
-          safeState.progressBySkin = baseProgress;
-          const desiredSkinId = safeState.skin && baseProgress[safeState.skin] ? safeState.skin : catSkins[0].id;
-          if (!storedProgress || !storedProgress[desiredSkinId]) {
-            baseProgress[desiredSkinId] = {
-              level: fallbackLevel,
-              xp: fallbackXp,
-            };
-          }
-          const activeSkinId = desiredSkinId;
-          safeState.skin = activeSkinId;
-          safeState.level = baseProgress[activeSkinId].level;
-          safeState.xp = baseProgress[activeSkinId].xp;
-          return safeState;
-        } catch (error) {
-          console.error("Error cargando estado", error);
-          return structuredClone(defaultState);
-        }
-      }
-
-      function saveState() {
-        try {
-          persistSkinProgress();
-          const copy = { ...state, history: state.history.slice(-25) };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
-        } catch (error) {
-          console.error("Error guardando estado", error);
-        }
-      }
-
-      function tick() {
-        const now = Date.now();
-        const delta = (now - state.lastTick) / 1000;
-        state.lastTick = now;
-
-        Object.entries(degradeRates).forEach(([stat, rate]) => {
-          modifyStat(stat, rate * delta);
-        });
-
-        if (state.hunger < 30) {
-          modifyStat("fun", -1.4 * delta);
-        }
-        if (state.energy < 25) {
-          modifyStat("fun", -1 * delta);
-        }
-        if (state.fun < 25) {
-          modifyStat("energy", -0.8 * delta);
-        }
-
-        updateUI();
-        saveState();
-      }
-
-      function modifyStat(stat, amount) {
-        state[stat] = clamp(state[stat] + amount, MIN_STAT, MAX_STAT);
-      }
-
-      function handleAction(actionKey) {
-        const action = actions[actionKey];
-        if (!action) return;
-
-        let effects = action.effects;
-        if (typeof effects === "function") {
-          effects = effects();
-        }
-
-        Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value));
-        playActionSound(actionKey);
-        gainXp(action.xp);
-        const narration = action.text();
-        addLogEntry({ emoji: action.emoji, message: narration, timestamp: Date.now() });
-
-        if (!state.accessoriesUnlocked && state.level >= 3) {
-          state.accessoriesUnlocked = true;
-          toggleAccessory(true);
-          pushLog(`${getName()} desbloquea su primer accesorio exclusivo.`, "🌟");
-        }
-
-        setCatActivity(actionKey);
-        const mood = getMood();
-        cat.dataset.mood = mood.key;
-        showToast(action.emoji, narration);
-        updateUI();
-        saveState();
-        wanderCat(true);
-      }
-
-      function setCatActivity(activityKey) {
-        if (!cat) return;
-        if (activityTimeout) {
-          clearTimeout(activityTimeout);
-          activityTimeout = null;
-        }
-
-        const isAnimatedAction = activityKey === "feed" || activityKey === "play" || activityKey === "nap";
-        const nextActivity = isAnimatedAction ? activityKey : "idle";
-        cat.dataset.activity = nextActivity;
-
-        if (!isAnimatedAction) {
-          updateCatFace(getMood().key);
-          return;
-        }
-
-        const duration = nextActivity === "nap" ? 5200 : 2800;
-        activityTimeout = setTimeout(() => {
-          cat.dataset.activity = "idle";
-          activityTimeout = null;
-          updateCatFace(getMood().key);
-        }, duration);
-      }
-
-      function gainXp(amount) {
-        state.xp = Math.max(0, state.xp + amount);
-        const levelThreshold = state.level * 120;
-        if (state.xp >= levelThreshold) {
-          state.xp -= levelThreshold;
-          state.level += 1;
-          pushLog(`${getName()} sube al nivel ${state.level}.`, "🏅");
-          showToast("🏅", `${getName()} alcanza el nivel ${state.level}.`);
-        }
-        persistSkinProgress();
-      }
-
-      function getMood() {
-        const avg = (state.hunger + state.energy + state.fun) / 3;
-        if (avg > 80) return { key: "feliz", label: "✨ Feliz" };
-        if (avg > 60) return { key: "contento", label: "😺 Contento" };
-        if (avg > 40) return { key: "neutro", label: "😐 Pensativo" };
-        if (avg > 20) return { key: "triste", label: "🥺 Tristón" };
-        return { key: "enfadado", label: "😾 Enfadado" };
-      }
-
-      function updateUI() {
-        updateStat(hungerBar, hungerValue, state.hunger);
-        updateStat(energyBar, energyValue, state.energy);
-        updateStat(funBar, funValue, state.fun);
-        updateXP();
-
-        const mood = getMood();
-        moodLabel.textContent = mood.label;
-        cat.dataset.mood = mood.key;
-        updateCatFace(mood.key);
-        if (lastMoodKey && lastMoodKey !== mood.key) {
-          playMoodSound(mood.key);
-        }
-        lastMoodKey = mood.key;
-        levelLabel.textContent = state.level;
-        document.title = `${getName()} · Nivel ${state.level} | Catagotchi`;
-      }
-
-      function updateStat(bar, valueLabel, statValue) {
-        bar.style.setProperty("--value", `${statValue}%`);
-        bar.style.width = `${statValue}%`;
-        valueLabel.textContent = `${Math.round(statValue)}%`;
-        if (statValue < 30) {
-          valueLabel.style.color = "#ff4770";
-        } else if (statValue > 70) {
-          valueLabel.style.color = "#2eab6f";
-        } else {
-          valueLabel.style.color = "inherit";
-        }
-      }
-
-      function updateXP() {
-        const levelThreshold = state.level * 120;
-        const xpPercent = Math.min(100, (state.xp / levelThreshold) * 100);
-        xpBar.style.setProperty("--value", `${xpPercent}%`);
-        xpBar.style.width = `${xpPercent}%`;
-      }
-
-      function updateCatFace(moodKey) {
-        const mouth = document.getElementById("mouth");
-        const pupils = pupilElements;
-        const activity = cat?.dataset?.activity || "idle";
-
-        const setPupils = (cy, radius = 9) => {
-          pupils.forEach((pupil) => {
-            if (!pupil) return;
-            pupil.setAttribute("cy", cy);
-            pupil.setAttribute("r", radius);
-          });
-        };
-
-        if (activity === "nap") {
-          setPupils("150", 6);
-          mouth.setAttribute("d", "M132 168 Q144 170 156 168");
-          catWanderer.style.setProperty("--scale", "0.94");
-          catWanderer.style.setProperty("--bob-speed", "4.4s");
-          catWanderer.style.setProperty("--shadow-opacity", "0.32");
-          return;
-        }
-
-        if (activity === "feed") {
-          setPupils("142", 10);
-          mouth.setAttribute("d", "M126 162 Q144 192 162 162");
-          catWanderer.style.setProperty("--scale", "1.07");
-          catWanderer.style.setProperty("--bob-speed", "2.2s");
-          catWanderer.style.setProperty("--shadow-opacity", "0.52");
-          return;
-        }
-
-        if (activity === "play") {
-          setPupils("142", 11);
-          mouth.setAttribute("d", "M124 160 Q144 188 164 160");
-          catWanderer.style.setProperty("--scale", "1.08");
-          catWanderer.style.setProperty("--bob-speed", "2s");
-          catWanderer.style.setProperty("--shadow-opacity", "0.55");
-          return;
-        }
-
-        switch (moodKey) {
-          case "feliz":
-            mouth.setAttribute("d", "M126 160 Q144 178 162 160");
-            setPupils("144", 9);
-            catWanderer.style.setProperty("--scale", "1.05");
-            catWanderer.style.setProperty("--bob-speed", "2.4s");
-            catWanderer.style.setProperty("--shadow-opacity", "0.5");
-            break;
-          case "contento":
-            mouth.setAttribute("d", "M130 164 Q144 174 158 164");
-            setPupils("146", 9);
-            catWanderer.style.setProperty("--scale", "1");
-            catWanderer.style.setProperty("--bob-speed", "2.8s");
-            catWanderer.style.setProperty("--shadow-opacity", "0.45");
-            break;
-          case "neutro":
-            mouth.setAttribute("d", "M132 164 Q144 164 156 164");
-            setPupils("148", 8);
-            catWanderer.style.setProperty("--scale", "0.98");
-            catWanderer.style.setProperty("--bob-speed", "3.2s");
-            catWanderer.style.setProperty("--shadow-opacity", "0.4");
-            break;
-          case "triste":
-            mouth.setAttribute("d", "M132 168 Q144 158 156 168");
-            setPupils("152", 7);
-            catWanderer.style.setProperty("--scale", "0.96");
-            catWanderer.style.setProperty("--bob-speed", "3.6s");
-            catWanderer.style.setProperty("--shadow-opacity", "0.35");
-            break;
-          default:
-            mouth.setAttribute("d", "M130 170 Q144 152 158 170");
-            setPupils("156", 7);
-            catWanderer.style.setProperty("--scale", "0.94");
-            catWanderer.style.setProperty("--bob-speed", "3.8s");
-            catWanderer.style.setProperty("--shadow-opacity", "0.32");
-        }
-      }
-
-      function addLogEntry(entry) {
-        const element = logEntryTemplate.content.cloneNode(true);
-        const timeElement = element.querySelector(".log-time");
-        const textElement = element.querySelector(".log-text");
-        const date = new Date(entry.timestamp || Date.now());
-        const time = date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-        timeElement.textContent = `${entry.emoji} ${time}`;
-        textElement.textContent = entry.message;
-        log.prepend(element);
-        state.history.push(entry);
-        state.history = state.history.slice(-40);
-      }
-
-      function pushLog(message, emoji = "✨") {
-        const entry = { emoji, message, timestamp: Date.now() };
-        addLogEntry(entry);
-        saveState();
-      }
-
-      function showToast(emoji, message) {
-        toastEmoji.textContent = emoji;
-        toastMessage.textContent = message;
-        toast.classList.add("show");
-        clearTimeout(showToast.timeoutId);
-        showToast.timeoutId = setTimeout(() => {
-          toast.classList.remove("show");
-        }, 3200);
-      }
-
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
-      }
-
-      function createSamplePlayer() {
-        if (typeof Audio === "undefined") {
-          return null;
-        }
-
-        const definitions = {
-          meow: {
-            sources: ["meow-1.mp3", "meow_QO6VsE6.mp3", "the-end-meow-by-nekocat-just-3-second-1.mp3"],
-            volume: 0.58,
-          },
-          purr: {
-            sources: ["cat-purr.mp3", "little-puff-purr.mp3", "little-puff-purr-brr.mp3"],
-            volume: 0.4,
-          },
-        };
-
-        const aliases = {
-          feed: "meow",
-          play: "meow",
-          nap: "purr",
-        };
-
-        function createAudioPool(sources, { volume = 0.5 } = {}) {
-          const entries = sources
-            .filter(Boolean)
-            .map((src) => {
-              const element = new Audio(src);
-              element.preload = "auto";
-              element.volume = volume;
-              element.load();
-              return { src, instances: [element], volume };
-            });
-
-          function getInstance(entry) {
-            if (!entry) return null;
-            const available = entry.instances.find((audio) => audio.paused);
-            if (available) {
-              return available;
-            }
-            const clone = entry.instances[0]?.cloneNode(true) || new Audio(entry.src);
-            clone.volume = entry.volume;
-            clone.preload = "auto";
-            entry.instances.push(clone);
-            return clone;
-          }
-
-          function play() {
-            if (entries.length === 0) {
-              return null;
-            }
-            const entry = entries[Math.floor(Math.random() * entries.length)];
-            const audio = getInstance(entry);
-            if (!audio) {
-              return null;
-            }
-            audio.currentTime = 0;
-            try {
-              const maybePromise = audio.play();
-              if (maybePromise && typeof maybePromise.then === "function") {
-                return maybePromise;
-              }
-              return Promise.resolve();
-            } catch (error) {
-              return Promise.reject(error);
-            }
-          }
-
-          return { play };
-        }
-
-        const pools = Object.entries(definitions).reduce((acc, [key, config]) => {
-          const pool = createAudioPool(config.sources, config);
-          if (pool) {
-            acc[key] = pool;
-          }
-          return acc;
-        }, {});
-
-        return {
-          play(effectKey) {
-            const targetKey = pools[effectKey] ? effectKey : aliases[effectKey];
-            const pool = targetKey ? pools[targetKey] : null;
-            if (!pool || typeof pool.play !== "function") {
-              return null;
-            }
-            return pool.play();
-          },
-        };
-      }
-
-      function createSoundEngine() {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) {
-          return null;
-        }
-        let context;
-        let masterGain;
-
-        function ensureContext() {
-          if (context) return context;
-          try {
-            context = new AudioContextClass();
-            masterGain = context.createGain();
-            masterGain.gain.value = 0.22;
-            masterGain.connect(context.destination);
-          } catch (error) {
-            console.warn("AudioContext no disponible", error);
-            context = null;
-          }
-          return context;
-        }
-
-        function playPattern(pattern) {
-          const ctx = ensureContext();
-          if (!ctx || !Array.isArray(pattern)) return;
-          if (ctx.state === "suspended") {
-            ctx.resume();
-          }
-          let time = ctx.currentTime + 0.05;
-          pattern.forEach((tone) => {
-            if (!tone) return;
-            const {
-              freq,
-              duration = 0.2,
-              type = "sine",
-              volume = 0.6,
-              delay = 0,
-              slide = 0,
-            } = tone;
-            time += delay;
-            const oscillator = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            oscillator.type = type;
-            oscillator.frequency.setValueAtTime(freq, time);
-            if (slide !== 0) {
-              const targetFreq = freq + slide;
-              oscillator.frequency.linearRampToValueAtTime(
-                targetFreq,
-                time + Math.max(duration - 0.02, 0.01)
-              );
-            }
-            const peakTime = time + Math.min(duration * 0.35, 0.12);
-            gainNode.gain.setValueAtTime(0.0001, time);
-            gainNode.gain.linearRampToValueAtTime(volume, peakTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration + 0.04);
-            oscillator.connect(gainNode);
-            gainNode.connect(masterGain);
-            oscillator.start(time);
-            oscillator.stop(time + duration + 0.1);
-            time += duration;
-          });
-        }
-
-        return {
-          playPattern,
-        };
-      }
-
-      function toggleAccessory(show) {
-        const accessory = document.getElementById("accessory");
-        accessory.style.opacity = show ? 1 : 0;
-      }
-
-      function getAutomaticDayMode(date = new Date()) {
-        const hour = date.getHours();
-        return hour >= 22 || hour < 6 ? "night" : "day";
-      }
-
-      function refreshDayMode({ announce = false } = {}) {
-        const desiredMode = getAutomaticDayMode();
-        const modeChanged = state.dayMode !== desiredMode;
-        state.dayMode = desiredMode;
-        updateDayMode();
-        if (modeChanged) {
-          if (announce) {
-            pushLog(`El entorno cambia a modo ${state.dayMode === "day" ? "día" : "noche"}.`, "🌗");
-          }
-          saveState();
-        }
-      }
-
-      function startDayModeWatcher() {
-        if (dayModeIntervalId) {
-          clearInterval(dayModeIntervalId);
-        }
-        refreshDayMode();
-        dayModeIntervalId = setInterval(() => refreshDayMode({ announce: true }), DAY_MODE_CHECK_INTERVAL);
-      }
-
-      function updateDayMode() {
-        document.body.dataset.mode = state.dayMode;
-        if (state.dayMode === "day") {
-          document.documentElement.style.setProperty(
-            "--bg-primary",
-            "radial-gradient(circle at top, #ffe3f1 0%, #ffb7d5 36%, #ff86c6 70%, #f564a5 100%)"
-          );
-          dayEmoji.textContent = "🌞";
-          dayLabel.textContent = "Parque soleado";
-          degradeRates = { ...baseDegradeRates };
-        } else {
-          document.documentElement.style.setProperty(
-            "--bg-primary",
-            "radial-gradient(circle at top, #2b1b68 0%, #1d0f51 42%, #10063a 75%, #040019 100%)"
-          );
-          dayEmoji.textContent = "🌙";
-          dayLabel.textContent = "Noche estrellada";
-          degradeRates = { ...baseDegradeRates, energy: -1.4 };
-        }
-      }
-
-      function getName() {
-        const fallbackSkin = catSkins[currentSkinIndex] ?? catSkins[0];
-        return state.name || fallbackSkin?.name || "Pixel";
-      }
-
-      function startCatWander() {
-        if (wanderIntervalId) clearInterval(wanderIntervalId);
-        wanderIntervalId = setInterval(() => wanderCat(), 4200);
-        wanderCat(true);
-      }
-
-      function wanderCat(force = false) {
-        if (!catScene || !catWanderer) return;
-        const sceneWidth = catScene.clientWidth;
-        const catWidth = catWanderer.offsetWidth || 1;
-        const maxOffset = (sceneWidth - catWidth) / 2 - 12;
-        if (maxOffset <= 0) return;
-        let newX = (Math.random() * 2 - 1) * maxOffset;
-        const delta = Math.abs(newX - catMotion.x);
-        if (!force && delta < sceneWidth * 0.1) {
-          newX = Math.sign(newX || 1) * Math.min(maxOffset, Math.abs(newX) + sceneWidth * 0.18);
-        }
-        const newY = -Math.random() * 18;
-        const direction = newX < catMotion.x ? -1 : 1;
-        catMotion.x = newX;
-        catMotion.y = newY;
-        catWanderer.style.setProperty("--x", `${newX}px`);
-        catWanderer.style.setProperty("--y", `${newY}px`);
-        catWanderer.style.setProperty("--flip", direction === -1 ? "-1" : "1");
-      }
-
-      window.addEventListener("visibilitychange", () => {
-        state.lastTick = Date.now();
-        if (document.visibilityState === "visible") {
-          refreshDayMode({ announce: true });
-        }
-      });
-
-      window.addEventListener("beforeunload", saveState);
-    </script>
   </body>
 </html>
