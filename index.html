@@ -1008,7 +1008,7 @@
                       stroke-linejoin="round"
                     />
                   </g>
-                  <g id="face" transform="translate(0,-8)">
+                  <g id="face" transform="translate(0,-18)">
                     <path
                       d="M96 98 C86 120 90 150 112 170 C130 186 154 188 172 172 C194 154 200 124 190 100 C180 76 154 66 128 72 C112 76 102 86 96 98 Z"
                       fill="url(#faceMask)"
@@ -1175,6 +1175,7 @@
       const logEntryTemplate = document.getElementById("logEntryTemplate");
 
       let currentSkinIndex = 0;
+      let lastMoodKey = null;
 
       const catSkins = [
         {
@@ -1221,6 +1222,11 @@
         },
       ];
 
+      const defaultProgressBySkin = catSkins.reduce((acc, skin) => {
+        acc[skin.id] = { level: 1, xp: 0 };
+        return acc;
+      }, {});
+
       const defaultState = {
         name: catSkins[0].name,
         hunger: 80,
@@ -1233,6 +1239,7 @@
         accessoriesUnlocked: false,
         dayMode: "day",
         skin: catSkins[0].id,
+        progressBySkin: structuredClone(defaultProgressBySkin),
       };
 
       const state = loadState();
@@ -1250,6 +1257,8 @@
       if (!state.name || state.name === "Pixel") {
         state.name = catSkins[currentSkinIndex].name;
       }
+
+      loadSkinProgress(state.skin);
 
       const actions = {
         feed: {
@@ -1271,6 +1280,72 @@
           xp: 10,
         },
       };
+
+      const soundEngine = createSoundEngine();
+      const soundPatterns = {
+        feed: () => [
+          { freq: 420, duration: 0.12, type: "triangle", volume: 0.6 },
+          { freq: 260, duration: 0.12, type: "square", volume: 0.5, delay: 0.04 },
+          { freq: 520, duration: 0.16, type: "square", volume: 0.45, delay: 0.02 },
+        ],
+        play: () => [
+          { freq: 680, duration: 0.1, type: "square", volume: 0.6 },
+          { freq: 820, duration: 0.14, type: "square", volume: 0.52, delay: 0.05, slide: -160 },
+          { freq: 760, duration: 0.12, type: "square", volume: 0.46, delay: 0.03 },
+        ],
+        nap: () => [
+          { freq: 180, duration: 0.52, type: "sine", volume: 0.38 },
+          { freq: 150, duration: 0.58, type: "sine", volume: 0.34, delay: 0.32 },
+        ],
+        meow: () => [
+          { freq: 520, duration: 0.14, type: "triangle", volume: 0.6, slide: 180 },
+          { freq: 430, duration: 0.2, type: "triangle", volume: 0.55, delay: 0.06, slide: -220 },
+        ],
+        purr: () =>
+          Array.from({ length: 6 }, (_, index) => ({
+            freq: 90 + (index % 2 === 0 ? 8 : -8),
+            duration: 0.18,
+            type: "sine",
+            volume: 0.32,
+            delay: index === 0 ? 0 : 0.04,
+          })),
+      };
+
+      function playSoundEffect(effectKey) {
+        if (!soundEngine) return;
+        const generator = soundPatterns[effectKey];
+        if (!generator) return;
+        const pattern = typeof generator === "function" ? generator() : generator;
+        if (!Array.isArray(pattern) || pattern.length === 0) return;
+        soundEngine.playPattern(pattern);
+      }
+
+      function playActionSound(actionKey) {
+        switch (actionKey) {
+          case "feed":
+            playSoundEffect("feed");
+            playSoundEffect("purr");
+            break;
+          case "nap":
+            playSoundEffect("nap");
+            playSoundEffect("purr");
+            break;
+          case "play":
+            playSoundEffect("play");
+            playSoundEffect("meow");
+            break;
+          default:
+            playSoundEffect("meow");
+        }
+      }
+
+      function playMoodSound(moodKey) {
+        if (moodKey === "feliz") {
+          playSoundEffect("purr");
+        } else if (moodKey === "triste" || moodKey === "enfadado") {
+          playSoundEffect("meow");
+        }
+      }
 
       const baseDegradeRates = {
         hunger: -2.5,
@@ -1319,16 +1394,53 @@
         }
       }
 
+      function getCurrentSkinId() {
+        return catSkins[currentSkinIndex]?.id || state.skin;
+      }
+
+      function ensureSkinProgress(skinId) {
+        if (!skinId) return { level: 1, xp: 0 };
+        if (!state.progressBySkin) {
+          state.progressBySkin = structuredClone(defaultProgressBySkin);
+        }
+        if (!state.progressBySkin[skinId]) {
+          state.progressBySkin[skinId] = { level: 1, xp: 0 };
+        }
+        return state.progressBySkin[skinId];
+      }
+
+      function loadSkinProgress(skinId) {
+        const progress = ensureSkinProgress(skinId);
+        state.level = Math.max(1, Math.floor(Number(progress.level) || 1));
+        state.xp = Math.max(0, Number(progress.xp) || 0);
+      }
+
+      function persistSkinProgress(skinId = getCurrentSkinId()) {
+        if (!skinId) return;
+        ensureSkinProgress(skinId);
+        state.progressBySkin[skinId] = {
+          level: state.level,
+          xp: state.xp,
+        };
+      }
+
       function setSkin(index, options = {}) {
         const { preserveName = false, announce = false } = options;
         if (catSkins.length === 0) return;
+        const previousSkinId = getCurrentSkinId();
+        if (previousSkinId) {
+          persistSkinProgress(previousSkinId);
+        }
         currentSkinIndex = ((index % catSkins.length) + catSkins.length) % catSkins.length;
         const skin = catSkins[currentSkinIndex];
-        applyCatSkinVisuals(skin);
         state.skin = skin.id;
+        loadSkinProgress(state.skin);
+        applyCatSkinVisuals(skin);
         if (!preserveName) {
           state.name = skin.name;
           catNameInput.value = skin.name;
+        } else if (catNameInput && catNameInput.value.trim() === "") {
+          catNameInput.value = state.name;
         }
         updateUI();
         if (announce) {
@@ -1381,6 +1493,33 @@
           const parsed = JSON.parse(stored);
           const merged = { ...structuredClone(defaultState), ...parsed };
           const { clean, health, vetCooldown, ...safeState } = merged;
+          const baseProgress = structuredClone(defaultProgressBySkin);
+          const storedProgress = parsed?.progressBySkin || merged.progressBySkin || {};
+          const fallbackLevel = Math.max(1, Math.floor(Number(parsed?.level ?? merged.level ?? 1)));
+          const fallbackXp = Math.max(0, Number(parsed?.xp ?? merged.xp ?? 0));
+          Object.entries(storedProgress || {}).forEach(([skinId, progress]) => {
+            if (!progress) return;
+            const level = Math.max(1, Math.floor(Number(progress.level) || 1));
+            const xp = Math.max(0, Number(progress.xp) || 0);
+            baseProgress[skinId] = { level, xp };
+          });
+          catSkins.forEach((skin) => {
+            if (!baseProgress[skin.id]) {
+              baseProgress[skin.id] = { level: 1, xp: 0 };
+            }
+          });
+          safeState.progressBySkin = baseProgress;
+          const desiredSkinId = safeState.skin && baseProgress[safeState.skin] ? safeState.skin : catSkins[0].id;
+          if (!storedProgress || !storedProgress[desiredSkinId]) {
+            baseProgress[desiredSkinId] = {
+              level: fallbackLevel,
+              xp: fallbackXp,
+            };
+          }
+          const activeSkinId = desiredSkinId;
+          safeState.skin = activeSkinId;
+          safeState.level = baseProgress[activeSkinId].level;
+          safeState.xp = baseProgress[activeSkinId].xp;
           return safeState;
         } catch (error) {
           console.error("Error cargando estado", error);
@@ -1390,6 +1529,7 @@
 
       function saveState() {
         try {
+          persistSkinProgress();
           const copy = { ...state, history: state.history.slice(-25) };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
         } catch (error) {
@@ -1434,8 +1574,10 @@
         }
 
         Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value));
+        playActionSound(actionKey);
         gainXp(action.xp);
-        addLogEntry({ emoji: action.emoji, message: action.text(), timestamp: Date.now() });
+        const narration = action.text();
+        addLogEntry({ emoji: action.emoji, message: narration, timestamp: Date.now() });
 
         if (!state.accessoriesUnlocked && state.level >= 3) {
           state.accessoriesUnlocked = true;
@@ -1445,14 +1587,14 @@
 
         const mood = getMood();
         cat.dataset.mood = mood.key;
-        showToast(action.emoji, action.text());
+        showToast(action.emoji, narration);
         updateUI();
         saveState();
         wanderCat(true);
       }
 
       function gainXp(amount) {
-        state.xp += amount;
+        state.xp = Math.max(0, state.xp + amount);
         const levelThreshold = state.level * 120;
         if (state.xp >= levelThreshold) {
           state.xp -= levelThreshold;
@@ -1460,6 +1602,7 @@
           pushLog(`${getName()} sube al nivel ${state.level}.`, "🏅");
           showToast("🏅", `${getName()} alcanza el nivel ${state.level}.`);
         }
+        persistSkinProgress();
       }
 
       function getMood() {
@@ -1481,6 +1624,10 @@
         moodLabel.textContent = mood.label;
         cat.dataset.mood = mood.key;
         updateCatFace(mood.key);
+        if (lastMoodKey && lastMoodKey !== mood.key) {
+          playMoodSound(mood.key);
+        }
+        lastMoodKey = mood.key;
         levelLabel.textContent = state.level;
         document.title = `${getName()} · Nivel ${state.level} | Catagotchi`;
       }
@@ -1577,6 +1724,74 @@
 
       function clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
+      }
+
+      function createSoundEngine() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          return null;
+        }
+        let context;
+        let masterGain;
+
+        function ensureContext() {
+          if (context) return context;
+          try {
+            context = new AudioContextClass();
+            masterGain = context.createGain();
+            masterGain.gain.value = 0.22;
+            masterGain.connect(context.destination);
+          } catch (error) {
+            console.warn("AudioContext no disponible", error);
+            context = null;
+          }
+          return context;
+        }
+
+        function playPattern(pattern) {
+          const ctx = ensureContext();
+          if (!ctx || !Array.isArray(pattern)) return;
+          if (ctx.state === "suspended") {
+            ctx.resume();
+          }
+          let time = ctx.currentTime + 0.05;
+          pattern.forEach((tone) => {
+            if (!tone) return;
+            const {
+              freq,
+              duration = 0.2,
+              type = "sine",
+              volume = 0.6,
+              delay = 0,
+              slide = 0,
+            } = tone;
+            time += delay;
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, time);
+            if (slide !== 0) {
+              const targetFreq = freq + slide;
+              oscillator.frequency.linearRampToValueAtTime(
+                targetFreq,
+                time + Math.max(duration - 0.02, 0.01)
+              );
+            }
+            const peakTime = time + Math.min(duration * 0.35, 0.12);
+            gainNode.gain.setValueAtTime(0.0001, time);
+            gainNode.gain.linearRampToValueAtTime(volume, peakTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration + 0.04);
+            oscillator.connect(gainNode);
+            gainNode.connect(masterGain);
+            oscillator.start(time);
+            oscillator.stop(time + duration + 0.1);
+            time += duration;
+          });
+        }
+
+        return {
+          playPattern,
+        };
       }
 
       function toggleAccessory(show) {
