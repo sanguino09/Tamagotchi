@@ -35,18 +35,23 @@ const catSkins = [
     name: "Lukis",
     emoji: "🐈‍⬛",
     colors: {
-      furMain: "#2f2c3d",
-      furSecondary: "#262338",
-      furAccent: "#454058",
-      belly: "#d8dbe8",
-      earInner: "#f3adc9",
-      cheek: "#f48fbf",
-      outline: "#08050f",
-      paw: "#e8ecf7",
+      furMain: "#0f131c",
+      furSecondary: "#080b11",
+      furAccent: "#f4f6fa",
+      belly: "#f5f7fb",
+      earInner: "#f4b4c7",
+      cheek: "#f5c2d4",
+      outline: "#05040a",
+      paw: "#f7f9fe",
       collar: "#6ee7ff",
       collarStroke: "#4aa5ff",
-      nose: "#f3adc9",
-      pupil: "#0e1018",
+      nose: "#f3a9bb",
+      pupil: "#090c12",
+      tailTip: "#f5f7fb",
+      glassesFrame: "#305243",
+      glassesHighlight: "#74c79c",
+      glassesShadow: "#22372c",
+      glassesLens: "#b7eed0",
     },
   },
   {
@@ -66,6 +71,11 @@ const catSkins = [
       collarStroke: "#4a9bd4",
       nose: "#f5c3da",
       pupil: "#1a1c26",
+      tailTip: "#f5f8ff",
+      glassesFrame: null,
+      glassesHighlight: null,
+      glassesShadow: null,
+      glassesLens: null,
     },
   },
   {
@@ -85,6 +95,11 @@ const catSkins = [
       collarStroke: "#27b7b5",
       nose: "#d48c7d",
       pupil: "#1a1512",
+      tailTip: "#fff6e7",
+      glassesFrame: null,
+      glassesHighlight: null,
+      glassesShadow: null,
+      glassesLens: null,
     },
   },
 ];
@@ -310,6 +325,11 @@ function applyCatSkinVisuals(skin) {
     paw: palette.paw,
     nose: palette.nose,
     pupil: palette.pupil,
+    tailTip: palette.tailTip,
+    glassesFrame: palette.glassesFrame,
+    glassesHighlight: palette.glassesHighlight,
+    glassesShadow: palette.glassesShadow,
+    glassesLens: palette.glassesLens,
   });
   if (identityAvatar) {
     identityAvatar.textContent = skin.emoji;
@@ -909,16 +929,21 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     };
 
     const palette = {
-      outline: "#08050f",
-      furMain: "#2f2c3d",
-      furSecondary: "#262338",
-      furAccent: "#454058",
-      belly: "#d8dbe8",
-      earInner: "#f3adc9",
-      cheek: "#f48fbf",
-      paw: "#e8ecf7",
-      nose: "#f3adc9",
-      pupil: "#0e1018",
+      outline: "#05040a",
+      furMain: "#0f131c",
+      furSecondary: "#080b11",
+      furAccent: "#f4f6fa",
+      belly: "#f5f7fb",
+      earInner: "#f4b4c7",
+      cheek: "#f5c2d4",
+      paw: "#f7f9fe",
+      nose: "#f3a9bb",
+      pupil: "#090c12",
+      tailTip: "#f5f7fb",
+      glassesFrame: "#305243",
+      glassesHighlight: "#74c79c",
+      glassesShadow: "#22372c",
+      glassesLens: "#b7eed0",
     };
 
     function shiftColor(color, amount = 0) {
@@ -1027,9 +1052,10 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     function setPalette(newPalette) {
       if (!newPalette) return;
       Object.entries(newPalette).forEach(([key, value]) => {
-        if (value) {
-          palette[key] = value;
+        if (value === undefined) {
+          return;
         }
+        palette[key] = value;
       });
       drawCurrentFrame();
     }
@@ -1191,8 +1217,9 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       const accentShadow = shiftColor(furAccent, -0.18);
       const bellyHighlight = shiftColor(belly, 0.12);
       const bellyShadow = shiftColor(belly, -0.2);
+      const tailTip = palette.tailTip !== undefined ? palette.tailTip : furAccent;
 
-      drawTail(bodyX, bodyY, tailSway, tailLift, furSecondary, furAccent, outline);
+      drawTail(bodyX, bodyY, tailSway, tailLift, furSecondary, tailTip, outline);
 
       drawLeg({
         x: bodyX + 2 + (backLegs.far?.forward ?? 0),
@@ -1221,6 +1248,8 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       drawRect(bodyX + 2, bodyY + 4, 4, bodyHeight - 8, shiftColor(furSecondary, -0.08));
       drawRect(bodyX + 9, bodyY + 3, 9, bodyHeight - 6, belly);
       drawRect(bodyX + 10, bodyY + 4, 7, bodyHeight - 8, bellyHighlight);
+      drawRect(bodyX + bodyWidth - 8, bodyY + 2, 5, 2, bellyHighlight);
+      drawRect(bodyX + bodyWidth - 7, bodyY + 1, 3, 1, shiftColor(bellyHighlight, 0.06));
       drawRect(bodyX + 9, bodyY + bodyHeight - 3, 9, 1, bellyShadow);
       drawRect(bodyX + bodyWidth - 6, bodyY + 4, 3, bodyHeight - 7, accentShadow);
       drawRect(bodyX + bodyWidth - 8, bodyY + 5, 2, bodyHeight - 9, accentHighlight);
@@ -1285,6 +1314,10 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       const accentShadow = shiftColor(furAccent, -0.2);
       const bellyHighlight = shiftColor(belly, 0.12);
       const bellyShadow = shiftColor(belly, -0.18);
+      const tailTip = palette.tailTip !== undefined ? palette.tailTip : furAccent;
+      const hasTailTip = tailTip !== undefined && tailTip !== null;
+      const tailTipHighlight = hasTailTip ? shiftColor(tailTip, 0.16) : null;
+      const tailTipShadow = hasTailTip ? shiftColor(tailTip, -0.16) : null;
 
       drawOutlinedRect(bodyX - 1, bodyY, 30, bodyHeight, furMain, outline);
       drawRect(bodyX, bodyY + 1, 28, 2, topHighlight);
@@ -1303,10 +1336,13 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       drawOutlinedRect(tailBaseX, tailBaseY, 9, 6, furSecondary, outline);
       drawRect(tailBaseX + 1, tailBaseY + 1, 7, 1, shiftColor(furSecondary, 0.16));
       drawRect(tailBaseX + 1, tailBaseY + 4, 7, 2, shiftColor(furSecondary, -0.16));
-      drawOutlinedRect(tailBaseX - 6, tailBaseY + 2, 7, 6, furAccent, outline);
-      drawRect(tailBaseX - 5, tailBaseY + 3, 5, 1, accentHighlight);
-      drawRect(tailBaseX - 5, tailBaseY + 6, 5, 1, accentShadow);
-      drawRect(tailBaseX - 4, tailBaseY + 4, 3, 2, palette.belly || bellyHighlight);
+      const tailFill = hasTailTip ? tailTip : furSecondary;
+      drawOutlinedRect(tailBaseX - 6, tailBaseY + 2, 7, 6, tailFill, outline);
+      if (hasTailTip) {
+        drawRect(tailBaseX - 5, tailBaseY + 3, 5, 1, tailTipHighlight || shiftColor(tailFill, 0.16));
+        drawRect(tailBaseX - 5, tailBaseY + 6, 5, 1, tailTipShadow || shiftColor(tailFill, -0.16));
+        drawRect(tailBaseX - 4, tailBaseY + 4, 3, 2, palette.belly || bellyHighlight);
+      }
 
       drawLeg({
         x: bodyX + 6,
@@ -1355,6 +1391,16 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       const eyeShine = shiftColor(eyeWhite, 0.2);
       const eyelidColor = shiftColor(furMain, -0.12);
       const lowerLidColor = shiftColor(furSecondary, -0.2);
+      const glassesFrame = palette.glassesFrame;
+      const glassesHighlight =
+        glassesFrame !== undefined && glassesFrame !== null
+          ? palette.glassesHighlight ?? shiftColor(glassesFrame, 0.2)
+          : null;
+      const glassesShadow =
+        glassesFrame !== undefined && glassesFrame !== null
+          ? palette.glassesShadow ?? shiftColor(glassesFrame, -0.2)
+          : null;
+      const glassesLens = palette.glassesLens;
       const leftEyeX = headX + 4;
       const rightEyeX = headX + headWidth - 8;
       const eyeBaseline = headY + 6;
@@ -1372,6 +1418,8 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       drawEye(expression.eyes, leftEyeX);
       drawEye(expression.eyes, rightEyeX);
 
+      drawGlasses();
+
       if (cheekColor) {
         drawRect(headX + 1, headY + headHeight - 5, 3, 2, cheekColor);
         drawRect(headX + headWidth - 4, headY + headHeight - 5, 3, 2, cheekColor);
@@ -1381,6 +1429,8 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       drawRect(muzzleX, muzzleY, muzzleWidth, 4, muzzleColor);
       drawRect(muzzleX + 1, muzzleY + 1, muzzleWidth - 2, 1, muzzleHighlight);
       drawRect(muzzleX + 1, muzzleY + 2, muzzleWidth - 2, 1, muzzleShadow);
+      drawRect(muzzleX + 2, muzzleY - 2, 4, 1, muzzleHighlight);
+      drawRect(muzzleX + 3, muzzleY - 3, 2, 1, shiftColor(muzzleHighlight, 0.08));
 
       const noseColor = palette.nose || palette.earInner || outline;
       const noseX = headX + Math.floor(headWidth / 2) - 1;
@@ -1502,6 +1552,49 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
             drawRect(mouthX, mouthY, 6, 1, outline);
         }
       }
+
+      function drawGlasses() {
+        if (!glassesFrame) {
+          return;
+        }
+        const frameWidth = 5;
+        const frameHeight = 6;
+        const frameTop = eyeBaseline - 3;
+        const templeY = frameTop + 3;
+        const frames = [leftEyeX - 1, rightEyeX - 1];
+        frames.forEach((frameX) => {
+          drawRect(frameX, frameTop, frameWidth, 1, glassesHighlight || glassesFrame);
+          drawRect(frameX, frameTop + frameHeight - 1, frameWidth, 1, glassesShadow || glassesFrame);
+          drawRect(frameX, frameTop, 1, frameHeight, glassesFrame);
+          drawRect(frameX + frameWidth - 1, frameTop, 1, frameHeight, glassesFrame);
+          if (glassesLens) {
+            const lensWidth = Math.max(1, frameWidth - 3);
+            drawRect(frameX + 1, frameTop + 1, lensWidth, 1, glassesLens);
+            drawRect(frameX + frameWidth - 2, frameTop + 2, 1, frameHeight - 3, glassesLens);
+          }
+        });
+        const leftFrameX = frames[0];
+        const rightFrameX = frames[1];
+        const bridgeStart = leftFrameX + frameWidth - 1;
+        const bridgeEnd = rightFrameX;
+        const bridgeWidth = bridgeEnd - bridgeStart + 1;
+        if (bridgeWidth > 0) {
+          const bridgeY = frameTop + Math.floor(frameHeight / 2);
+          drawRect(bridgeStart, bridgeY, bridgeWidth, 1, glassesFrame);
+          if (glassesHighlight) {
+            drawRect(bridgeStart, bridgeY - 1, bridgeWidth, 1, glassesHighlight);
+          }
+        }
+        drawRect(leftFrameX - 2, templeY, 2, 1, glassesFrame);
+        drawRect(rightFrameX + frameWidth, templeY, 2, 1, glassesFrame);
+        if (glassesHighlight) {
+          drawRect(leftFrameX - 2, templeY, 1, 1, glassesHighlight);
+          drawRect(rightFrameX + frameWidth, templeY, 1, 1, glassesHighlight);
+        }
+        if (glassesShadow) {
+          drawRect(rightFrameX + frameWidth + 1, templeY + 1, 1, 1, glassesShadow);
+        }
+      }
     }
     function drawEar(x, y, mirror, outerColor, accentColor, outline) {
       const outer = outerColor || palette.furSecondary || "#262338";
@@ -1521,17 +1614,19 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         drawRect(innerX, y + 2, 2, 1, innerHighlight);
       }
     }
-    function drawTail(bodyX, bodyY, sway, lift, color, accent, outline) {
+    function drawTail(bodyX, bodyY, sway, lift, color, tipColor, outline) {
       const baseX = bodyX - 2 + sway;
       const baseY = bodyY + 6 - lift;
       const segments = [
-        { offsetX: -2, offsetY: 0, width: 7, height: 5, useAccent: false },
-        { offsetX: -5, offsetY: -3, width: 6, height: 5, useAccent: false },
-        { offsetX: -6, offsetY: -6, width: 5, height: 4, useAccent: Boolean(accent) },
-        { offsetX: -4, offsetY: -8, width: 4, height: 4, useAccent: Boolean(accent) },
+        { offsetX: -2, offsetY: 0, width: 7, height: 5, tip: false },
+        { offsetX: -5, offsetY: -3, width: 6, height: 5, tip: false },
+        { offsetX: -6, offsetY: -6, width: 5, height: 4, tip: true },
+        { offsetX: -4, offsetY: -8, width: 4, height: 4, tip: true },
       ];
+      const hasTip = tipColor !== undefined && tipColor !== null;
       segments.forEach((segment) => {
-        const fill = segment.useAccent ? accent || color : color;
+        const useTip = segment.tip && hasTip;
+        const fill = useTip ? tipColor || color : color;
         const x = baseX + segment.offsetX;
         const y = baseY + segment.offsetY;
         drawOutlinedRect(x, y, segment.width, segment.height, fill, outline);
@@ -1539,14 +1634,14 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
           drawRect(x + 1, y + 1, segment.width - 2, 1, shiftColor(fill, 0.16));
           drawRect(x + 1, y + segment.height - 2, segment.width - 2, 1, shiftColor(fill, -0.18));
         }
-        if (segment.useAccent && accent) {
-          drawRect(x + segment.width - 2, y + 1, 1, segment.height - 2, shiftColor(accent, -0.1));
+        if (useTip && tipColor) {
+          drawRect(x + segment.width - 2, y + 1, 1, segment.height - 2, shiftColor(tipColor, -0.1));
         }
       });
-      if (accent) {
-        drawRect(baseX - 6, baseY - 4, 4, 2, accent);
-        drawRect(baseX - 6, baseY - 4, 4, 1, shiftColor(accent, 0.16));
-        drawRect(baseX - 5, baseY - 2, 3, 1, shiftColor(accent, -0.16));
+      if (hasTip && tipColor) {
+        drawRect(baseX - 6, baseY - 4, 4, 2, tipColor);
+        drawRect(baseX - 6, baseY - 4, 4, 1, shiftColor(tipColor, 0.16));
+        drawRect(baseX - 5, baseY - 2, 3, 1, shiftColor(tipColor, -0.16));
       }
     }
     function drawLeg({ x, baseY, width, height, lift = 0, color, pawColor, outline }) {
