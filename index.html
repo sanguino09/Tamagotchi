@@ -12,19 +12,30 @@
     />
     <style>
       :root {
-        color-scheme: dark;
-        --bg-primary: radial-gradient(circle at 20% 20%, #3f2b96, #1f054d 60%, #090014);
-        --bg-secondary: linear-gradient(135deg, rgba(76, 172, 255, 0.35), rgba(255, 112, 214, 0.25));
-        --card-bg: rgba(20, 11, 46, 0.7);
-        --card-border: rgba(147, 127, 255, 0.6);
-        --accent: #ffc857;
-        --accent-strong: #f76bff;
-        --success: #44ffb1;
-        --danger: #ff5f8f;
-        --text-primary: #f6f7ff;
-        --text-secondary: rgba(237, 239, 255, 0.72);
-        --glow: 0 0 22px rgba(255, 200, 87, 0.5);
-        --shadow: 0 20px 40px rgba(7, 3, 26, 0.6);
+        color-scheme: light;
+        --bg-primary: radial-gradient(circle at top, #ffe3f1 0%, #ffb7d5 36%, #ff86c6 70%, #f564a5 100%);
+        --shell-main: #ff85c5;
+        --shell-highlight: #ffd6ec;
+        --shell-shadow: #d43c8c;
+        --screen-sky: #bde9ff;
+        --screen-ground: #ffe7b5;
+        --screen-glow: rgba(255, 255, 255, 0.36);
+        --screen-border: #ffbcd9;
+        --hud-bg: rgba(255, 255, 255, 0.36);
+        --hud-border: #ff9cca;
+        --hud-text: #87245f;
+        --stat-bg: rgba(255, 255, 255, 0.42);
+        --stat-border: #ff87c9;
+        --progress-bg: rgba(255, 255, 255, 0.5);
+        --progress-fill: linear-gradient(90deg, #ff9bc6 0%, #ffda85 100%);
+        --progress-fill-cool: linear-gradient(90deg, #8bc6ff 0%, #74f2ff 100%);
+        --progress-fill-fun: linear-gradient(90deg, #f996ff 0%, #ffa4d4 100%);
+        --progress-fill-health: linear-gradient(90deg, #7dffb5 0%, #52d5a4 100%);
+        --text-primary: #53163c;
+        --text-secondary: #a13a6f;
+        --button-bg: #ffe5f3;
+        --button-shadow: #ffa4d0;
+        --device-shadow: rgba(218, 44, 129, 0.28);
       }
 
       * {
@@ -37,545 +48,632 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: "Poppins", sans-serif;
         background: var(--bg-primary);
+        font-family: "Poppins", sans-serif;
         color: var(--text-primary);
-        overflow-x: hidden;
-      }
-
-      body::before,
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
+        padding: 32px 18px;
       }
 
       body::before {
-        background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 2px, transparent 2px);
-        background-size: 60px 60px;
-        opacity: 0.4;
-        animation: drift 40s linear infinite;
-      }
-
-      body::after {
-        background: var(--bg-secondary);
-        mix-blend-mode: screen;
-        opacity: 0.7;
-      }
-
-      @keyframes drift {
-        0% {
-          transform: translate3d(0, 0, 0) scale(1);
-        }
-        50% {
-          transform: translate3d(-40px, -20px, 0) scale(1.05);
-        }
-        100% {
-          transform: translate3d(0, 0, 0) scale(1);
-        }
-      }
-
-      main {
-        position: relative;
-        width: min(1100px, 94vw);
-        margin: 48px auto;
-        padding: 36px clamp(24px, 4vw, 48px);
-        background: var(--card-bg);
-        border-radius: 32px;
-        border: 1.5px solid var(--card-border);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(18px) saturate(140%);
-        overflow: hidden;
-      }
-
-      main::before {
         content: "";
-        position: absolute;
-        inset: -120px;
-        background: radial-gradient(circle at center, rgba(255, 200, 87, 0.2) 0%, rgba(0, 0, 0, 0) 65%);
-        z-index: 0;
-        animation: pulse 12s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(0.9) rotate(0deg);
-        }
-        50% {
-          transform: scale(1.03) rotate(2deg);
-        }
-      }
-
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-        z-index: 2;
-        margin-bottom: clamp(28px, 5vw, 48px);
-      }
-
-      .logo {
-        font-family: "Press Start 2P", system-ui, sans-serif;
-        letter-spacing: 0.1rem;
-        text-transform: uppercase;
-        font-size: clamp(1.1rem, 1.4vw + 0.6rem, 2rem);
-        color: var(--accent);
-        text-shadow: 0 0 12px rgba(255, 200, 87, 0.75);
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .logo span {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: clamp(38px, 4vw, 52px);
-        aspect-ratio: 1;
-        border-radius: 18px;
-        background: rgba(255, 200, 87, 0.12);
-        border: 2px solid rgba(255, 200, 87, 0.4);
-      }
-
-      .session-info {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        color: var(--text-secondary);
-        font-size: 0.95rem;
-        flex-wrap: wrap;
-      }
-
-      .session-info strong {
-        color: var(--accent);
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 2.2fr 1.2fr;
-        gap: clamp(24px, 4vw, 40px);
-        position: relative;
-        z-index: 2;
-      }
-
-      .panel {
-        background: rgba(15, 8, 40, 0.6);
-        border-radius: 24px;
-        border: 1px solid rgba(119, 96, 255, 0.4);
-        padding: clamp(20px, 3vw, 32px);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .panel::after {
-        content: "";
-        position: absolute;
+        position: fixed;
         inset: 0;
-        background: linear-gradient(120deg, rgba(247, 107, 255, 0.15), transparent 40%, transparent 60%, rgba(68, 255, 177, 0.12));
-        opacity: 0.5;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.4), transparent 55%),
+          radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.35), transparent 45%);
+        pointer-events: none;
+        opacity: 0.45;
+      }
+
+      main.device {
+        position: relative;
+        width: min(480px, 92vw);
+        padding: 42px 34px 58px;
+        border-radius: 220px 220px 280px 280px;
+        background: radial-gradient(circle at 50% 18%, var(--shell-highlight), var(--shell-main) 55%, var(--shell-shadow) 120%);
+        box-shadow: 0 40px 80px var(--device-shadow), inset 0 0 0 6px rgba(255, 255, 255, 0.4);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+      }
+
+      main.device::before {
+        content: "";
+        position: absolute;
+        inset: 16px 22px;
+        border-radius: 180px 180px 240px 240px;
+        border: 4px solid rgba(255, 255, 255, 0.45);
         pointer-events: none;
       }
 
-      h2 {
-        margin: 0 0 18px;
-        font-size: clamp(1.1rem, 0.8vw + 1rem, 1.6rem);
-        font-weight: 700;
-        color: var(--text-primary);
+      .device-header {
+        text-align: center;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 12px;
+        gap: 6px;
+        z-index: 1;
       }
 
-      h2 .spark {
+      .device-logo {
+        font-family: "Press Start 2P", system-ui;
+        font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffeef8;
+        text-shadow: 0 5px 0 rgba(0, 0, 0, 0.15), 0 0 24px rgba(255, 255, 255, 0.45);
+      }
+
+      .device-lights {
+        display: flex;
+        gap: 10px;
+      }
+
+      .device-lights span {
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 14px rgba(255, 200, 87, 0.8);
-        position: relative;
+        background: rgba(255, 255, 255, 0.65);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+        animation: twinkle 3.4s ease-in-out infinite;
       }
 
-      h2 .spark::after,
-      h2 .spark::before {
-        content: "";
-        position: absolute;
-        inset: -6px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 200, 87, 0.6);
+      .device-lights span:nth-child(2) {
+        animation-delay: 0.8s;
       }
 
-      .cat-stage {
-        display: grid;
-        grid-template-columns: minmax(240px, 320px) 1fr;
-        gap: clamp(18px, 3vw, 32px);
-        align-items: center;
+      .device-lights span:nth-child(3) {
+        animation-delay: 1.6s;
       }
 
-      .cat-container {
-        position: relative;
+      .name-band {
         width: 100%;
-        aspect-ratio: 1/1;
-        border-radius: 30px;
-        background: radial-gradient(circle at 30% 30%, rgba(255, 200, 87, 0.35), rgba(15, 8, 40, 0.7));
-        border: 1px solid rgba(255, 200, 87, 0.35);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 12px 32px rgba(8, 2, 26, 0.55);
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.45);
+        border: 3px solid rgba(255, 255, 255, 0.65);
+        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.35);
+        font-weight: 600;
+        color: var(--text-secondary);
       }
 
-      .cat-container::after {
+      .name-field {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "Press Start 2P", system-ui;
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .name-field input {
+        border: none;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        padding: 6px 8px 4px;
+        font: inherit;
+        color: var(--text-primary);
+        width: 120px;
+        text-transform: uppercase;
+      }
+
+      .name-field input::placeholder {
+        color: rgba(122, 54, 88, 0.55);
+      }
+
+      .name-field input:focus {
+        outline: 2px solid rgba(255, 118, 197, 0.75);
+        outline-offset: 2px;
+      }
+
+      .chip {
+        font-family: "Press Start 2P", system-ui;
+        font-size: 0.58rem;
+        letter-spacing: 0.08em;
+        background: rgba(255, 255, 255, 0.75);
+        color: var(--text-primary);
+        padding: 6px 10px 4px;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 118, 197, 0.5);
+        box-shadow: 0 4px 0 rgba(255, 118, 197, 0.35);
+      }
+
+      .screen-section {
+        width: 100%;
+      }
+
+      .screen {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        background: linear-gradient(180deg, var(--screen-sky) 0%, var(--screen-ground) 70%);
+        border-radius: 36px;
+        border: 4px solid var(--screen-border);
+        box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6), inset 0 0 45px var(--screen-glow);
+        padding: 20px 18px 18px;
+        font-family: "Press Start 2P", system-ui;
+        letter-spacing: 0.05em;
+        color: var(--hud-text);
+      }
+
+      .day-switch {
+        align-self: flex-end;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font: inherit;
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        color: inherit;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .day-switch:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 rgba(255, 118, 197, 0.35);
+      }
+
+      .day-switch:focus-visible {
+        outline: 2px solid rgba(89, 148, 255, 0.8);
+        outline-offset: 2px;
+      }
+
+      .scene {
+        position: relative;
+        height: clamp(220px, 42vw, 260px);
+        border-radius: 26px;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 60%, transparent 100%);
+        border: 2px dashed rgba(255, 255, 255, 0.4);
+      }
+
+      .scene::before,
+      .scene::after {
         content: "";
         position: absolute;
-        inset: 14px;
-        border-radius: 24px;
-        border: 1px dashed rgba(255, 255, 255, 0.12);
-        opacity: 0.6;
+        inset: 0;
         pointer-events: none;
+      }
+
+      .scene::before {
+        background: radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.7), transparent 60%),
+          radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.5), transparent 55%);
+        opacity: 0.75;
+      }
+
+      .scene::after {
+        bottom: -10px;
+        top: auto;
+        height: 120px;
+        background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.32) 0 2px, transparent 2px 8px);
+        opacity: 0.5;
+      }
+
+      .scene-floor {
+        position: absolute;
+        inset: auto 0 0;
+        height: 38%;
+        background: linear-gradient(180deg, rgba(255, 229, 184, 0.7), rgba(255, 190, 150, 0.4));
+        border-top: 2px solid rgba(255, 255, 255, 0.6);
+      }
+
+      .cat-wanderer {
+        --x: 0px;
+        --y: 0px;
+        --flip: 1;
+        --scale: 1;
+        --bob-speed: 3.2s;
+        --shadow-opacity: 0.45;
+        position: absolute;
+        left: 50%;
+        bottom: 38px;
+        width: clamp(160px, 40vw, 220px);
+        transform: translate(calc(-50% + var(--x)), var(--y));
+        transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1);
+        will-change: transform;
+      }
+
+      .cat-shadow {
+        position: absolute;
+        left: 50%;
+        bottom: -20px;
+        width: 70%;
+        height: 26px;
+        background: rgba(0, 0, 0, 0.18);
+        border-radius: 50%;
+        transform: translateX(-50%) scaleX(calc(0.95 + (var(--scale) - 1) * 0.6));
+        filter: blur(4px);
+        opacity: var(--shadow-opacity);
+        transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1), opacity 0.6s ease;
       }
 
       .cat {
         position: relative;
-        width: clamp(220px, 25vw, 300px);
-        transition: transform 0.6s ease;
-      }
-
-      .cat[data-mood="enfadado"] {
-        transform: translateY(4px) scale(0.95) rotate(-1deg);
-      }
-
-      .cat[data-mood="feliz"] {
-        transform: translateY(-6px) scale(1.03);
+        width: 100%;
+        transform: scaleX(var(--flip)) scale(var(--scale));
+        transform-origin: center bottom;
+        animation: bob var(--bob-speed) ease-in-out infinite;
+        filter: drop-shadow(0 10px 18px rgba(112, 41, 104, 0.25));
       }
 
       .cat svg {
         width: 100%;
         height: auto;
-        filter: drop-shadow(0 8px 16px rgba(10, 4, 28, 0.45));
       }
 
-      .status-board {
-        display: grid;
-        gap: 16px;
+      .cat[data-mood="feliz"] svg {
+        filter: saturate(1.1) brightness(1.05) drop-shadow(0 10px 18px rgba(112, 41, 104, 0.25));
       }
 
-      .stat {
-        background: rgba(27, 16, 56, 0.6);
-        border-radius: 18px;
-        padding: 16px 18px;
-        border: 1px solid rgba(147, 127, 255, 0.35);
-        position: relative;
-        overflow: hidden;
+      .cat[data-mood="triste"] svg,
+      .cat[data-mood="enfadado"] svg {
+        filter: saturate(0.85) brightness(0.92) drop-shadow(0 10px 18px rgba(112, 41, 104, 0.2));
       }
 
-      .stat::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        right: 18px;
-        top: 12px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.45);
-      }
-
-      .stat-title {
-        display: flex;
-        align-items: baseline;
-        gap: 12px;
-        margin-bottom: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-      }
-
-      .progress-bar {
-        position: relative;
-        width: 100%;
-        height: 16px;
-        background: rgba(7, 2, 22, 0.8);
-        border-radius: 999px;
-        overflow: hidden;
-      }
-
-      .progress-fill {
-        --color: var(--accent);
-        width: var(--value, 50%);
-        height: 100%;
-        background: linear-gradient(90deg, rgba(255, 200, 87, 0.8), rgba(255, 120, 244, 0.85));
-        border-radius: inherit;
-        box-shadow: 0 0 18px rgba(255, 200, 87, 0.35);
-        transition: width 0.6s ease, background 0.6s ease;
-      }
-
-      .stat[data-theme="cool"] .progress-fill {
-        background: linear-gradient(90deg, rgba(76, 172, 255, 0.9), rgba(157, 233, 255, 0.8));
-        box-shadow: 0 0 18px rgba(76, 172, 255, 0.35);
-      }
-
-      .stat[data-theme="fun"] .progress-fill {
-        background: linear-gradient(90deg, rgba(247, 107, 255, 0.9), rgba(255, 163, 214, 0.8));
-        box-shadow: 0 0 18px rgba(247, 107, 255, 0.35);
-      }
-
-      .stat-value {
-        position: absolute;
-        right: 18px;
-        top: 16px;
-        font-weight: 600;
-        color: var(--text-secondary);
-      }
-
-      .actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 16px;
-      }
-
-      .action-btn {
-        background: rgba(34, 17, 68, 0.8);
-        border: 1px solid rgba(147, 127, 255, 0.4);
-        border-radius: 18px;
-        padding: 18px;
+      .screen-hud {
+        background: var(--hud-bg);
+        border: 3px solid var(--hud-border);
+        border-radius: 24px;
+        padding: 14px 16px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
-        justify-content: flex-start;
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        position: relative;
-        overflow: hidden;
+        gap: 16px;
+        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.35);
       }
 
-      .action-btn::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(255, 200, 87, 0.12), transparent 60%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      .action-btn:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 16px 28px rgba(12, 5, 32, 0.55);
-        border-color: rgba(255, 200, 87, 0.6);
-      }
-
-      .action-btn:hover::after {
-        opacity: 1;
-      }
-
-      .action-icon {
-        font-size: 1.8rem;
-      }
-
-      .action-btn span {
-        font-weight: 600;
-        letter-spacing: 0.02em;
-      }
-
-      .action-btn small {
-        color: rgba(240, 242, 255, 0.7);
-        font-size: 0.82rem;
-        line-height: 1.4;
-      }
-
-      .activity-log {
-        max-height: 340px;
-        overflow-y: auto;
-        padding-right: 8px;
-        display: grid;
-        gap: 12px;
-      }
-
-      .log-entry {
-        background: rgba(28, 17, 58, 0.6);
-        border-radius: 16px;
-        padding: 14px 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        display: grid;
-        gap: 4px;
-        font-size: 0.9rem;
-        line-height: 1.4;
-      }
-
-      .log-entry strong {
-        color: var(--accent);
-      }
-
-      .log-time {
-        font-size: 0.75rem;
-        color: rgba(240, 242, 255, 0.55);
-        letter-spacing: 0.05em;
-      }
-
-      .leveling {
+      .hud-top {
         display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        margin-bottom: 24px;
       }
 
-      .badge {
+      .mood-chip {
+        padding: 6px 12px 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 2px solid rgba(255, 118, 197, 0.45);
+        font-size: 0.65rem;
+        letter-spacing: 0.08em;
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
-        border-radius: 999px;
-        background: rgba(255, 200, 87, 0.18);
-        border: 1px solid rgba(255, 200, 87, 0.4);
-        font-weight: 600;
-        color: var(--accent);
-        letter-spacing: 0.05em;
+        gap: 8px;
       }
 
       .xp-bar {
         flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.62rem;
+        text-transform: uppercase;
+      }
+
+      .progress-track {
+        flex: 1;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--progress-bg);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        width: var(--value, 50%);
+        height: 100%;
+        background: var(--progress-fill);
+        border-radius: inherit;
+        transition: width 0.6s ease;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        font-size: 0.58rem;
+      }
+
+      .stat {
+        position: relative;
+        padding: 10px 12px 12px;
+        border-radius: 18px;
+        background: var(--stat-bg);
+        border: 2px solid var(--stat-border);
+        box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.28);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .stat[data-theme="cool"] .progress-fill {
+        background: var(--progress-fill-cool);
+      }
+
+      .stat[data-theme="fun"] .progress-fill {
+        background: var(--progress-fill-fun);
+      }
+
+      .stat[data-theme="health"] .progress-fill {
+        background: var(--progress-fill-health);
+      }
+
+      .stat-title {
+        display: flex;
+        justify-content: space-between;
+        text-transform: uppercase;
+      }
+
+      .stat-value {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 9px;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        background: var(--progress-bg);
+        overflow: hidden;
+      }
+
+      .activity-log {
+        max-height: 180px;
+        overflow-y: auto;
+        display: grid;
+        gap: 10px;
+        font-family: "Poppins", sans-serif;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+      }
+
+      .log-window {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.48);
+        border-radius: 26px;
+        border: 3px solid rgba(255, 255, 255, 0.7);
+        padding: 18px 18px 20px;
+        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.32);
+      }
+
+      .log-title {
+        font-family: "Press Start 2P", system-ui;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        margin: 0 0 14px;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .log-entry {
+        background: rgba(255, 255, 255, 0.78);
+        border: 2px dashed rgba(255, 134, 201, 0.65);
+        border-radius: 16px;
+        padding: 10px 12px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .log-time {
+        font-family: "Press Start 2P", system-ui;
+        font-size: 0.55rem;
+        letter-spacing: 0.08em;
+        color: rgba(130, 52, 92, 0.7);
+      }
+
+      .log-text {
+        line-height: 1.45;
+      }
+
+      .button-row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+        gap: 18px;
+        justify-items: center;
+        margin-top: 6px;
+      }
+
+      .device-button {
+        position: relative;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        border: none;
+        background: var(--button-bg);
+        box-shadow: 0 10px 0 var(--button-shadow);
+        display: grid;
+        place-items: center;
+        font-size: 1.8rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .device-button::after {
+        content: attr(data-label);
+        position: absolute;
+        bottom: -28px;
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--text-primary);
+        font-family: "Press Start 2P", system-ui;
+        font-size: 0.48rem;
+        padding: 4px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 134, 201, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .device-button:hover,
+      .device-button:focus-visible {
+        transform: translateY(2px);
+        box-shadow: 0 6px 0 var(--button-shadow);
+      }
+
+      .device-button:hover::after,
+      .device-button:focus-visible::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .device-button:active {
+        transform: translateY(6px);
+        box-shadow: 0 4px 0 var(--button-shadow);
+      }
+
+      .device-button:focus-visible {
+        outline: 2px solid rgba(89, 148, 255, 0.8);
+        outline-offset: 3px;
       }
 
       .toast {
         position: fixed;
-        bottom: 32px;
         left: 50%;
-        transform: translateX(-50%) translateY(120%);
-        background: rgba(15, 8, 40, 0.88);
-        border: 1px solid rgba(255, 200, 87, 0.4);
+        bottom: 24px;
+        transform: translate(-50%, 120%);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--text-primary);
         border-radius: 18px;
-        padding: 14px 24px;
-        display: flex;
-        gap: 12px;
+        border: 2px solid rgba(255, 134, 201, 0.6);
+        padding: 12px 16px;
+        display: inline-flex;
+        gap: 10px;
         align-items: center;
-        box-shadow: 0 20px 40px rgba(8, 2, 26, 0.6);
-        opacity: 0;
-        transition: transform 0.4s ease, opacity 0.4s ease;
-        z-index: 100;
+        font-weight: 600;
+        box-shadow: 0 20px 32px rgba(215, 64, 150, 0.25);
+        transition: transform 0.4s ease;
+        z-index: 10;
       }
 
       .toast.show {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
+        transform: translate(-50%, 0);
       }
 
-      .toast .emoji {
-        font-size: 1.6rem;
+      .toast span:first-child {
+        font-size: 1.4rem;
       }
 
-      .day-switch {
+      .sr-only {
         position: absolute;
-        top: 16px;
-        right: 16px;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(16, 9, 38, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: transform 0.2s ease;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
-      .day-switch:hover {
-        transform: translateY(-3px);
-      }
-
-      .cat-facts {
-        margin-top: 26px;
-        padding: 18px;
-        border-radius: 18px;
-        background: rgba(33, 19, 64, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        display: grid;
-        gap: 12px;
-      }
-
-      .cat-facts h3 {
-        margin: 0;
-        font-size: 1rem;
-        letter-spacing: 0.02em;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .cat-facts ul {
-        margin: 0;
-        padding-left: 18px;
-        display: grid;
-        gap: 6px;
-        font-size: 0.9rem;
-        color: rgba(231, 233, 255, 0.76);
-      }
-
-      .name-input {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
-        border-radius: 14px;
-        background: rgba(25, 14, 50, 0.8);
-        border: 1px solid rgba(255, 200, 87, 0.3);
+      body[data-mode="night"] {
+        --bg-primary: radial-gradient(circle at top, #2b1b68 0%, #1d0f51 42%, #10063a 75%, #040019 100%);
+        --screen-sky: #2e3c8c;
+        --screen-ground: #4d2d7a;
+        --screen-glow: rgba(122, 162, 255, 0.2);
+        --screen-border: #8f88ff;
+        --hud-bg: rgba(24, 18, 61, 0.55);
+        --hud-border: rgba(141, 129, 255, 0.6);
+        --hud-text: #e2dcff;
+        --stat-bg: rgba(39, 29, 84, 0.65);
+        --stat-border: rgba(165, 153, 255, 0.55);
+        --progress-bg: rgba(255, 255, 255, 0.35);
+        --text-primary: #f6f4ff;
+        --text-secondary: #c7c1ff;
+        --button-bg: #ede9ff;
+        --button-shadow: #a29dff;
         color: var(--text-primary);
       }
 
-      .name-input input {
-        border: none;
-        background: transparent;
-        color: inherit;
-        font: inherit;
-        width: 150px;
+      body[data-mode="night"] .scene::before {
+        background: radial-gradient(circle at 20% 24%, rgba(255, 255, 255, 0.35), transparent 50%),
+          radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.4), transparent 45%),
+          radial-gradient(circle at 40% 18%, rgba(255, 255, 255, 0.35), transparent 45%);
+        opacity: 0.5;
       }
 
-      .name-input input::placeholder {
-        color: rgba(255, 255, 255, 0.45);
+      body[data-mode="night"] .scene::after {
+        background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.25) 0 2px, transparent 2px 7px);
+        opacity: 0.35;
       }
 
-      .name-input input:focus {
-        outline: none;
+      body[data-mode="night"] .cat-shadow {
+        background: rgba(6, 2, 30, 0.4);
       }
 
-      @media (max-width: 1024px) {
-        .grid {
+      body[data-mode="night"] .device-logo {
+        color: #ffeefd;
+        text-shadow: 0 5px 0 rgba(0, 0, 0, 0.3), 0 0 22px rgba(138, 126, 255, 0.6);
+      }
+
+      body[data-mode="night"] .log-window {
+        background: rgba(24, 18, 61, 0.65);
+        border: 3px solid rgba(141, 129, 255, 0.55);
+      }
+
+      body[data-mode="night"] .log-entry {
+        background: rgba(35, 26, 80, 0.85);
+        border-color: rgba(170, 158, 255, 0.55);
+        color: var(--text-primary);
+      }
+
+      body[data-mode="night"] .log-time {
+        color: rgba(212, 206, 255, 0.75);
+      }
+
+      body[data-mode="night"] .device-button::after {
+        background: rgba(32, 24, 74, 0.85);
+        color: #f6f4ff;
+        border-color: rgba(170, 158, 255, 0.55);
+      }
+
+      body[data-mode="night"] .toast {
+        background: rgba(29, 21, 68, 0.92);
+        color: var(--text-primary);
+        border-color: rgba(141, 129, 255, 0.55);
+        box-shadow: 0 20px 32px rgba(37, 23, 85, 0.4);
+      }
+
+      @media (max-width: 520px) {
+        main.device {
+          padding: 34px 24px 48px;
+        }
+
+        .stat-grid {
           grid-template-columns: 1fr;
         }
-        .cat-stage {
-          grid-template-columns: 1fr;
-          justify-items: center;
-        }
-        .cat-container {
-          max-width: 360px;
-        }
-      }
 
-      @media (max-width: 640px) {
-        header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 16px;
+        .screen {
+          padding: 18px 14px 16px;
         }
 
-        .session-info {
-          width: 100%;
-          justify-content: space-between;
+        .name-field input {
+          width: 100px;
         }
 
-        main {
-          padding: 28px 18px;
-        }
-
-        .action-btn {
-          padding: 16px;
-        }
-
-        .toast {
-          width: calc(100% - 32px);
+        .device-button::after {
+          bottom: -24px;
         }
       }
 
@@ -584,39 +682,62 @@
       }
 
       ::-webkit-scrollbar-track {
-        background: rgba(12, 5, 30, 0.7);
+        background: rgba(255, 255, 255, 0.4);
       }
 
       ::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, rgba(255, 200, 87, 0.6), rgba(247, 107, 255, 0.6));
+        background: linear-gradient(180deg, rgba(255, 134, 201, 0.8), rgba(255, 214, 138, 0.9));
         border-radius: 999px;
+      }
+
+      @keyframes bob {
+        0%,
+        100% {
+          transform: scaleX(var(--flip)) scale(var(--scale)) translateY(0);
+        }
+        50% {
+          transform: scaleX(var(--flip)) scale(calc(var(--scale) + 0.02)) translateY(-6px);
+        }
+      }
+
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.85;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.35;
+          transform: scale(0.75);
+        }
       }
     </style>
   </head>
-  <body>
-    <main>
-      <header>
-        <div class="logo"><span>🐾</span>Catagotchi</div>
-        <div class="session-info">
-          <label class="name-input">
-            <span>🐱</span>
-            <input id="catName" maxlength="16" placeholder="Ponle un nombre" />
-          </label>
-          <div>Veterinario en <strong id="vet-timer">--:--</strong></div>
-          <div>Nivel <strong id="level-label">1</strong></div>
-        </div>
+  <body data-mode="day">
+    <main class="device">
+      <header class="device-header">
+        <div class="device-logo">Catagotchi</div>
+        <div class="device-lights"><span></span><span></span><span></span></div>
       </header>
-
-      <div class="grid">
-        <section class="panel" aria-labelledby="panel-estado">
-          <div class="day-switch" id="daySwitch" role="button" tabindex="0">
+      <div class="name-band">
+        <label class="name-field" for="catName">
+          <span>Nombre</span>
+          <input id="catName" maxlength="16" placeholder="PIXEL" />
+        </label>
+        <div class="chip">Nivel <strong id="level-label">1</strong></div>
+        <div class="chip">Vet <strong id="vet-timer">--:--</strong></div>
+      </div>
+      <section class="screen-section" aria-labelledby="panel-estado">
+        <div class="screen" role="region" aria-live="polite">
+          <button class="day-switch" id="daySwitch" type="button" aria-label="Cambiar entorno">
             <span id="dayEmoji">🌞</span>
-            <span id="dayLabel">Día brillante</span>
-          </div>
-          <h2 id="panel-estado"><span class="spark"></span> Estado del gato</h2>
-          <div class="cat-stage">
-            <div class="cat-container">
-              <div class="cat" id="cat" data-mood="feliz" aria-live="polite">
+            <span id="dayLabel">Parque soleado</span>
+          </button>
+          <div class="scene" id="catScene">
+            <div class="scene-floor"></div>
+            <div class="cat-wanderer" id="catWanderer">
+              <div class="cat-shadow"></div>
+              <div class="cat" id="cat" data-mood="feliz">
                 <svg viewBox="0 0 320 320" role="img" aria-label="Gato virtual">
                   <defs>
                     <radialGradient id="furGradient" cx="50%" cy="35%" r="70%">
@@ -629,9 +750,7 @@
                       <stop offset="100%" stop-color="#f38cc7" />
                     </radialGradient>
                   </defs>
-                  <g filter="url(#shadow)">
-                    <ellipse cx="160" cy="256" rx="96" ry="30" fill="rgba(15, 8, 40, 0.55)" />
-                  </g>
+                  <ellipse cx="160" cy="256" rx="96" ry="30" fill="rgba(15, 8, 40, 0.18)" />
                   <g id="cat-body">
                     <path
                       d="M60 120 C40 40, 90 40, 120 90 C140 45, 180 45, 200 90 C220 45, 260 45, 280 120 C290 160, 290 240, 240 270 C220 285, 190 295, 160 295 C130 295, 100 285, 80 270 C30 240, 30 160, 40 120 Z"
@@ -686,98 +805,72 @@
                 </svg>
               </div>
             </div>
-            <div class="status-board">
-              <div class="leveling">
-                <div class="badge" id="moodLabel">✨ Feliz</div>
-                <div class="xp-bar stat" data-tooltip="Experiencia" data-theme="fun">
-                  <div class="stat-title">Exp</div>
-                  <div class="progress-bar"><div class="progress-fill" id="xpBar"></div></div>
-                </div>
+          </div>
+          <div class="screen-hud">
+            <div class="hud-top">
+              <div class="mood-chip" id="moodLabel">✨ Feliz</div>
+              <div class="xp-bar">
+                <span>XP</span>
+                <div class="progress-track"><div class="progress-fill" id="xpBar"></div></div>
               </div>
-              <article class="stat" data-tooltip="Mantén la panza llena">
-                <div class="stat-title">Panza llena</div>
+            </div>
+            <div class="stat-grid">
+              <article class="stat" data-tooltip="Panza llena">
+                <div class="stat-title">
+                  <span>Panza</span>
+                  <span class="stat-value" id="hungerValue">80%</span>
+                </div>
                 <div class="progress-bar"><div class="progress-fill" id="hungerBar"></div></div>
-                <div class="stat-value" id="hungerValue">80%</div>
               </article>
-              <article class="stat" data-theme="cool" data-tooltip="Necesita energía para jugar">
-                <div class="stat-title">Energía</div>
+              <article class="stat" data-theme="cool">
+                <div class="stat-title">
+                  <span>Energía</span>
+                  <span class="stat-value" id="energyValue">80%</span>
+                </div>
                 <div class="progress-bar"><div class="progress-fill" id="energyBar"></div></div>
-                <div class="stat-value" id="energyValue">80%</div>
               </article>
-              <article class="stat" data-theme="fun" data-tooltip="La diversión evita el aburrimiento">
-                <div class="stat-title">Diversión</div>
+              <article class="stat" data-theme="fun">
+                <div class="stat-title">
+                  <span>Diversión</span>
+                  <span class="stat-value" id="funValue">80%</span>
+                </div>
                 <div class="progress-bar"><div class="progress-fill" id="funBar"></div></div>
-                <div class="stat-value" id="funValue">80%</div>
               </article>
-              <article class="stat" data-tooltip="Un gato limpio es un gato feliz">
-                <div class="stat-title">Aseo</div>
+              <article class="stat">
+                <div class="stat-title">
+                  <span>Aseo</span>
+                  <span class="stat-value" id="cleanValue">80%</span>
+                </div>
                 <div class="progress-bar"><div class="progress-fill" id="cleanBar"></div></div>
-                <div class="stat-value" id="cleanValue">80%</div>
               </article>
-              <article class="stat" data-theme="cool" data-tooltip="La salud depende de los demás cuidados">
-                <div class="stat-title">Salud</div>
+              <article class="stat" data-theme="health">
+                <div class="stat-title">
+                  <span>Salud</span>
+                  <span class="stat-value" id="healthValue">80%</span>
+                </div>
                 <div class="progress-bar"><div class="progress-fill" id="healthBar"></div></div>
-                <div class="stat-value" id="healthValue">80%</div>
               </article>
             </div>
           </div>
-        </section>
-
-        <section class="panel" aria-labelledby="panel-acciones">
-          <h2 id="panel-acciones"><span class="spark"></span> Cuida a tu Catagotchi</h2>
-          <div class="actions">
-            <button class="action-btn" data-action="feed">
-              <div class="action-icon">🍣</div>
-              <span>Alimentar</span>
-              <small>Salmón fresco y crujiente. Recupera la panza y un poco de alegría.</small>
-            </button>
-            <button class="action-btn" data-action="play">
-              <div class="action-icon">🧶</div>
-              <span>Jugar</span>
-              <small>Una sesión intensa con ovillos de lana. Aumenta la diversión pero gasta energía.</small>
-            </button>
-            <button class="action-btn" data-action="groom">
-              <div class="action-icon">🛁</div>
-              <span>Baño y cepillado</span>
-              <small>Deja el pelaje brillante. Mejora el aseo y la salud.</small>
-            </button>
-            <button class="action-btn" data-action="nap">
-              <div class="action-icon">😴</div>
-              <span>Siestita</span>
-              <small>Recarga energía rápidamente. Pierde algo de diversión y apetito.</small>
-            </button>
-            <button class="action-btn" data-action="vet">
-              <div class="action-icon">💉</div>
-              <span>Visita al veterinario</span>
-              <small>Solo cuando sea necesario. Recupera salud, pero estresa un poco al gato.</small>
-            </button>
-            <button class="action-btn" data-action="surprise">
-              <div class="action-icon">🎁</div>
-              <span>Sorpresa</span>
-              <small>Un juguete misterioso o un premio. ¿Qué ocurrirá hoy?</small>
-            </button>
-          </div>
-
-          <div class="cat-facts">
-            <h3>📚 Consejos felinos</h3>
-            <ul>
-              <li>Haz que juegue a diario para desbloquear accesorios exclusivos.</li>
-              <li>Si la salud baja de 40, programa una visita urgente al veterinario.</li>
-              <li>Los cambios entre día y noche influyen en la velocidad a la que se cansa.</li>
-            </ul>
-          </div>
-        </section>
-      </div>
-
-      <section class="panel" aria-labelledby="panel-registro" style="margin-top: clamp(28px, 5vw, 48px);">
-        <h2 id="panel-registro"><span class="spark"></span> Diario de aventuras</h2>
-        <div class="activity-log" id="log" aria-live="polite"></div>
+        </div>
       </section>
+      <section class="log-window" aria-live="polite">
+        <h2 class="log-title">Diario</h2>
+        <div class="activity-log" id="log"></div>
+      </section>
+      <div class="button-row">
+        <button class="device-button" data-action="feed" data-label="Comer" aria-label="Alimentar">🍣</button>
+        <button class="device-button" data-action="play" data-label="Jugar" aria-label="Jugar">🧶</button>
+        <button class="device-button" data-action="groom" data-label="Aseo" aria-label="Baño y cepillado">🛁</button>
+        <button class="device-button" data-action="nap" data-label="Dormir" aria-label="Siestita">😴</button>
+        <button class="device-button" data-action="vet" data-label="Vet" aria-label="Visita al veterinario">💉</button>
+        <button class="device-button" data-action="surprise" data-label="Sorp" aria-label="Sorpresa">🎁</button>
+      </div>
     </main>
 
-    <div class="toast" role="status" aria-live="assertive" id="toast">
-      <span class="emoji" id="toastEmoji"></span>
-      <div id="toastMessage"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <span id="toastEmoji"></span>
+      <span id="toastMessage"></span>
     </div>
 
     <template id="logEntryTemplate">
@@ -788,50 +881,50 @@
     </template>
 
     <script>
-      const MAX_STAT = 100;
+      const STORAGE_KEY = "catagotchi-state-v2";
       const MIN_STAT = 0;
-      const STORAGE_KEY = "catagotchi-state";
-
+      const MAX_STAT = 100;
+      const catNameInput = document.getElementById("catName");
+      const levelLabel = document.getElementById("level-label");
+      const vetTimer = document.getElementById("vet-timer");
+      const daySwitch = document.getElementById("daySwitch");
+      const dayEmoji = document.getElementById("dayEmoji");
+      const dayLabel = document.getElementById("dayLabel");
+      const catScene = document.getElementById("catScene");
+      const catWanderer = document.getElementById("catWanderer");
       const cat = document.getElementById("cat");
-      const moodLabel = document.getElementById("moodLabel");
-      const xpBar = document.getElementById("xpBar");
       const hungerBar = document.getElementById("hungerBar");
-      const energyBar = document.getElementById("energyBar");
-      const funBar = document.getElementById("funBar");
-      const cleanBar = document.getElementById("cleanBar");
-      const healthBar = document.getElementById("healthBar");
       const hungerValue = document.getElementById("hungerValue");
+      const energyBar = document.getElementById("energyBar");
       const energyValue = document.getElementById("energyValue");
+      const funBar = document.getElementById("funBar");
       const funValue = document.getElementById("funValue");
+      const cleanBar = document.getElementById("cleanBar");
       const cleanValue = document.getElementById("cleanValue");
+      const healthBar = document.getElementById("healthBar");
       const healthValue = document.getElementById("healthValue");
-      const log = document.getElementById("log");
-      const logEntryTemplate = document.getElementById("logEntryTemplate");
+      const xpBar = document.getElementById("xpBar");
+      const moodLabel = document.getElementById("moodLabel");
       const toast = document.getElementById("toast");
       const toastEmoji = document.getElementById("toastEmoji");
       const toastMessage = document.getElementById("toastMessage");
-      const catNameInput = document.getElementById("catName");
-      const vetTimer = document.getElementById("vet-timer");
-      const daySwitch = document.getElementById("daySwitch");
-      const dayLabel = document.getElementById("dayLabel");
-      const dayEmoji = document.getElementById("dayEmoji");
-      const levelLabel = document.getElementById("level-label");
+      const log = document.getElementById("log");
+      const logEntryTemplate = document.getElementById("logEntryTemplate");
 
       const defaultState = {
         name: "Pixel",
         hunger: 80,
-        energy: 74,
-        fun: 72,
-        clean: 70,
-        health: 86,
-        xp: 10,
+        energy: 80,
+        fun: 80,
+        clean: 80,
+        health: 80,
+        xp: 0,
         level: 1,
-        coins: 25,
-        accessoriesUnlocked: false,
-        vetCooldown: 0,
-        dayMode: "day",
         lastTick: Date.now(),
         history: [],
+        vetCooldown: 0,
+        accessoriesUnlocked: false,
+        dayMode: "day",
       };
 
       const state = loadState();
@@ -893,8 +986,9 @@
       };
 
       let degradeRates = { ...baseDegradeRates };
-
       const tickInterval = 2500;
+      let wanderIntervalId;
+      const catMotion = { x: 0, y: 0 };
 
       initialize();
       setInterval(tick, tickInterval);
@@ -907,17 +1001,11 @@
           pushLog(`Ahora se llama ${state.name}.`, "✨");
         });
 
-        document.querySelectorAll(".action-btn").forEach((btn) => {
+        document.querySelectorAll(".device-button").forEach((btn) => {
           btn.addEventListener("click", () => handleAction(btn.dataset.action));
         });
 
         daySwitch.addEventListener("click", toggleDayMode);
-        daySwitch.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            toggleDayMode();
-          }
-        });
 
         if (state.history.length === 0) {
           pushLog(`Comienza una nueva aventura con ${state.name}.`, "🚀");
@@ -928,6 +1016,7 @@
         updateUI();
         updateDayMode();
         updateVetTimer();
+        startCatWander();
       }
 
       function loadState() {
@@ -1019,6 +1108,7 @@
         showToast(action.emoji, action.text());
         updateUI();
         saveState();
+        wanderCat(true);
       }
 
       function gainXp(amount) {
@@ -1062,11 +1152,11 @@
         bar.style.width = `${statValue}%`;
         valueLabel.textContent = `${Math.round(statValue)}%`;
         if (statValue < 30) {
-          valueLabel.style.color = "var(--danger)";
+          valueLabel.style.color = "#ff4770";
         } else if (statValue > 70) {
-          valueLabel.style.color = "var(--success)";
+          valueLabel.style.color = "#2eab6f";
         } else {
-          valueLabel.style.color = "var(--text-secondary)";
+          valueLabel.style.color = "inherit";
         }
       }
 
@@ -1084,22 +1174,37 @@
           case "feliz":
             mouth.setAttribute("d", "M140 190 Q160 215 180 190");
             pupils.forEach((p) => p.setAttribute("cy", "158"));
+            catWanderer.style.setProperty("--scale", "1.05");
+            catWanderer.style.setProperty("--bob-speed", "2.4s");
+            catWanderer.style.setProperty("--shadow-opacity", "0.5");
             break;
           case "contento":
             mouth.setAttribute("d", "M145 190 Q160 200 175 190");
             pupils.forEach((p) => p.setAttribute("cy", "160"));
+            catWanderer.style.setProperty("--scale", "1");
+            catWanderer.style.setProperty("--bob-speed", "2.8s");
+            catWanderer.style.setProperty("--shadow-opacity", "0.45");
             break;
           case "neutro":
             mouth.setAttribute("d", "M145 188 Q160 188 175 188");
             pupils.forEach((p) => p.setAttribute("cy", "162"));
+            catWanderer.style.setProperty("--scale", "0.98");
+            catWanderer.style.setProperty("--bob-speed", "3.2s");
+            catWanderer.style.setProperty("--shadow-opacity", "0.4");
             break;
           case "triste":
             mouth.setAttribute("d", "M145 192 Q160 178 175 192");
             pupils.forEach((p) => p.setAttribute("cy", "166"));
+            catWanderer.style.setProperty("--scale", "0.96");
+            catWanderer.style.setProperty("--bob-speed", "3.6s");
+            catWanderer.style.setProperty("--shadow-opacity", "0.35");
             break;
           default:
             mouth.setAttribute("d", "M138 192 Q160 170 182 192");
             pupils.forEach((p) => p.setAttribute("cy", "170"));
+            catWanderer.style.setProperty("--scale", "0.94");
+            catWanderer.style.setProperty("--bob-speed", "3.8s");
+            catWanderer.style.setProperty("--shadow-opacity", "0.32");
         }
       }
 
@@ -1170,27 +1275,54 @@
       }
 
       function updateDayMode() {
+        document.body.dataset.mode = state.dayMode;
         if (state.dayMode === "day") {
           document.documentElement.style.setProperty(
             "--bg-primary",
-            "radial-gradient(circle at 20% 20%, #3f2b96, #1f054d 60%, #090014)"
+            "radial-gradient(circle at top, #ffe3f1 0%, #ffb7d5 36%, #ff86c6 70%, #f564a5 100%)"
           );
           dayEmoji.textContent = "🌞";
-          dayLabel.textContent = "Día brillante";
+          dayLabel.textContent = "Parque soleado";
           degradeRates = { ...baseDegradeRates };
         } else {
           document.documentElement.style.setProperty(
             "--bg-primary",
-            "radial-gradient(circle at 70% 20%, #12072f, #04010c 65%, #000000)"
+            "radial-gradient(circle at top, #2b1b68 0%, #1d0f51 42%, #10063a 75%, #040019 100%)"
           );
           dayEmoji.textContent = "🌙";
-          dayLabel.textContent = "Noche tranquila";
+          dayLabel.textContent = "Noche estrellada";
           degradeRates = { ...baseDegradeRates, energy: -1.4 };
         }
       }
 
       function getName() {
         return state.name || "Pixel";
+      }
+
+      function startCatWander() {
+        if (wanderIntervalId) clearInterval(wanderIntervalId);
+        wanderIntervalId = setInterval(() => wanderCat(), 4200);
+        wanderCat(true);
+      }
+
+      function wanderCat(force = false) {
+        if (!catScene || !catWanderer) return;
+        const sceneWidth = catScene.clientWidth;
+        const catWidth = catWanderer.offsetWidth || 1;
+        const maxOffset = (sceneWidth - catWidth) / 2 - 12;
+        if (maxOffset <= 0) return;
+        let newX = (Math.random() * 2 - 1) * maxOffset;
+        const delta = Math.abs(newX - catMotion.x);
+        if (!force && delta < sceneWidth * 0.1) {
+          newX = Math.sign(newX || 1) * Math.min(maxOffset, Math.abs(newX) + sceneWidth * 0.18);
+        }
+        const newY = -Math.random() * 18;
+        const direction = newX < catMotion.x ? -1 : 1;
+        catMotion.x = newX;
+        catMotion.y = newY;
+        catWanderer.style.setProperty("--x", `${newX}px`);
+        catWanderer.style.setProperty("--y", `${newY}px`);
+        catWanderer.style.setProperty("--flip", direction === -1 ? "-1" : "1");
       }
 
       window.addEventListener("visibilitychange", () => {
