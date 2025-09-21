@@ -31,75 +31,75 @@ let lastMoodKey = null;
 
 const catSkins = [
   {
-    id: "lukis",
-    name: "Lukis",
+    id: "tuxedo",
+    name: "Tizón",
     emoji: "🐈‍⬛",
+    pattern: "tuxedo",
     colors: {
-      furMain: "#0f131c",
-      furSecondary: "#080b11",
-      furAccent: "#f4f6fa",
+      furMain: "#2b2f3c",
+      furSecondary: "#1b202b",
+      furAccent: "#3a4154",
       belly: "#f5f7fb",
-      earInner: "#f4b4c7",
-      cheek: "#f5c2d4",
-      outline: "#05040a",
-      paw: "#f7f9fe",
+      earInner: "#f7b4c3",
+      cheek: "#f7c2d4",
+      outline: "#10131b",
+      paw: "#ffffff",
       collar: "#6ee7ff",
-      collarStroke: "#4aa5ff",
+      collarStroke: "#3a9bff",
       nose: "#f3a9bb",
-      pupil: "#090c12",
-      tailTip: "#f5f7fb",
-      glassesFrame: "#305243",
-      glassesHighlight: "#74c79c",
-      glassesShadow: "#22372c",
-      glassesLens: "#b7eed0",
+      pupil: "#11141f",
+      tailTip: "#f1f4fb",
+      iris: "#7fd1f1",
+      patternMask: "#f5f7fb",
+      patternDetail: "#dbe3f6",
     },
   },
   {
-    id: "arwen",
-    name: "Arwen",
+    id: "silver",
+    name: "Luna",
     emoji: "🐈",
+    pattern: "silver",
     colors: {
-      furMain: "#cbd5e0",
-      furSecondary: "#b3bcc8",
-      furAccent: "#e1e7ef",
-      belly: "#f5f8ff",
-      earInner: "#f5c3da",
-      cheek: "#f7a6c6",
-      outline: "#364154",
+      furMain: "#c7d0dd",
+      furSecondary: "#a9b2c2",
+      furAccent: "#e3e7f2",
+      belly: "#f6f8fd",
+      earInner: "#f6c4da",
+      cheek: "#f7a8c8",
+      outline: "#3b465a",
       paw: "#ffffff",
       collar: "#7ed8ff",
-      collarStroke: "#4a9bd4",
-      nose: "#f5c3da",
-      pupil: "#1a1c26",
-      tailTip: "#f5f8ff",
-      glassesFrame: null,
-      glassesHighlight: null,
-      glassesShadow: null,
-      glassesLens: null,
+      collarStroke: "#4aa5d4",
+      nose: "#f3afc6",
+      pupil: "#1f242e",
+      tailTip: "#dfe4ef",
+      iris: "#6bcfbe",
+      patternMask: "#e8edf6",
+      patternDetail: "#b2bbc9",
     },
   },
   {
-    id: "iria",
-    name: "Iria",
+    id: "siamese",
+    name: "Suri",
     emoji: "🐱",
+    pattern: "siamese",
     colors: {
-      furMain: "#f0e7d8",
-      furSecondary: "#d2c2ad",
-      furAccent: "#5c4636",
-      belly: "#fff6e7",
+      furMain: "#efe2cf",
+      furSecondary: "#d2c2ac",
+      furAccent: "#765947",
+      belly: "#fdf4e6",
       earInner: "#f4c7bb",
-      cheek: "#f3a79a",
+      cheek: "#f2a89a",
       outline: "#3a2822",
-      paw: "#f5e6d2",
+      paw: "#765947",
       collar: "#5fe0dd",
-      collarStroke: "#27b7b5",
+      collarStroke: "#2aa7a4",
       nose: "#d48c7d",
-      pupil: "#1a1512",
-      tailTip: "#fff6e7",
-      glassesFrame: null,
-      glassesHighlight: null,
-      glassesShadow: null,
-      glassesLens: null,
+      pupil: "#1a1410",
+      tailTip: "#5c4436",
+      iris: "#8bc5d8",
+      patternMask: "#5c4436",
+      patternDetail: "#7d5b49",
     },
   },
 ];
@@ -308,6 +308,11 @@ function applyCatSkinVisuals(skin) {
     collar: "--collar",
     collarStroke: "--collar-stroke",
     nose: "--nose",
+    pupil: "--pupil",
+    tailTip: "--tail-tip",
+    iris: "--iris",
+    patternMask: "--pattern-mask",
+    patternDetail: "--pattern-detail",
   };
   Object.entries(variableMap).forEach(([key, cssVar]) => {
     if (palette[key]) {
@@ -326,10 +331,10 @@ function applyCatSkinVisuals(skin) {
     nose: palette.nose,
     pupil: palette.pupil,
     tailTip: palette.tailTip,
-    glassesFrame: palette.glassesFrame,
-    glassesHighlight: palette.glassesHighlight,
-    glassesShadow: palette.glassesShadow,
-    glassesLens: palette.glassesLens,
+    iris: palette.iris,
+    patternMask: palette.patternMask,
+    patternDetail: palette.patternDetail,
+    pattern: skin.pattern,
   });
   if (identityAvatar) {
     identityAvatar.textContent = skin.emoji;
@@ -909,63 +914,82 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         catSpriteController?.setAccessory(show);
       }
 
+
   function createCatSpriteController(canvas) {
     if (!canvas || typeof canvas.getContext !== "function") {
       return null;
     }
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
-    ctx.imageSmoothingEnabled = false;
+
+    const logicalWidth = canvas.width;
+    const logicalHeight = canvas.height;
+    const ratio = window.devicePixelRatio || 1;
+    if (ratio !== 1) {
+      canvas.width = logicalWidth * ratio;
+      canvas.height = logicalHeight * ratio;
+      ctx.scale(ratio, ratio);
+    }
+
+    ctx.imageSmoothingEnabled = true;
 
     const base = {
-      width: canvas.width,
-      height: canvas.height,
-      body: { x: 14, y: 16, width: 20, height: 16 },
-      head: { x: 16, y: 4, width: 16, height: 12 },
-      ear: { width: 6, height: 8 },
-      legWidth: 6,
-      legHeight: 9,
-      groundOffset: 2,
+      width: logicalWidth,
+      height: logicalHeight,
+    };
+
+    const metrics = {
+      groundY: base.height * 0.86,
+      body: {
+        cx: base.width * 0.58,
+        cy: base.height * 0.64,
+        rx: base.width * 0.28,
+        ry: base.height * 0.24,
+      },
+      head: {
+        cx: base.width * 0.34,
+        cy: base.height * 0.42,
+        r: base.height * 0.26,
+      },
+      ear: {
+        width: base.width * 0.2,
+        height: base.height * 0.26,
+      },
+      tail: {
+        length: base.width * 0.42,
+        baseX: base.width * 0.76,
+      },
+      leg: {
+        width: base.width * 0.12,
+        height: base.height * 0.3,
+      },
+    };
+
+    const legPositions = {
+      backFar: { x: metrics.body.cx + metrics.body.rx * 0.2, y: metrics.groundY },
+      backNear: { x: metrics.body.cx + metrics.body.rx * 0.5, y: metrics.groundY },
+      frontFar: { x: metrics.body.cx - metrics.body.rx * 0.05, y: metrics.groundY },
+      frontNear: { x: metrics.body.cx - metrics.body.rx * 0.35, y: metrics.groundY },
     };
 
     const palette = {
-      outline: "#05040a",
-      furMain: "#0f131c",
-      furSecondary: "#080b11",
-      furAccent: "#f4f6fa",
+      furMain: "#2b2f3c",
+      furSecondary: "#1b202b",
+      furAccent: "#3a4154",
       belly: "#f5f7fb",
-      earInner: "#f4b4c7",
-      cheek: "#f5c2d4",
-      paw: "#f7f9fe",
+      earInner: "#f7b4c3",
+      cheek: "#f7c2d4",
+      paw: "#ffffff",
       nose: "#f3a9bb",
-      pupil: "#090c12",
-      tailTip: "#f5f7fb",
-      glassesFrame: "#305243",
-      glassesHighlight: "#74c79c",
-      glassesShadow: "#22372c",
-      glassesLens: "#b7eed0",
+      pupil: "#11141f",
+      tailTip: "#f1f4fb",
+      iris: "#7fd1f1",
+      patternMask: "#f5f7fb",
+      patternDetail: "#dbe3f6",
+      outline: "#10131b",
     };
 
-    function shiftColor(color, amount = 0) {
-      if (!color || typeof color !== "string") return color;
-      const match = color.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
-      if (!match) {
-        return color;
-      }
-      let hex = match[1];
-      if (hex.length === 3) {
-        hex = hex
-          .split("")
-          .map((char) => char + char)
-          .join("");
-      }
-      const numeric = parseInt(hex, 16);
-      const delta = Math.round(amount * 255);
-      const r = Math.max(0, Math.min(255, ((numeric >> 16) & 0xff) + delta));
-      const g = Math.max(0, Math.min(255, ((numeric >> 8) & 0xff) + delta));
-      const b = Math.max(0, Math.min(255, (numeric & 0xff) + delta));
-      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-    }
+    let styleKey = "tuxedo";
 
     const state = {
       mood: "feliz",
@@ -974,88 +998,113 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       accessory: false,
     };
 
+    const moodExpressions = {
+      feliz: { eyes: "happy", mouth: "smile" },
+      contento: { eyes: "soft", mouth: "soft" },
+      neutro: { eyes: "relaxed", mouth: "flat" },
+      triste: { eyes: "droop", mouth: "sad" },
+      enfadado: { eyes: "narrow", mouth: "angry" },
+    };
+
+    const idleCycle = [
+      { headOffsetY: -2, bodyOffsetY: 0, tailAngle: -10, whiskerTilt: -2 },
+      { headOffsetY: 0, bodyOffsetY: -1.5, tailAngle: -2, whiskerTilt: 0 },
+      { headOffsetY: -1, bodyOffsetY: 0, tailAngle: 8, whiskerTilt: 2 },
+      { headOffsetY: 1, bodyOffsetY: -1, tailAngle: 2, whiskerTilt: 0 },
+    ];
+
     const walkCycle = [
       {
-        frontNear: { lift: 4, forward: 2 },
-        frontFar: { lift: 1, forward: -2 },
-        backNear: { lift: 2, forward: -2 },
-        backFar: { lift: 4, forward: 2 },
-        headOffsetY: -1,
+        frontNear: { lift: 6, forward: 2 },
+        frontFar: { lift: 2, forward: -2 },
+        backNear: { lift: 4, forward: -2 },
+        backFar: { lift: 7, forward: 2 },
+        headOffsetY: -2,
         bodyOffsetY: -1,
-        tailSway: 2,
+        tailAngle: -12,
       },
       {
-        frontNear: { lift: 2, forward: 2 },
-        frontFar: { lift: 4, forward: -2 },
-        backNear: { lift: 4, forward: -2 },
-        backFar: { lift: 1, forward: 2 },
+        frontNear: { lift: 3, forward: 3 },
+        frontFar: { lift: 5, forward: -1 },
+        backNear: { lift: 6, forward: -1 },
+        backFar: { lift: 2, forward: 2 },
         headOffsetY: 0,
-        bodyOffsetY: 0,
-        tailSway: 1,
+        bodyOffsetY: -2,
+        tailAngle: -4,
       },
       {
         frontNear: { lift: 1, forward: 0 },
-        frontFar: { lift: 3, forward: -1 },
-        backNear: { lift: 4, forward: 2 },
-        backFar: { lift: 2, forward: -2 },
+        frontFar: { lift: 4, forward: -3 },
+        backNear: { lift: 6, forward: 2 },
+        backFar: { lift: 3, forward: -1 },
         headOffsetY: -1,
         bodyOffsetY: -1,
-        tailSway: -1,
+        tailAngle: 10,
       },
       {
-        frontNear: { lift: 3, forward: 0 },
+        frontNear: { lift: 4, forward: -1 },
         frontFar: { lift: 1, forward: -2 },
-        backNear: { lift: 1, forward: 2 },
-        backFar: { lift: 3, forward: -2 },
-        headOffsetY: 0,
-        bodyOffsetY: 0,
-        tailSway: -2,
+        backNear: { lift: 2, forward: 2 },
+        backFar: { lift: 5, forward: -1 },
+        headOffsetY: 1,
+        bodyOffsetY: -2,
+        tailAngle: 4,
       },
     ];
 
     const feedCycle = [
-      { headOffsetY: -1, tailLift: 1, bodyOffsetY: 1 },
-      { headOffsetY: 0, tailLift: 0, bodyOffsetY: 2 },
-      { headOffsetY: -2, tailLift: 1, bodyOffsetY: 1 },
-      { headOffsetY: -1, tailLift: 0, bodyOffsetY: 2 },
+      { headOffsetY: 4, bodyOffsetY: 0, tailAngle: -6 },
+      { headOffsetY: 8, bodyOffsetY: 2, tailAngle: -4 },
+      { headOffsetY: 6, bodyOffsetY: 1, tailAngle: -2 },
+      { headOffsetY: 7, bodyOffsetY: 2, tailAngle: -4 },
     ];
 
     const playCycle = [
-      { headOffsetY: -1, tailLift: -2, tailSway: 2, bodyOffsetY: 3 },
-      { headOffsetY: 0, tailLift: -1, tailSway: 1, bodyOffsetY: 2 },
-      { headOffsetY: -2, tailLift: -3, tailSway: -1, bodyOffsetY: 3 },
-      { headOffsetY: -1, tailLift: -2, tailSway: -2, bodyOffsetY: 2 },
+      { headOffsetY: -2, bodyOffsetY: -2, tailAngle: 18, tailLift: 6, whiskerTilt: 4 },
+      { headOffsetY: 0, bodyOffsetY: -1, tailAngle: -10, tailLift: 2, whiskerTilt: -2 },
+      { headOffsetY: -3, bodyOffsetY: -3, tailAngle: 24, tailLift: 8, whiskerTilt: 5 },
+      { headOffsetY: -1, bodyOffsetY: -2, tailAngle: -6, tailLift: 4, whiskerTilt: -3 },
     ];
 
     const napCycle = [0, 1];
 
     const animations = {
-      idle: { frames: 4, duration: 320, draw: drawIdleFrame },
-      walk: { frames: walkCycle.length, duration: 150, draw: drawWalkFrame },
-      feed: { frames: feedCycle.length, duration: 260, draw: drawFeedFrame },
-      play: { frames: playCycle.length, duration: 220, draw: drawPlayFrame },
-      nap: { frames: napCycle.length, duration: 620, draw: drawNapFrame },
-    };
-
-    const moodExpressions = {
-      feliz: { eyes: "happy", mouth: "smile" },
-      contento: { eyes: "open", mouth: "smallSmile" },
-      neutro: { eyes: "relaxed", mouth: "flat" },
-      triste: { eyes: "droop", mouth: "sad" },
-      enfadado: { eyes: "narrow", mouth: "angry" },
+      idle: { frames: idleCycle.length, duration: 380, draw: drawIdleFrame },
+      walk: { frames: walkCycle.length, duration: 160, draw: drawWalkFrame },
+      feed: { frames: feedCycle.length, duration: 240, draw: drawFeedFrame },
+      play: { frames: playCycle.length, duration: 210, draw: drawPlayFrame },
+      nap: { frames: napCycle.length, duration: 520, draw: drawNapFrame },
     };
 
     let animationKey = resolveAnimationKey(state);
     let frameIndex = 0;
     let intervalId = null;
 
-    function setPalette(newPalette) {
-      if (!newPalette) return;
-      Object.entries(newPalette).forEach(([key, value]) => {
-        if (value === undefined) {
-          return;
+    function setPalette(newPalette = {}) {
+      const mapping = {
+        furMain: "furMain",
+        furSecondary: "furSecondary",
+        furAccent: "furAccent",
+        belly: "belly",
+        earInner: "earInner",
+        cheek: "cheek",
+        paw: "paw",
+        nose: "nose",
+        pupil: "pupil",
+        tailTip: "tailTip",
+        iris: "iris",
+        patternMask: "patternMask",
+        patternDetail: "patternDetail",
+        outline: "outline",
+        pattern: "pattern",
+      };
+      Object.entries(mapping).forEach(([key, target]) => {
+        if (newPalette[key] === undefined || newPalette[key] === null) return;
+        if (target === "pattern") {
+          styleKey = String(newPalette[key]);
+        } else {
+          palette[target] = newPalette[key];
         }
-        palette[key] = value;
       });
       drawCurrentFrame();
     }
@@ -1105,583 +1154,757 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
 
     function drawIdleFrame({ frameIndex }) {
+      const frame = idleCycle[frameIndex % idleCycle.length];
       const expression = buildExpression("idle", frameIndex);
-      const tailPattern = [0, 1, 0, -1];
-      const headPattern = [0, -1, 0, 1];
-      const bodyPattern = [0, 0, -1, 0];
       renderStandingCat({
         expression,
-        tailSway: tailPattern[frameIndex % tailPattern.length],
-        headOffsetY: headPattern[frameIndex % headPattern.length],
-        bodyOffsetY: bodyPattern[frameIndex % bodyPattern.length],
+        headOffsetY: frame.headOffsetY,
+        bodyOffsetY: frame.bodyOffsetY,
+        tailAngle: frame.tailAngle,
+        whiskerTilt: frame.whiskerTilt,
       });
     }
 
     function drawWalkFrame({ frameIndex }) {
-      const cycle = walkCycle[frameIndex % walkCycle.length];
+      const frame = walkCycle[frameIndex % walkCycle.length];
       const expression = buildExpression("walk", frameIndex);
       renderStandingCat({
         expression,
-        tailSway: cycle.tailSway,
-        headOffsetY: cycle.headOffsetY,
-        bodyOffsetY: cycle.bodyOffsetY,
-        frontLegs: { near: cycle.frontNear, far: cycle.frontFar },
-        backLegs: { near: cycle.backNear, far: cycle.backFar },
+        headOffsetY: frame.headOffsetY,
+        bodyOffsetY: frame.bodyOffsetY,
+        tailAngle: frame.tailAngle,
+        frontLegs: { near: frame.frontNear, far: frame.frontFar },
+        backLegs: { near: frame.backNear, far: frame.backFar },
       });
     }
 
     function drawFeedFrame({ frameIndex }) {
-      const cycle = feedCycle[frameIndex % feedCycle.length];
+      const frame = feedCycle[frameIndex % feedCycle.length];
       const expression = buildExpression("feed", frameIndex);
       renderStandingCat({
         expression,
-        headOffsetY: cycle.headOffsetY,
-        tailLift: cycle.tailLift,
-        bodyOffsetY: cycle.bodyOffsetY,
-        bodySquash: 2,
-        frontLegs: { near: { lift: 3 }, far: { lift: 3 } },
-        backLegs: { near: { lift: 1 }, far: { lift: 0 } },
+        headOffsetY: frame.headOffsetY,
+        bodyOffsetY: frame.bodyOffsetY,
+        tailAngle: frame.tailAngle,
+        frontLegs: { near: { lift: 3, forward: 1 }, far: { lift: 4, forward: -1 } },
+        backLegs: { near: { lift: 1, forward: 0 }, far: { lift: 2, forward: 0 } },
       });
     }
 
     function drawPlayFrame({ frameIndex }) {
-      const cycle = playCycle[frameIndex % playCycle.length];
+      const frame = playCycle[frameIndex % playCycle.length];
       const expression = buildExpression("play", frameIndex);
       renderStandingCat({
         expression,
-        headOffsetY: cycle.headOffsetY,
-        tailLift: cycle.tailLift,
-        tailSway: cycle.tailSway,
-        bodyOffsetY: cycle.bodyOffsetY,
-        bodySquash: 3,
-        frontLegs: { near: { lift: 2, forward: 1 }, far: { lift: 1, forward: -1 } },
-        backLegs: { near: { lift: 1, forward: 1 }, far: { lift: 2, forward: -1 } },
+        headOffsetY: frame.headOffsetY,
+        bodyOffsetY: frame.bodyOffsetY,
+        tailAngle: frame.tailAngle,
+        tailLift: frame.tailLift,
+        whiskerTilt: frame.whiskerTilt,
+        frontLegs: { near: { lift: 3, forward: 2 }, far: { lift: 2, forward: -2 } },
+        backLegs: { near: { lift: 2, forward: 1 }, far: { lift: 3, forward: -1 } },
       });
     }
 
     function drawNapFrame({ frameIndex }) {
       const breath = napCycle[frameIndex % napCycle.length];
-      const expression = buildExpression("nap", frameIndex);
-      renderSleepingCat({ breath, expression });
+      renderSleepingCat({ breath });
     }
 
     function buildExpression(animation, frame) {
       const baseExpression = moodExpressions[state.mood] || moodExpressions.neutro;
-      const expression = { eyes: baseExpression.eyes, mouth: baseExpression.mouth };
-      if (animation === "idle" && frame % 4 === 3 && state.activity === "idle") {
-        expression.eyes = "blink";
-      }
+      const expression = { eyes: baseExpression.eyes, mouth: baseExpression.mouth, tongue: false };
       if (state.activity === "nap" || animation === "nap") {
         expression.eyes = "sleep";
         expression.mouth = "sleep";
       } else if (state.activity === "feed" || animation === "feed") {
-        expression.eyes = state.mood === "enfadado" ? "narrow" : "wide";
+        expression.eyes = "wide";
         expression.mouth = "yum";
         expression.tongue = true;
       } else if (state.activity === "play" || animation === "play") {
         expression.eyes = expression.eyes === "narrow" ? "narrow" : "happy";
         expression.mouth = "grin";
-      }
-      if (state.mood === "enfadado" && expression.mouth === "smile") {
-        expression.mouth = "angry";
+      } else if (animation === "idle" && frame % idleCycle.length === idleCycle.length - 1) {
+        expression.eyes = "blink";
       }
       return expression;
     }
 
     function renderStandingCat({
       expression,
-      tailSway = 0,
-      tailLift = 0,
       headOffsetX = 0,
       headOffsetY = 0,
       bodyOffsetY = 0,
-      bodySquash = 0,
+      tailAngle = 0,
+      tailLift = 0,
+      whiskerTilt = 0,
       frontLegs = {},
       backLegs = {},
     }) {
-      const outline = palette.outline || "#08050f";
-      const furMain = palette.furMain || "#2f2c3d";
-      const furSecondary = palette.furSecondary || "#262338";
-      const furAccent = palette.furAccent || furSecondary;
-      const belly = palette.belly || "#d8dbe8";
-      const paw = palette.paw || "#e8ecf7";
-      const cheekColor = palette.cheek || "#f48fbf";
-      const bodyHeight = Math.max(12, base.body.height - bodySquash);
-      const bodyY = base.body.y + bodyOffsetY + Math.max(0, bodySquash * 0.4);
-      const bodyX = base.body.x;
-      const bodyWidth = base.body.width;
-      const groundY = bodyY + bodyHeight + base.groundOffset;
-      const mainHighlight = shiftColor(furMain, 0.18);
-      const mainShadow = shiftColor(furSecondary, -0.16);
-      const accentHighlight = shiftColor(furAccent, 0.12);
-      const accentShadow = shiftColor(furAccent, -0.18);
-      const bellyHighlight = shiftColor(belly, 0.12);
-      const bellyShadow = shiftColor(belly, -0.2);
-      const tailTip = palette.tailTip !== undefined ? palette.tailTip : furAccent;
-
-      drawTail(bodyX, bodyY, tailSway, tailLift, furSecondary, tailTip, outline);
-
-      drawLeg({
-        x: bodyX + 2 + (backLegs.far?.forward ?? 0),
-        baseY: groundY,
-        width: base.legWidth,
-        height: base.legHeight,
-        lift: backLegs.far?.lift ?? 0,
-        color: furSecondary,
-        pawColor: paw,
-        outline,
-      });
-      drawLeg({
-        x: bodyX + bodyWidth - 12 + (frontLegs.far?.forward ?? 0),
-        baseY: groundY,
-        width: base.legWidth,
-        height: base.legHeight,
-        lift: frontLegs.far?.lift ?? 0,
-        color: furSecondary,
-        pawColor: paw,
-        outline,
-      });
-
-      drawOutlinedRect(bodyX - 1, bodyY, bodyWidth + 2, bodyHeight, furMain, outline);
-      drawRect(bodyX, bodyY + 1, bodyWidth, 2, mainHighlight);
-      drawRect(bodyX + 1, bodyY + 3, 6, bodyHeight - 6, furSecondary);
-      drawRect(bodyX + 2, bodyY + 4, 4, bodyHeight - 8, shiftColor(furSecondary, -0.08));
-      drawRect(bodyX + 9, bodyY + 3, 9, bodyHeight - 6, belly);
-      drawRect(bodyX + 10, bodyY + 4, 7, bodyHeight - 8, bellyHighlight);
-      drawRect(bodyX + bodyWidth - 8, bodyY + 2, 5, 2, bellyHighlight);
-      drawRect(bodyX + bodyWidth - 7, bodyY + 1, 3, 1, shiftColor(bellyHighlight, 0.06));
-      drawRect(bodyX + 9, bodyY + bodyHeight - 3, 9, 1, bellyShadow);
-      drawRect(bodyX + bodyWidth - 6, bodyY + 4, 3, bodyHeight - 7, accentShadow);
-      drawRect(bodyX + bodyWidth - 8, bodyY + 5, 2, bodyHeight - 9, accentHighlight);
-      drawRect(bodyX + 7, bodyY + bodyHeight - 5, 8, 2, belly);
-      drawRect(bodyX + 7, bodyY + bodyHeight - 5, 8, 1, bellyHighlight);
-      drawRect(bodyX + 3, bodyY + bodyHeight - 3, bodyWidth - 4, 1, mainShadow);
-      drawRect(bodyX + 2, bodyY + 2, 3, 1, mainHighlight);
-      drawRect(bodyX + 4, bodyY + 5, 1, bodyHeight - 8, shiftColor(furSecondary, -0.12));
-      drawRect(bodyX + bodyWidth - 4, bodyY + 6, 1, bodyHeight - 8, accentShadow);
-
-      drawLeg({
-        x: bodyX + 6 + (backLegs.near?.forward ?? 0),
-        baseY: groundY,
-        width: base.legWidth,
-        height: base.legHeight,
-        lift: backLegs.near?.lift ?? 0,
-        color: furMain,
-        pawColor: paw,
-        outline,
-      });
-      drawLeg({
-        x: bodyX + bodyWidth - 7 + (frontLegs.near?.forward ?? 0),
-        baseY: groundY,
-        width: base.legWidth,
-        height: base.legHeight,
-        lift: frontLegs.near?.lift ?? 0,
-        color: furMain,
-        pawColor: paw,
-        outline,
-      });
-
-      const headX = base.head.x + headOffsetX;
-      const headY = base.head.y + headOffsetY + Math.max(0, bodyOffsetY * 0.4);
-      drawOutlinedRect(headX - 1, headY, base.head.width + 2, base.head.height + 1, furMain, outline);
-      drawRect(headX, headY + 1, base.head.width, 1, mainHighlight);
-      drawRect(headX + base.head.width - 4, headY + 3, 3, base.head.height - 4, shiftColor(furSecondary, -0.12));
-      drawRect(headX + 1, headY + base.head.height - 2, base.head.width - 2, 1, mainShadow);
-
-      drawEar(headX - 2, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
-      drawEar(headX + base.head.width - base.ear.width + 1, headY - base.ear.height + 2, true, furSecondary, furAccent, outline);
-
-      drawFace(expression, headX, headY, base.head.width, base.head.height, cheekColor);
+      drawShadow(bodyOffsetY);
+      drawTail(tailAngle, tailLift, bodyOffsetY);
+      drawLegSegment("backFar", backLegs.far, bodyOffsetY, true);
+      drawLegSegment("frontFar", frontLegs.far, bodyOffsetY, true);
+      drawBody(bodyOffsetY);
+      drawLegSegment("backNear", backLegs.near, bodyOffsetY, false);
+      drawLegSegment("frontNear", frontLegs.near, bodyOffsetY, false);
+      drawHead(expression, headOffsetX, headOffsetY, bodyOffsetY, whiskerTilt);
     }
 
+    function renderSleepingCat({ breath = 0 } = {}) {
+      const rise = breath ? 4 : 0;
+      drawShadow(-rise);
+      const cx = base.width * 0.52;
+      const cy = base.height * 0.7;
 
-    function renderSleepingCat({ breath = 0, expression }) {
-      const outline = palette.outline || "#08050f";
-      const furMain = palette.furMain || "#2f2c3d";
-      const furSecondary = palette.furSecondary || "#262338";
-      const furAccent = palette.furAccent || furSecondary;
-      const belly = palette.belly || "#d8dbe8";
-      const paw = palette.paw || "#e8ecf7";
-      const cheekColor = palette.cheek || "#f48fbf";
+      ctx.save();
+      ctx.translate(cx + metrics.body.rx * 0.5, cy + rise * 0.2);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(
+        metrics.tail.length * 0.4,
+        -metrics.tail.length * 0.15,
+        metrics.tail.length * 0.4,
+        -metrics.tail.length * 0.55,
+        -metrics.tail.length * 0.12,
+        -metrics.tail.length * 0.5
+      );
+      ctx.bezierCurveTo(
+        -metrics.tail.length * 0.45,
+        -metrics.tail.length * 0.35,
+        -metrics.tail.length * 0.5,
+        -metrics.tail.length * 0.05,
+        -metrics.tail.length * 0.28,
+        metrics.tail.length * 0.12
+      );
+      ctx.closePath();
+      const tailGrad = ctx.createLinearGradient(0, -metrics.tail.length * 0.5, 0, metrics.tail.length * 0.2);
+      tailGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.08));
+      tailGrad.addColorStop(1, shiftColor(palette.furMain, -0.1));
+      ctx.fillStyle = tailGrad;
+      ctx.fill();
+      ctx.restore();
 
-      const bodyHeight = Math.max(8, 12 - breath);
-      const bodyY = base.body.y + 20 + breath;
-      const bodyX = base.body.x + 1;
+      ctx.save();
+      ctx.translate(cx, cy + rise * 0.2);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, metrics.body.rx * 1.05, metrics.body.ry * 0.82 + rise * 0.2, 0, 0, Math.PI * 2);
+      const bodyGrad = ctx.createLinearGradient(-metrics.body.rx, -metrics.body.ry, metrics.body.rx, metrics.body.ry);
+      bodyGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.12));
+      bodyGrad.addColorStop(1, shiftColor(palette.furMain, -0.12));
+      ctx.fillStyle = bodyGrad;
+      ctx.fill();
 
-      const topHighlight = shiftColor(furMain, 0.16);
-      const bodyShadow = shiftColor(furSecondary, -0.18);
-      const accentHighlight = shiftColor(furAccent, 0.12);
-      const accentShadow = shiftColor(furAccent, -0.2);
-      const bellyHighlight = shiftColor(belly, 0.12);
-      const bellyShadow = shiftColor(belly, -0.18);
-      const tailTip = palette.tailTip !== undefined ? palette.tailTip : furAccent;
-      const hasTailTip = tailTip !== undefined && tailTip !== null;
-      const tailTipHighlight = hasTailTip ? shiftColor(tailTip, 0.16) : null;
-      const tailTipShadow = hasTailTip ? shiftColor(tailTip, -0.16) : null;
+      ctx.beginPath();
+      ctx.ellipse(-metrics.body.rx * 0.18, metrics.body.ry * 0.12, metrics.body.rx * 0.72, metrics.body.ry * 0.58, 0, 0, Math.PI * 2);
+      const bellyGrad = ctx.createLinearGradient(0, -metrics.body.ry * 0.4, 0, metrics.body.ry * 0.4);
+      bellyGrad.addColorStop(0, shiftColor(palette.belly, 0.12));
+      bellyGrad.addColorStop(1, shiftColor(palette.belly, -0.12));
+      ctx.fillStyle = bellyGrad;
+      ctx.globalAlpha = styleKey === "tuxedo" ? 0.96 : 0.9;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
 
-      drawOutlinedRect(bodyX - 1, bodyY, 30, bodyHeight, furMain, outline);
-      drawRect(bodyX, bodyY + 1, 28, 2, topHighlight);
-      drawRect(bodyX + 2, bodyY + 3, 8, bodyHeight - 5, furSecondary);
-      drawRect(bodyX + 3, bodyY + 4, 6, bodyHeight - 7, shiftColor(furSecondary, -0.08));
-      drawRect(bodyX + 12, bodyY + 4, 12, bodyHeight - 6, belly);
-      drawRect(bodyX + 13, bodyY + 5, 10, bodyHeight - 8, bellyHighlight);
-      drawRect(bodyX + 12, bodyY + bodyHeight - 3, 12, 1, bellyShadow);
-      drawRect(bodyX + 20, bodyY + 6, 4, bodyHeight - 9, accentShadow);
-      drawRect(bodyX + 19, bodyY + 6, 2, bodyHeight - 10, accentHighlight);
-      drawRect(bodyX + 6, bodyY + bodyHeight - 2, 18, 1, bodyShadow);
-      drawRect(bodyX + 14, bodyY + bodyHeight - 5, 10, 2, bellyHighlight);
-
-      const tailBaseX = bodyX - 4;
-      const tailBaseY = bodyY + 3;
-      drawOutlinedRect(tailBaseX, tailBaseY, 9, 6, furSecondary, outline);
-      drawRect(tailBaseX + 1, tailBaseY + 1, 7, 1, shiftColor(furSecondary, 0.16));
-      drawRect(tailBaseX + 1, tailBaseY + 4, 7, 2, shiftColor(furSecondary, -0.16));
-      const tailFill = hasTailTip ? tailTip : furSecondary;
-      drawOutlinedRect(tailBaseX - 6, tailBaseY + 2, 7, 6, tailFill, outline);
-      if (hasTailTip) {
-        drawRect(tailBaseX - 5, tailBaseY + 3, 5, 1, tailTipHighlight || shiftColor(tailFill, 0.16));
-        drawRect(tailBaseX - 5, tailBaseY + 6, 5, 1, tailTipShadow || shiftColor(tailFill, -0.16));
-        drawRect(tailBaseX - 4, tailBaseY + 4, 3, 2, palette.belly || bellyHighlight);
+      const pawColor = palette.paw || palette.belly;
+      for (const offset of [-metrics.body.rx * 0.4, -metrics.body.rx * 0.12]) {
+        ctx.save();
+        ctx.translate(cx + offset, cy + metrics.body.ry * 0.35 + rise * 0.1);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, metrics.leg.width * 0.6, metrics.leg.height * 0.32, 0, 0, Math.PI * 2);
+        const pawGrad = ctx.createLinearGradient(0, -metrics.leg.height * 0.2, 0, metrics.leg.height * 0.3);
+        pawGrad.addColorStop(0, shiftColor(pawColor, 0.12));
+        pawGrad.addColorStop(1, shiftColor(pawColor, -0.16));
+        ctx.fillStyle = pawGrad;
+        ctx.fill();
+        ctx.restore();
       }
 
-      drawLeg({
-        x: bodyX + 6,
-        baseY: bodyY + bodyHeight + base.groundOffset - 1,
-        width: base.legWidth,
-        height: base.legHeight - 2,
-        lift: 1,
-        color: furMain,
-        pawColor: paw,
-        outline,
-      });
-      drawLeg({
-        x: bodyX + 18,
-        baseY: bodyY + bodyHeight + base.groundOffset - 1,
-        width: base.legWidth,
-        height: base.legHeight - 2,
-        lift: 2,
-        color: furMain,
-        pawColor: paw,
-        outline,
-      });
+      const headX = cx - metrics.body.rx * 0.55;
+      const headY = cy - metrics.body.ry * 0.15 + rise * 0.2;
+      ctx.save();
+      ctx.translate(headX, headY);
+      ctx.rotate(-0.12);
+      const radius = metrics.head.r * 0.94;
+      const headGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
+      headGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.16));
+      headGrad.addColorStop(1, shiftColor(palette.furMain, -0.14));
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fillStyle = headGrad;
+      ctx.fill();
 
-      const headX = bodyX + 18;
-      const headY = base.body.y + 14 + breath;
-      drawOutlinedRect(headX, headY, 16, 10, furMain, outline);
-      drawRect(headX + 1, headY + 1, 14, 1, topHighlight);
-      drawRect(headX + 11, headY + 3, 4, 5, shiftColor(furSecondary, -0.12));
-      drawRect(headX + 1, headY + 8, 14, 1, bodyShadow);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.clip();
+      drawSleepingFaceMask(radius);
+      ctx.restore();
 
-      drawEar(headX - 1, headY - base.ear.height + 2, false, furSecondary, furAccent, outline);
-      drawEar(headX + 9, headY - base.ear.height + 3, true, furSecondary, furAccent, outline);
+      drawSleepingEye(-radius * 0.42, radius * 0.1);
+      drawSleepingEye(radius * 0.42, radius * 0.12);
 
-      const faceExpression = expression && expression.eyes ? { ...expression } : { eyes: "sleep", mouth: "sleep" };
-      faceExpression.eyes = "sleep";
-      faceExpression.mouth = "sleep";
-      drawFace(faceExpression, headX, headY, 16, 10, cheekColor);
+      ctx.beginPath();
+      ctx.moveTo(-radius * 0.2, radius * 0.38);
+      ctx.quadraticCurveTo(0, radius * 0.46, radius * 0.2, radius * 0.38);
+      ctx.strokeStyle = shiftColor(palette.pupil || "#1a1c26", -0.1);
+      ctx.lineWidth = radius * 0.08;
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      ctx.restore();
     }
-    function drawFace(expression, headX, headY, headWidth, headHeight, cheekColor) {
-      const outline = palette.outline || "#08050f";
-      const furMain = palette.furMain || "#2f2c3d";
-      const furSecondary = palette.furSecondary || furMain;
-      const eyeWhite = "#f8fbff";
-      const pupilColor = palette.pupil || outline;
-      const irisColor = palette.earInner ? shiftColor(palette.earInner, -0.22) : shiftColor(furSecondary, -0.08);
-      const irisShadow = shiftColor(irisColor, -0.2);
-      const eyeShine = shiftColor(eyeWhite, 0.2);
-      const eyelidColor = shiftColor(furMain, -0.12);
-      const lowerLidColor = shiftColor(furSecondary, -0.2);
-      const glassesFrame = palette.glassesFrame;
-      const glassesHighlight =
-        glassesFrame !== undefined && glassesFrame !== null
-          ? palette.glassesHighlight ?? shiftColor(glassesFrame, 0.2)
-          : null;
-      const glassesShadow =
-        glassesFrame !== undefined && glassesFrame !== null
-          ? palette.glassesShadow ?? shiftColor(glassesFrame, -0.2)
-          : null;
-      const glassesLens = palette.glassesLens;
-      const leftEyeX = headX + 4;
-      const rightEyeX = headX + headWidth - 8;
-      const eyeBaseline = headY + 6;
-      const muzzleWidth = 8;
-      const muzzleX = headX + Math.floor(headWidth / 2) - Math.floor(muzzleWidth / 2);
-      const muzzleY = headY + headHeight - 6;
-      const muzzleColor = palette.belly || "#e4e8f6";
-      const muzzleHighlight = shiftColor(muzzleColor, 0.18);
-      const muzzleShadow = shiftColor(muzzleColor, -0.18);
-      const whiskerColor = palette.paw || "#f8fbff";
 
-      drawRect(headX + 1, headY + 2, headWidth - 2, 1, shiftColor(furMain, 0.12));
-      drawRect(headX + 1, headY + headHeight - 3, headWidth - 2, 1, shiftColor(furSecondary, -0.18));
-
-      drawEye(expression.eyes, leftEyeX);
-      drawEye(expression.eyes, rightEyeX);
-
-      drawGlasses();
-
-      if (cheekColor) {
-        drawRect(headX + 1, headY + headHeight - 5, 3, 2, cheekColor);
-        drawRect(headX + headWidth - 4, headY + headHeight - 5, 3, 2, cheekColor);
-      }
-
-      drawRect(muzzleX - 1, muzzleY - 1, muzzleWidth + 2, 2, shiftColor(furMain, 0.1));
-      drawRect(muzzleX, muzzleY, muzzleWidth, 4, muzzleColor);
-      drawRect(muzzleX + 1, muzzleY + 1, muzzleWidth - 2, 1, muzzleHighlight);
-      drawRect(muzzleX + 1, muzzleY + 2, muzzleWidth - 2, 1, muzzleShadow);
-      drawRect(muzzleX + 2, muzzleY - 2, 4, 1, muzzleHighlight);
-      drawRect(muzzleX + 3, muzzleY - 3, 2, 1, shiftColor(muzzleHighlight, 0.08));
-
-      const noseColor = palette.nose || palette.earInner || outline;
-      const noseX = headX + Math.floor(headWidth / 2) - 1;
-      const noseY = muzzleY - 1;
-      drawRect(noseX, noseY, 2, 2, noseColor);
-      drawRect(noseX, noseY, 1, 1, shiftColor(noseColor, 0.18));
-      drawRect(noseX, noseY + 2, 2, 1, outline);
-      drawRect(noseX, noseY + 3, 1, 1, outline);
-
-      drawRect(muzzleX - 1, muzzleY + 1, 1, 2, outline);
-      drawRect(muzzleX + muzzleWidth, muzzleY + 1, 1, 2, outline);
-      drawRect(muzzleX - 5, muzzleY + 1, 4, 1, whiskerColor);
-      drawRect(muzzleX - 6, muzzleY + 2, 5, 1, whiskerColor);
-      drawRect(muzzleX + muzzleWidth + 1, muzzleY + 1, 4, 1, whiskerColor);
-      drawRect(muzzleX + muzzleWidth, muzzleY + 2, 5, 1, whiskerColor);
-      drawRect(muzzleX - 2, muzzleY + 1, 1, 1, outline);
-      drawRect(muzzleX + muzzleWidth + 1, muzzleY + 1, 1, 1, outline);
-
-      drawMouth(expression.mouth, muzzleX, muzzleY, muzzleWidth);
-
-      function drawEye(style, x) {
-        switch (style) {
-          case "sleep":
-            drawRect(x - 1, eyeBaseline + 2, 6, 1, outline);
-            drawRect(x, eyeBaseline + 1, 4, 1, outline);
-            break;
-          case "blink":
-            drawRect(x, eyeBaseline + 2, 4, 1, outline);
-            drawRect(x, eyeBaseline + 1, 4, 1, eyelidColor);
-            break;
-          case "narrow":
-            drawOpenEye(x, eyeBaseline, 3, { upperLid: true, lowerLid: false });
-            drawRect(x, eyeBaseline + 2, 4, 1, outline);
-            break;
-          case "droop":
-            drawOpenEye(x, eyeBaseline, 4, { upperLid: true, lowerLid: true });
-            drawRect(x, eyeBaseline, 4, 1, eyelidColor);
-            drawRect(x + 1, eyeBaseline + 3, 2, 1, outline);
-            break;
-          case "happy":
-            drawOpenEye(x, eyeBaseline - 1, 5, { upperLid: false, lowerLid: true });
-            drawRect(x, eyeBaseline + 3, 4, 1, shiftColor(palette.earInner || irisColor, -0.18));
-            break;
-          case "wide":
-            drawOpenEye(x, eyeBaseline - 1, 5, { upperLid: false, lowerLid: true });
-            break;
-          case "relaxed":
-            drawOpenEye(x, eyeBaseline, 4, { upperLid: true, lowerLid: true });
-            break;
-          default:
-            drawOpenEye(x, eyeBaseline - 1, 5, { upperLid: true, lowerLid: true });
-        }
-      }
-
-      function drawOpenEye(x, top, height, { upperLid = true, lowerLid = true } = {}) {
-        const h = Math.max(3, height);
-        const y = Math.round(top);
-        drawOutlinedRect(x, y, 4, h, eyeWhite, outline);
-        const irisHeight = Math.max(1, h - 2);
-        const irisTop = y + 1;
-        drawRect(x + 1, irisTop, 2, irisHeight, irisColor);
-        const pupilHeight = Math.max(1, Math.min(irisHeight, h - 3));
-        drawRect(x + 1, irisTop + irisHeight - pupilHeight, 2, pupilHeight, pupilColor);
-        drawRect(x + 2, irisTop + irisHeight - 1, 1, 1, irisShadow);
-        drawRect(x + 1, irisTop, 1, 1, eyeShine);
-        if (upperLid) {
-          drawRect(x, y, 4, 1, eyelidColor);
-        }
-        if (lowerLid) {
-          drawRect(x, y + h - 1, 4, 1, lowerLidColor);
-        }
-      }
-
-      function drawMouth(style, muzzleBaseX, muzzleBaseY, muzzleBaseWidth) {
-        const mouthCenterX = muzzleBaseX + Math.floor(muzzleBaseWidth / 2);
-        const mouthY = muzzleBaseY + 3;
-        const mouthX = mouthCenterX - 3;
-        const tongueColor = palette.earInner || palette.nose || "#f3adc9";
-        switch (style) {
-          case "smile":
-            drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
-            drawRect(mouthX + 4, mouthY - 1, 2, 1, outline);
-            drawRect(mouthX, mouthY, 6, 1, outline);
-            break;
-          case "smallSmile":
-            drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
-            drawRect(mouthX + 4, mouthY - 1, 2, 1, outline);
-            drawRect(mouthX, mouthY, 4, 1, outline);
-            break;
-          case "flat":
-            drawRect(mouthX, mouthY, 6, 1, outline);
-            break;
-          case "sad":
-            drawRect(mouthX - 1, mouthY, 2, 1, outline);
-            drawRect(mouthX + 5, mouthY, 2, 1, outline);
-            drawRect(mouthX, mouthY - 1, 6, 1, outline);
-            break;
-          case "angry":
-            drawRect(mouthX - 1, mouthY - 1, 3, 1, outline);
-            drawRect(mouthX + 3, mouthY - 1, 3, 1, outline);
-            drawRect(mouthX, mouthY, 6, 1, outline);
-            break;
-          case "grin":
-            drawRect(mouthX - 1, mouthY - 1, 2, 1, outline);
-            drawRect(mouthX + 5, mouthY - 1, 2, 1, outline);
-            drawRect(mouthX - 1, mouthY, 8, 2, outline);
-            drawRect(mouthX, mouthY + 1, 6, 1, tongueColor);
-            drawRect(mouthX, mouthY, 6, 1, outline);
-            break;
-          case "yum":
-            drawRect(mouthX, mouthY - 1, 6, 3, outline);
-            drawRect(mouthX + 1, mouthY, 4, 2, tongueColor);
-            drawRect(mouthX + 1, mouthY, 4, 1, shiftColor(tongueColor, 0.16));
-            break;
-          case "sleep":
-            drawRect(mouthX + 1, mouthY, 4, 1, outline);
-            break;
-          default:
-            drawRect(mouthX, mouthY, 6, 1, outline);
-        }
-      }
-
-      function drawGlasses() {
-        if (!glassesFrame) {
-          return;
-        }
-        const frameWidth = 5;
-        const frameHeight = 6;
-        const frameTop = eyeBaseline - 3;
-        const templeY = frameTop + 3;
-        const frames = [leftEyeX - 1, rightEyeX - 1];
-        frames.forEach((frameX) => {
-          drawRect(frameX, frameTop, frameWidth, 1, glassesHighlight || glassesFrame);
-          drawRect(frameX, frameTop + frameHeight - 1, frameWidth, 1, glassesShadow || glassesFrame);
-          drawRect(frameX, frameTop, 1, frameHeight, glassesFrame);
-          drawRect(frameX + frameWidth - 1, frameTop, 1, frameHeight, glassesFrame);
-          if (glassesLens) {
-            const lensWidth = Math.max(1, frameWidth - 3);
-            drawRect(frameX + 1, frameTop + 1, lensWidth, 1, glassesLens);
-            drawRect(frameX + frameWidth - 2, frameTop + 2, 1, frameHeight - 3, glassesLens);
-          }
-        });
-        const leftFrameX = frames[0];
-        const rightFrameX = frames[1];
-        const bridgeStart = leftFrameX + frameWidth - 1;
-        const bridgeEnd = rightFrameX;
-        const bridgeWidth = bridgeEnd - bridgeStart + 1;
-        if (bridgeWidth > 0) {
-          const bridgeY = frameTop + Math.floor(frameHeight / 2);
-          drawRect(bridgeStart, bridgeY, bridgeWidth, 1, glassesFrame);
-          if (glassesHighlight) {
-            drawRect(bridgeStart, bridgeY - 1, bridgeWidth, 1, glassesHighlight);
-          }
-        }
-        drawRect(leftFrameX - 2, templeY, 2, 1, glassesFrame);
-        drawRect(rightFrameX + frameWidth, templeY, 2, 1, glassesFrame);
-        if (glassesHighlight) {
-          drawRect(leftFrameX - 2, templeY, 1, 1, glassesHighlight);
-          drawRect(rightFrameX + frameWidth, templeY, 1, 1, glassesHighlight);
-        }
-        if (glassesShadow) {
-          drawRect(rightFrameX + frameWidth + 1, templeY + 1, 1, 1, glassesShadow);
-        }
-      }
+    function drawShadow(offset = 0) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+      const scale = Math.max(0.7, 1 + offset * 0.02);
+      ctx.beginPath();
+      ctx.ellipse(base.width * 0.52, metrics.groundY + Math.min(12, offset * 0.3), metrics.body.rx * 0.95, metrics.body.ry * 0.32 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
-    function drawEar(x, y, mirror, outerColor, accentColor, outline) {
-      const outer = outerColor || palette.furSecondary || "#262338";
-      const inner = palette.earInner || accentColor;
-      const highlight = shiftColor(outer, 0.18);
-      const shadow = shiftColor(outer, -0.16);
-      const innerHighlight = inner ? shiftColor(inner, 0.16) : inner;
-      const innerShadow = inner ? shiftColor(inner, -0.12) : inner;
 
-      drawOutlinedRect(x, y, base.ear.width, base.ear.height, outer, outline);
-      drawRect(x + 1, y + 1, base.ear.width - 2, base.ear.height - 2, palette.furMain || outer);
-      drawRect(x + 1, y + 1, base.ear.width - 2, 1, highlight);
-      drawRect(x + 1, y + base.ear.height - 2, base.ear.width - 2, 1, shadow);
-      const innerX = mirror ? x + base.ear.width - 3 : x + 2;
-      if (inner) {
-        drawRect(innerX, y + 2, 2, base.ear.height - 4, innerShadow);
-        drawRect(innerX, y + 2, 2, 1, innerHighlight);
+    function drawTail(angle = 0, lift = 0, offsetY = 0) {
+      ctx.save();
+      const baseX = metrics.tail.baseX;
+      const baseY = metrics.body.cy + offsetY - metrics.body.ry * 0.3 - lift * 0.6;
+      ctx.translate(baseX, baseY);
+      ctx.rotate((angle * Math.PI) / 180);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(metrics.tail.length * 0.35, -metrics.tail.length * 0.2, metrics.tail.length * 0.6, -metrics.tail.length * 0.8, metrics.tail.length * 0.2, -metrics.tail.length);
+      ctx.bezierCurveTo(-metrics.tail.length * 0.12, -metrics.tail.length * 0.88, -metrics.tail.length * 0.32, -metrics.tail.length * 0.42, -metrics.tail.length * 0.08, -metrics.tail.length * 0.08);
+      ctx.closePath();
+      const tailGrad = ctx.createLinearGradient(0, -metrics.tail.length, 0, 0);
+      tailGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.08));
+      tailGrad.addColorStop(1, shiftColor(palette.furMain, -0.1));
+      ctx.fillStyle = tailGrad;
+      ctx.fill();
+
+      if (palette.tailTip) {
+        ctx.beginPath();
+        ctx.moveTo(metrics.tail.length * 0.1, -metrics.tail.length * 0.8);
+        ctx.bezierCurveTo(metrics.tail.length * 0.26, -metrics.tail.length * 1.1, -metrics.tail.length * 0.14, -metrics.tail.length * 1.05, -metrics.tail.length * 0.12, -metrics.tail.length * 0.78);
+        ctx.closePath();
+        const tipGrad = ctx.createLinearGradient(0, -metrics.tail.length, 0, -metrics.tail.length * 0.6);
+        tipGrad.addColorStop(0, shiftColor(palette.tailTip, 0.12));
+        tipGrad.addColorStop(1, shiftColor(palette.tailTip, -0.12));
+        ctx.fillStyle = tipGrad;
+        ctx.fill();
       }
+      ctx.restore();
     }
-    function drawTail(bodyX, bodyY, sway, lift, color, tipColor, outline) {
-      const baseX = bodyX - 2 + sway;
-      const baseY = bodyY + 6 - lift;
-      const segments = [
-        { offsetX: -2, offsetY: 0, width: 7, height: 5, tip: false },
-        { offsetX: -5, offsetY: -3, width: 6, height: 5, tip: false },
-        { offsetX: -6, offsetY: -6, width: 5, height: 4, tip: true },
-        { offsetX: -4, offsetY: -8, width: 4, height: 4, tip: true },
-      ];
-      const hasTip = tipColor !== undefined && tipColor !== null;
-      segments.forEach((segment) => {
-        const useTip = segment.tip && hasTip;
-        const fill = useTip ? tipColor || color : color;
-        const x = baseX + segment.offsetX;
-        const y = baseY + segment.offsetY;
-        drawOutlinedRect(x, y, segment.width, segment.height, fill, outline);
-        if (segment.width > 2 && segment.height > 2) {
-          drawRect(x + 1, y + 1, segment.width - 2, 1, shiftColor(fill, 0.16));
-          drawRect(x + 1, y + segment.height - 2, segment.width - 2, 1, shiftColor(fill, -0.18));
+
+    function drawBody(offsetY = 0) {
+      const cx = metrics.body.cx;
+      const cy = metrics.body.cy + offsetY;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, metrics.body.rx, metrics.body.ry, 0, 0, Math.PI * 2);
+      const gradient = ctx.createLinearGradient(-metrics.body.rx, -metrics.body.ry, metrics.body.rx, metrics.body.ry);
+      gradient.addColorStop(0, shiftColor(palette.furSecondary, 0.16));
+      gradient.addColorStop(0.55, palette.furMain);
+      gradient.addColorStop(1, shiftColor(palette.furMain, -0.12));
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(-metrics.body.rx * 0.05, metrics.body.ry * 0.05, metrics.body.rx * 0.55, metrics.body.ry * 0.65, 0, 0, Math.PI * 2);
+      const bellyGrad = ctx.createLinearGradient(0, -metrics.body.ry * 0.6, 0, metrics.body.ry * 0.6);
+      bellyGrad.addColorStop(0, shiftColor(palette.belly, 0.12));
+      bellyGrad.addColorStop(1, shiftColor(palette.belly, -0.15));
+      ctx.fillStyle = bellyGrad;
+      ctx.globalAlpha = styleKey === "tuxedo" ? 1 : 0.92;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+      drawBodyPattern(cx, cy);
+    }
+
+    function drawBodyPattern(cx, cy) {
+      if (styleKey === "tuxedo") {
+        ctx.save();
+        ctx.translate(cx - metrics.body.rx * 0.05, cy + metrics.body.ry * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(-metrics.body.rx * 0.25, -metrics.body.ry * 0.3);
+        ctx.quadraticCurveTo(0, metrics.body.ry * 0.55, metrics.body.rx * 0.32, -metrics.body.ry * 0.25);
+        ctx.quadraticCurveTo(metrics.body.rx * 0.1, metrics.body.ry * 0.2, -metrics.body.rx * 0.25, -metrics.body.ry * 0.3);
+        ctx.closePath();
+        const maskColor = palette.patternMask || palette.belly;
+        const grad = ctx.createLinearGradient(0, -metrics.body.ry * 0.5, 0, metrics.body.ry * 0.6);
+        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        grad.addColorStop(1, shiftColor(maskColor, -0.08));
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+      } else if (styleKey === "silver") {
+        const stripeColor = palette.patternDetail || shiftColor(palette.furSecondary, -0.1);
+        ctx.save();
+        ctx.strokeStyle = stripeColor;
+        ctx.lineWidth = base.width * 0.012;
+        ctx.lineCap = "round";
+        for (let i = 0; i < 3; i += 1) {
+          const y = cy - metrics.body.ry * 0.32 + i * metrics.body.ry * 0.28;
+          ctx.beginPath();
+          ctx.moveTo(cx + metrics.body.rx * 0.15, y);
+          ctx.quadraticCurveTo(cx + metrics.body.rx * 0.55, y - metrics.body.ry * 0.08, cx + metrics.body.rx * 0.35, y + metrics.body.ry * 0.24);
+          ctx.stroke();
         }
-        if (useTip && tipColor) {
-          drawRect(x + segment.width - 2, y + 1, 1, segment.height - 2, shiftColor(tipColor, -0.1));
-        }
-      });
-      if (hasTip && tipColor) {
-        drawRect(baseX - 6, baseY - 4, 4, 2, tipColor);
-        drawRect(baseX - 6, baseY - 4, 4, 1, shiftColor(tipColor, 0.16));
-        drawRect(baseX - 5, baseY - 2, 3, 1, shiftColor(tipColor, -0.16));
-      }
-    }
-    function drawLeg({ x, baseY, width, height, lift = 0, color, pawColor, outline }) {
-      const effectiveLift = Math.max(0, Math.min(height - 3, lift));
-      const legHeight = Math.max(5, height - effectiveLift);
-      const topY = baseY - legHeight;
-      const legColor = color || palette.furMain || "#2f2c3d";
-      drawOutlinedRect(x, topY, width, legHeight, legColor, outline);
-      if (width > 2 && legHeight > 2) {
-        drawRect(x + 1, topY + 1, width - 2, 1, shiftColor(legColor, 0.18));
-        drawRect(x + width - 2, topY + 2, 1, legHeight - 3, shiftColor(legColor, -0.18));
-      }
-      if (effectiveLift < height - 2 && pawColor) {
-        const pawY = baseY - 2 - Math.max(0, effectiveLift - 1);
-        drawRect(x + 1, pawY, width - 2, 2, pawColor);
-        drawRect(x + 1, pawY, width - 2, 1, shiftColor(pawColor, 0.12));
-        drawRect(x + 1, pawY + 1, width - 2, 1, shiftColor(pawColor, -0.15));
-      }
-    }
-    function drawOutlinedRect(x, y, width, height, fillColor, outlineColor) {
-      if (width <= 0 || height <= 0) return;
-      const px = Math.round(x);
-      const py = Math.round(y);
-      const pw = Math.round(width);
-      const ph = Math.round(height);
-      ctx.fillStyle = outlineColor || fillColor;
-      ctx.fillRect(px, py, pw, ph);
-      if (pw > 2 && ph > 2 && fillColor) {
-        ctx.fillStyle = fillColor;
-        ctx.fillRect(px + 1, py + 1, pw - 2, ph - 2);
+        ctx.restore();
+      } else if (styleKey === "siamese") {
+        ctx.save();
+        ctx.translate(cx + metrics.body.rx * 0.2, cy + metrics.body.ry * 0.2);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, metrics.body.rx * 0.55, metrics.body.ry * 0.45, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+        ctx.fill();
+        ctx.restore();
       }
     }
 
-    function drawRect(x, y, width, height, color) {
-      if (!color || width <= 0 || height <= 0) return;
-      ctx.fillStyle = color;
-      ctx.fillRect(Math.round(x), Math.round(y), Math.round(width), Math.round(height));
+    function drawLegSegment(position, motion = {}, offsetY = 0, far = true) {
+      const basePos = legPositions[position];
+      if (!basePos) return;
+      const lift = (motion?.lift || 0) * 2.4;
+      const forward = (motion?.forward || 0) * 2.2;
+      const height = Math.max(metrics.leg.height * 0.45, metrics.leg.height - lift * 0.4);
+      const width = metrics.leg.width * (far ? 0.9 : 1);
+      const x = basePos.x + forward;
+      const y = basePos.y + offsetY;
+      ctx.save();
+      ctx.translate(x, y);
+      const color = far ? palette.furSecondary : palette.furMain;
+      const grad = ctx.createLinearGradient(0, -height, 0, 0);
+      grad.addColorStop(0, shiftColor(color, 0.16));
+      grad.addColorStop(0.65, color);
+      grad.addColorStop(1, shiftColor(color, -0.14));
+      drawRoundedRect(-width / 2, -height, width, height, width * 0.45, grad);
+      const pawHeight = metrics.leg.height * 0.28;
+      const pawOffset = Math.min(pawHeight * 0.6, lift * 0.6);
+      const pawColor = palette.paw || palette.belly;
+      const pawGrad = ctx.createLinearGradient(0, -pawHeight, 0, 0);
+      pawGrad.addColorStop(0, shiftColor(pawColor, 0.12));
+      pawGrad.addColorStop(1, shiftColor(pawColor, -0.14));
+      drawRoundedRect(-width / 2 + 1, -pawHeight + pawOffset, width - 2, pawHeight, pawHeight / 2, pawGrad);
+      ctx.restore();
+    }
+
+    function drawHead(expression, offsetX = 0, offsetY = 0, bodyOffsetY = 0, whiskerTilt = 0) {
+      const cx = metrics.head.cx + offsetX;
+      const cy = metrics.head.cy + offsetY + bodyOffsetY * 0.45;
+      const radius = metrics.head.r;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      const headGrad = ctx.createRadialGradient(-radius * 0.3, -radius * 0.5, radius * 0.2, 0, 0, radius);
+      headGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.18));
+      headGrad.addColorStop(1, shiftColor(palette.furMain, -0.12));
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fillStyle = headGrad;
+      ctx.fill();
+
+      drawEar(-radius * 0.75, -radius * 1.05, false);
+      drawEar(radius * 0.75, -radius * 1.05, true);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.995, 0, Math.PI * 2);
+      ctx.clip();
+      drawFaceMask(radius);
+      ctx.restore();
+
+      drawCheek(-radius * 0.52, radius * 0.2);
+      drawCheek(radius * 0.45, radius * 0.2);
+
+      const eyeY = -radius * 0.15;
+      drawEye(expression.eyes, -radius * 0.42, eyeY, whiskerTilt);
+      drawEye(expression.eyes, radius * 0.42, eyeY, -whiskerTilt);
+
+      ctx.save();
+      ctx.translate(0, radius * 0.32);
+      drawNose();
+      drawMouth(expression.mouth, expression.tongue);
+      ctx.restore();
+
+      drawWhiskers(whiskerTilt);
+
+      ctx.restore();
+    }
+
+    function drawEar(offsetX, offsetY, mirrored) {
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      if (mirrored) {
+        ctx.scale(-1, 1);
+      }
+      const earWidth = metrics.ear.width;
+      const earHeight = metrics.ear.height;
+      ctx.beginPath();
+      ctx.moveTo(0, earHeight);
+      ctx.quadraticCurveTo(earWidth * 0.15, earHeight * 0.2, earWidth * 0.6, 0);
+      ctx.quadraticCurveTo(earWidth * 0.32, earHeight * 0.6, 0, earHeight);
+      ctx.closePath();
+      const earColor = styleKey === "siamese" ? palette.patternMask || palette.furAccent : palette.furSecondary;
+      const earGrad = ctx.createLinearGradient(0, earHeight, earWidth * 0.6, 0);
+      earGrad.addColorStop(0, shiftColor(earColor, 0.16));
+      earGrad.addColorStop(1, shiftColor(earColor, -0.14));
+      ctx.fillStyle = earGrad;
+      ctx.fill();
+
+      if (palette.earInner) {
+        ctx.beginPath();
+        ctx.moveTo(earWidth * 0.12, earHeight * 0.88);
+        ctx.quadraticCurveTo(earWidth * 0.36, earHeight * 0.35, earWidth * 0.52, earHeight * 0.82);
+        ctx.quadraticCurveTo(earWidth * 0.28, earHeight * 0.65, earWidth * 0.12, earHeight * 0.88);
+        ctx.closePath();
+        const innerGrad = ctx.createLinearGradient(0, earHeight, earWidth * 0.5, earHeight * 0.2);
+        innerGrad.addColorStop(0, shiftColor(palette.earInner, -0.08));
+        innerGrad.addColorStop(1, shiftColor(palette.earInner, 0.14));
+        ctx.fillStyle = innerGrad;
+        ctx.globalAlpha = 0.9;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+
+    function drawFaceMask(radius) {
+      if (styleKey === "tuxedo") {
+        ctx.beginPath();
+        ctx.ellipse(-radius * 0.05, radius * 0.28, radius * 0.62, radius * 0.5, 0, 0, Math.PI * 2);
+        const maskColor = palette.patternMask || palette.belly;
+        const grad = ctx.createLinearGradient(0, radius * 0.05, 0, radius * 0.6);
+        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        grad.addColorStop(1, shiftColor(maskColor, -0.08));
+        ctx.fillStyle = grad;
+        ctx.fill();
+      } else if (styleKey === "siamese") {
+        const maskColor = palette.patternMask || palette.furAccent;
+        ctx.beginPath();
+        ctx.ellipse(-radius * 0.02, radius * 0.06, radius * 0.82, radius * 0.74, 0, 0, Math.PI * 2);
+        const grad = ctx.createLinearGradient(0, -radius * 0.6, 0, radius * 0.6);
+        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        grad.addColorStop(1, shiftColor(maskColor, -0.14));
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(-radius * 0.05, radius * 0.36, radius * 0.42, radius * 0.3, 0, 0, Math.PI * 2);
+        const muzzleColor = shiftColor(palette.belly, -0.02);
+        const muzzleGrad = ctx.createLinearGradient(0, radius * 0.2, 0, radius * 0.55);
+        muzzleGrad.addColorStop(0, shiftColor(muzzleColor, 0.12));
+        muzzleGrad.addColorStop(1, shiftColor(muzzleColor, -0.1));
+        ctx.fillStyle = muzzleGrad;
+        ctx.fill();
+      } else if (styleKey === "silver") {
+        const detail = palette.patternDetail || shiftColor(palette.furSecondary, -0.08);
+        ctx.strokeStyle = detail;
+        ctx.lineWidth = radius * 0.16;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.3, -radius * 0.45);
+        ctx.quadraticCurveTo(0, -radius * 0.65, radius * 0.3, -radius * 0.45);
+        ctx.stroke();
+      }
+    }
+
+    function drawCheek(x, y) {
+      if (!palette.cheek) return;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, metrics.head.r * 0.24, metrics.head.r * 0.16, 0, 0, Math.PI * 2);
+      const cheekGrad = ctx.createRadialGradient(0, 0, metrics.head.r * 0.05, 0, 0, metrics.head.r * 0.24);
+      cheekGrad.addColorStop(0, shiftColor(palette.cheek, 0.1));
+      cheekGrad.addColorStop(1, shiftColor(palette.cheek, -0.12));
+      ctx.fillStyle = cheekGrad;
+      ctx.globalAlpha = 0.82;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    function drawEye(type, offsetX, offsetY, tilt = 0) {
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      ctx.rotate((tilt * Math.PI) / 180);
+      const width = metrics.head.r * 0.48;
+      const height = type === "wide" ? metrics.head.r * 0.34 : metrics.head.r * 0.28;
+
+      if (type === "sleep" || type === "blink") {
+        ctx.beginPath();
+        ctx.moveTo(-width * 0.4, 0);
+        ctx.quadraticCurveTo(0, metrics.head.r * 0.18, width * 0.4, 0);
+        ctx.strokeStyle = shiftColor(palette.furSecondary, -0.2);
+        ctx.lineWidth = metrics.head.r * 0.12;
+        ctx.lineCap = "round";
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.ellipse(0, 0, width * 0.5, height * 0.5, 0, 0, Math.PI * 2);
+      const eyeWhite = shiftColor(palette.belly || "#f5f7fb", 0.15);
+      ctx.fillStyle = eyeWhite;
+      ctx.fill();
+
+      let topClip = 0;
+      let bottomClip = 0;
+      if (type === "happy") {
+        topClip = height * 0.25;
+      } else if (type === "soft") {
+        topClip = height * 0.18;
+      } else if (type === "relaxed") {
+        topClip = height * 0.12;
+      } else if (type === "narrow") {
+        topClip = height * 0.35;
+      } else if (type === "droop") {
+        bottomClip = height * 0.25;
+      }
+
+      if (topClip > 0) {
+        ctx.beginPath();
+        ctx.rect(-width, -height, width * 2, topClip);
+        ctx.fillStyle = palette.furMain;
+        ctx.globalAlpha = 0.9;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      if (bottomClip > 0) {
+        ctx.beginPath();
+        ctx.rect(-width, height * 0.5 - bottomClip, width * 2, bottomClip + height * 0.4);
+        ctx.fillStyle = palette.furSecondary;
+        ctx.globalAlpha = 0.85;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      const irisScale = type === "wide" ? 1.1 : type === "narrow" ? 0.82 : 0.95;
+      const irisWidth = width * 0.3 * irisScale;
+      const irisHeight = height * 0.55 * irisScale;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, irisWidth, irisHeight, 0, 0, Math.PI * 2);
+      const irisColor = palette.iris || shiftColor(palette.furAccent || palette.furMain, 0.28);
+      ctx.fillStyle = irisColor;
+      ctx.fill();
+
+      const pupilWidth = irisWidth * 0.55;
+      const pupilHeight = irisHeight * (type === "wide" ? 0.58 : 0.72);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, pupilWidth, pupilHeight, 0, 0, Math.PI * 2);
+      ctx.fillStyle = palette.pupil || "#111";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(-irisWidth * 0.35, -irisHeight * 0.35, irisWidth * 0.28, irisHeight * 0.28, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawNose() {
+      const width = metrics.head.r * 0.22;
+      const height = metrics.head.r * 0.14;
+      ctx.beginPath();
+      ctx.moveTo(-width / 2, 0);
+      ctx.quadraticCurveTo(0, height * 0.8, width / 2, 0);
+      ctx.quadraticCurveTo(0, height * 0.2, -width / 2, 0);
+      ctx.fillStyle = palette.nose || "#f3a9bb";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(0, height * 0.3);
+      ctx.lineTo(0, height * 1.2);
+      ctx.strokeStyle = shiftColor(palette.pupil || "#1a1c26", 0.1);
+      ctx.lineWidth = metrics.head.r * 0.04;
+      ctx.stroke();
+    }
+
+    function drawMouth(type, showTongue = false) {
+      const width = metrics.head.r * 0.55;
+      const strokeColor = shiftColor(palette.pupil || "#1a1c26", -0.1);
+      const lineWidth = metrics.head.r * 0.08;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = lineWidth;
+
+      ctx.beginPath();
+      switch (type) {
+        case "smile":
+          ctx.moveTo(-width * 0.5, -width * 0.08);
+          ctx.quadraticCurveTo(0, width * 0.42, width * 0.5, -width * 0.08);
+          break;
+        case "soft":
+          ctx.moveTo(-width * 0.35, -width * 0.04);
+          ctx.quadraticCurveTo(0, width * 0.22, width * 0.35, -width * 0.04);
+          break;
+        case "flat":
+          ctx.moveTo(-width * 0.42, 0);
+          ctx.lineTo(width * 0.42, 0);
+          break;
+        case "sad":
+          ctx.moveTo(-width * 0.44, width * 0.12);
+          ctx.quadraticCurveTo(0, -width * 0.28, width * 0.44, width * 0.12);
+          break;
+        case "angry":
+          ctx.moveTo(-width * 0.38, -width * 0.1);
+          ctx.lineTo(-width * 0.05, -width * 0.26);
+          ctx.moveTo(width * 0.38, -width * 0.1);
+          ctx.lineTo(width * 0.05, -width * 0.26);
+          ctx.moveTo(-width * 0.3, -width * 0.08);
+          ctx.quadraticCurveTo(0, -width * 0.04, width * 0.3, -width * 0.08);
+          break;
+        case "grin":
+          ctx.moveTo(-width * 0.5, -width * 0.08);
+          ctx.quadraticCurveTo(0, width * 0.5, width * 0.5, -width * 0.08);
+          showTongue = true;
+          break;
+        case "yum":
+          ctx.moveTo(-width * 0.38, -width * 0.08);
+          ctx.quadraticCurveTo(0, width * 0.36, width * 0.38, -width * 0.08);
+          showTongue = true;
+          break;
+        case "sleep":
+          ctx.moveTo(-width * 0.4, 0);
+          ctx.quadraticCurveTo(0, width * 0.05, width * 0.4, 0);
+          break;
+        default:
+          ctx.moveTo(-width * 0.4, 0);
+          ctx.lineTo(width * 0.4, 0);
+      }
+      ctx.strokeStyle = strokeColor;
+      ctx.stroke();
+
+      if (showTongue) {
+        ctx.beginPath();
+        ctx.ellipse(0, width * 0.18, width * 0.26, width * 0.22, 0, 0, Math.PI);
+        const tongueColor = palette.earInner || palette.nose || "#f3a9bb";
+        const grad = ctx.createLinearGradient(0, width * 0.04, 0, width * 0.32);
+        grad.addColorStop(0, shiftColor(tongueColor, 0.12));
+        grad.addColorStop(1, shiftColor(tongueColor, -0.12));
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+    }
+
+    function drawWhiskers(tilt = 0) {
+      const whiskerColor = shiftColor(palette.belly || "#ffffff", -0.4);
+      ctx.strokeStyle = whiskerColor;
+      ctx.lineWidth = metrics.head.r * 0.045;
+      ctx.lineCap = "round";
+
+      const yBase = metrics.head.r * 0.52;
+      ctx.beginPath();
+      ctx.moveTo(-metrics.head.r * 0.25, yBase - metrics.head.r * 0.1);
+      ctx.quadraticCurveTo(-metrics.head.r * 0.9, yBase - metrics.head.r * 0.15 - tilt * 0.4, -metrics.head.r * 1.18, yBase - metrics.head.r * 0.2 - tilt * 0.4);
+      ctx.moveTo(-metrics.head.r * 0.22, yBase + metrics.head.r * 0.02);
+      ctx.quadraticCurveTo(-metrics.head.r * 0.9, yBase + tilt * 0.2, -metrics.head.r * 1.15, yBase + tilt * 0.3);
+
+      ctx.moveTo(metrics.head.r * 0.22, yBase - metrics.head.r * 0.1);
+      ctx.quadraticCurveTo(metrics.head.r * 0.9, yBase - metrics.head.r * 0.15 + tilt * 0.4, metrics.head.r * 1.15, yBase - metrics.head.r * 0.2 + tilt * 0.4);
+      ctx.moveTo(metrics.head.r * 0.25, yBase + metrics.head.r * 0.02);
+      ctx.quadraticCurveTo(metrics.head.r * 0.9, yBase - tilt * 0.2, metrics.head.r * 1.18, yBase - tilt * 0.3);
+      ctx.stroke();
+    }
+
+    function drawSleepingFaceMask(radius) {
+      if (styleKey === "siamese") {
+        const maskColor = palette.patternMask || palette.furAccent;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius * 0.86, radius * 0.76, 0, 0, Math.PI * 2);
+        const grad = ctx.createLinearGradient(0, -radius * 0.6, 0, radius * 0.6);
+        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        grad.addColorStop(1, shiftColor(maskColor, -0.14));
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(0, radius * 0.3, radius * 0.45, radius * 0.32, 0, 0, Math.PI * 2);
+        const muzzleColor = shiftColor(palette.belly, -0.02);
+        const muzzleGrad = ctx.createLinearGradient(0, radius * 0.18, 0, radius * 0.52);
+        muzzleGrad.addColorStop(0, shiftColor(muzzleColor, 0.1));
+        muzzleGrad.addColorStop(1, shiftColor(muzzleColor, -0.1));
+        ctx.fillStyle = muzzleGrad;
+        ctx.fill();
+      } else if (styleKey === "tuxedo") {
+        const maskColor = palette.patternMask || palette.belly;
+        ctx.beginPath();
+        ctx.ellipse(-radius * 0.05, radius * 0.25, radius * 0.58, radius * 0.46, 0, 0, Math.PI * 2);
+        ctx.fillStyle = maskColor;
+        ctx.globalAlpha = 0.96;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else if (styleKey === "silver") {
+        const detail = palette.patternDetail || shiftColor(palette.furSecondary, -0.08);
+        ctx.strokeStyle = detail;
+        ctx.lineWidth = radius * 0.14;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.32, -radius * 0.36);
+        ctx.quadraticCurveTo(0, -radius * 0.5, radius * 0.32, -radius * 0.36);
+        ctx.stroke();
+      }
+    }
+
+    function drawSleepingEye(x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.beginPath();
+      ctx.moveTo(-metrics.head.r * 0.18, 0);
+      ctx.quadraticCurveTo(0, metrics.head.r * 0.12, metrics.head.r * 0.18, 0);
+      ctx.strokeStyle = shiftColor(palette.furSecondary, -0.2);
+      ctx.lineWidth = metrics.head.r * 0.09;
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawRoundedRect(x, y, width, height, radius, fillStyle) {
+      const r = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+    }
+
+    function shiftColor(color, amount = 0) {
+      if (!color || typeof color !== "string") return color;
+      const match = color.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (!match) {
+        return color;
+      }
+      let hex = match[1];
+      if (hex.length === 3) {
+        hex = hex
+          .split("")
+          .map((char) => char + char)
+          .join("");
+      }
+      const numeric = parseInt(hex, 16);
+      const delta = Math.round(amount * 255);
+      const r = Math.max(0, Math.min(255, ((numeric >> 16) & 0xff) + delta));
+      const g = Math.max(0, Math.min(255, ((numeric >> 8) & 0xff) + delta));
+      const b = Math.max(0, Math.min(255, (numeric & 0xff) + delta));
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
     }
 
     restartLoop();
+    drawCurrentFrame();
 
     return {
       setPalette,
@@ -1690,8 +1913,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       redraw: drawCurrentFrame,
     };
   }
-
-      function getAutomaticDayMode(date = new Date()) {
+  function getAutomaticDayMode(date = new Date()) {
         const hour = date.getHours();
         return hour >= 22 || hour < 6 ? "night" : "day";
       }
