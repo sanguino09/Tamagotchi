@@ -1329,6 +1329,9 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       const headGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
       headGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.16));
       headGrad.addColorStop(1, shiftColor(palette.furMain, -0.14));
+      drawSleepingEar(radius * 0.16, -radius * 1.02, true);
+      drawSleepingEar(-radius * 0.78, -radius * 0.92, false);
+
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
       ctx.fillStyle = headGrad;
@@ -1728,6 +1731,68 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         ctx.fill();
         ctx.globalAlpha = 1;
       }
+
+      ctx.beginPath();
+      ctx.moveTo(earWidth * 0.16, earHeight * 0.74);
+      ctx.quadraticCurveTo(earWidth * 0.38, earHeight * 0.28, earWidth * 0.58, earHeight * 0.46);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+      ctx.lineWidth = Math.max(1, earWidth * 0.06);
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(earWidth * 0.16, earHeight * 0.88);
+      ctx.quadraticCurveTo(earWidth * 0.4, earHeight * 0.72, earWidth * 0.62, earHeight * 0.82);
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.18)";
+      ctx.lineWidth = Math.max(0.8, earWidth * 0.05);
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawSleepingEar(offsetX, offsetY, mirrored = false) {
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      if (mirrored) {
+        ctx.scale(-1, 1);
+      }
+      ctx.rotate(-0.2);
+      const earWidth = metrics.ear.width * 0.9;
+      const earHeight = metrics.ear.height * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, earHeight * 0.96);
+      ctx.quadraticCurveTo(earWidth * 0.22, earHeight * 0.42, earWidth * 0.7, 0);
+      ctx.quadraticCurveTo(earWidth * 0.36, earHeight * 0.58, 0, earHeight * 0.96);
+      ctx.closePath();
+      const earColor = styleKey === "siamese" ? palette.patternMask || palette.furAccent : palette.furSecondary;
+      const earGrad = ctx.createLinearGradient(earWidth * 0.1, earHeight, earWidth * 0.78, earHeight * 0.12);
+      earGrad.addColorStop(0, shiftColor(earColor, 0.14));
+      earGrad.addColorStop(1, shiftColor(earColor, -0.16));
+      ctx.fillStyle = earGrad;
+      ctx.fill();
+
+      if (palette.earInner) {
+        ctx.beginPath();
+        ctx.moveTo(earWidth * 0.16, earHeight * 0.86);
+        ctx.quadraticCurveTo(earWidth * 0.42, earHeight * 0.4, earWidth * 0.58, earHeight * 0.74);
+        ctx.quadraticCurveTo(earWidth * 0.32, earHeight * 0.64, earWidth * 0.16, earHeight * 0.92);
+        ctx.closePath();
+        const innerGrad = ctx.createLinearGradient(earWidth * 0.12, earHeight * 0.95, earWidth * 0.6, earHeight * 0.25);
+        innerGrad.addColorStop(0, shiftColor(palette.earInner, -0.04));
+        innerGrad.addColorStop(1, shiftColor(palette.earInner, 0.18));
+        ctx.fillStyle = innerGrad;
+        ctx.globalAlpha = 0.88;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(earWidth * 0.18, earHeight * 0.76);
+      ctx.quadraticCurveTo(earWidth * 0.4, earHeight * 0.3, earWidth * 0.6, earHeight * 0.52);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+      ctx.lineWidth = Math.max(1, earWidth * 0.06);
+      ctx.lineCap = "round";
+      ctx.stroke();
       ctx.restore();
     }
 
