@@ -1382,6 +1382,21 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       ctx.fillStyle = tailGrad;
       ctx.fill();
 
+      ctx.beginPath();
+      ctx.moveTo(metrics.tail.length * 0.06, -metrics.tail.length * 0.18);
+      ctx.bezierCurveTo(
+        metrics.tail.length * 0.38,
+        -metrics.tail.length * 0.62,
+        metrics.tail.length * 0.22,
+        -metrics.tail.length * 0.98,
+        -metrics.tail.length * 0.18,
+        -metrics.tail.length * 0.88
+      );
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+      ctx.lineWidth = Math.max(1.2, metrics.tail.length * 0.08);
+      ctx.lineCap = "round";
+      ctx.stroke();
+
       if (palette.tailTip) {
         ctx.beginPath();
         ctx.moveTo(metrics.tail.length * 0.1, -metrics.tail.length * 0.8);
@@ -1420,8 +1435,17 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       ctx.fill();
       ctx.globalAlpha = 1;
 
+      drawBodyDecorations();
+
       ctx.restore();
       drawBodyPattern(cx, cy);
+    }
+
+    function drawBodyDecorations() {
+      drawShoulderShade();
+      drawHipHighlight();
+      drawSpineHighlight();
+      drawChestTuft();
     }
 
     function drawBodyPattern(cx, cy) {
@@ -1465,6 +1489,119 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       }
     }
 
+    function drawShoulderShade() {
+      ctx.save();
+      ctx.translate(-metrics.body.rx * 0.36, -metrics.body.ry * 0.12);
+      ctx.rotate(-0.28);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, metrics.body.rx * 0.46, metrics.body.ry * 0.28, 0, 0, Math.PI * 2);
+      const shoulderGrad = ctx.createRadialGradient(
+        -metrics.body.rx * 0.12,
+        -metrics.body.ry * 0.18,
+        metrics.body.rx * 0.08,
+        0,
+        0,
+        metrics.body.rx * 0.52
+      );
+      shoulderGrad.addColorStop(0, shiftColor(palette.furMain, 0.18));
+      shoulderGrad.addColorStop(1, shiftColor(palette.furSecondary, -0.18));
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = shoulderGrad;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    function drawHipHighlight() {
+      ctx.save();
+      ctx.translate(metrics.body.rx * 0.48, metrics.body.ry * 0.06);
+      ctx.rotate(0.22);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, metrics.body.rx * 0.52, metrics.body.ry * 0.32, 0, 0, Math.PI * 2);
+      const hipGrad = ctx.createRadialGradient(
+        -metrics.body.rx * 0.08,
+        -metrics.body.ry * 0.16,
+        metrics.body.rx * 0.1,
+        0,
+        0,
+        metrics.body.rx * 0.55
+      );
+      hipGrad.addColorStop(0, shiftColor(palette.furMain, 0.16));
+      hipGrad.addColorStop(1, shiftColor(palette.furSecondary, -0.2));
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = hipGrad;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    function drawSpineHighlight() {
+      ctx.save();
+      ctx.translate(-metrics.body.rx * 0.12, -metrics.body.ry * 0.56);
+      ctx.rotate(-0.08);
+      ctx.beginPath();
+      ctx.moveTo(-metrics.body.rx * 0.1, 0);
+      ctx.quadraticCurveTo(
+        metrics.body.rx * 0.42,
+        -metrics.body.ry * 0.2,
+        metrics.body.rx * 0.78,
+        metrics.body.ry * 0.16
+      );
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+      ctx.lineWidth = Math.max(1.4, metrics.body.ry * 0.12);
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawChestTuft() {
+      const bellyColor = palette.belly || shiftColor(palette.furMain, 0.24);
+      ctx.save();
+      ctx.translate(-metrics.body.rx * 0.68, -metrics.body.ry * 0.08);
+      ctx.beginPath();
+      ctx.moveTo(-metrics.body.rx * 0.05, -metrics.body.ry * 0.28);
+      ctx.quadraticCurveTo(
+        -metrics.body.rx * 0.16,
+        -metrics.body.ry * 0.62,
+        metrics.body.rx * 0.12,
+        -metrics.body.ry * 0.48
+      );
+      ctx.quadraticCurveTo(
+        metrics.body.rx * 0.36,
+        -metrics.body.ry * 0.12,
+        metrics.body.rx * 0.26,
+        metrics.body.ry * 0.34
+      );
+      ctx.quadraticCurveTo(metrics.body.rx * 0.06, metrics.body.ry * 0.26, -metrics.body.rx * 0.06, metrics.body.ry * 0.36);
+      ctx.closePath();
+      const tuftGrad = ctx.createLinearGradient(
+        -metrics.body.rx * 0.12,
+        -metrics.body.ry * 0.48,
+        metrics.body.rx * 0.28,
+        metrics.body.ry * 0.36
+      );
+      tuftGrad.addColorStop(0, shiftColor(bellyColor, 0.18));
+      tuftGrad.addColorStop(1, shiftColor(bellyColor, -0.08));
+      ctx.globalAlpha = styleKey === "tuxedo" ? 0.92 : 0.78;
+      ctx.fillStyle = tuftGrad;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(-metrics.body.rx * 0.02, -metrics.body.ry * 0.18);
+      ctx.quadraticCurveTo(
+        metrics.body.rx * 0.1,
+        -metrics.body.ry * 0.16,
+        metrics.body.rx * 0.18,
+        metrics.body.ry * 0.26
+      );
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+      ctx.lineWidth = Math.max(1, metrics.body.ry * 0.08);
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
+    }
+
     function drawLegSegment(position, motion = {}, offsetY = 0, far = true) {
       const basePos = legPositions[position];
       if (!basePos) return;
@@ -1489,6 +1626,28 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       pawGrad.addColorStop(0, shiftColor(pawColor, 0.12));
       pawGrad.addColorStop(1, shiftColor(pawColor, -0.14));
       drawRoundedRect(-width / 2 + 1, -pawHeight + pawOffset, width - 2, pawHeight, pawHeight / 2, pawGrad);
+
+      ctx.beginPath();
+      ctx.ellipse(0, -pawHeight * 0.4 + pawOffset, Math.max(width * 0.28, 2), pawHeight * 0.22, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.globalAlpha = far ? 0.2 : 0.32;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      const toeSpacing = Math.max(width - 4, 2) / 3;
+      const toeBaseY = pawOffset - pawHeight * 0.06;
+      const toeColor = shiftColor(pawColor, -0.18);
+      ctx.strokeStyle = toeColor;
+      ctx.lineWidth = Math.max(0.8, pawHeight * 0.14);
+      ctx.lineCap = "round";
+      ctx.globalAlpha = far ? 0.28 : 0.5;
+      for (let i = 0; i < 3; i += 1) {
+        const xToe = -width / 2 + toeSpacing * (i + 0.5) + 1;
+        ctx.beginPath();
+        ctx.ellipse(xToe, toeBaseY, toeSpacing * 0.32, pawHeight * 0.32, 0, 0, Math.PI);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
       ctx.restore();
     }
 
@@ -1573,6 +1732,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
 
     function drawFaceMask(radius) {
+      let muzzleColor = palette.belly;
       if (styleKey === "tuxedo") {
         ctx.beginPath();
         ctx.ellipse(-radius * 0.05, radius * 0.28, radius * 0.62, radius * 0.5, 0, 0, Math.PI * 2);
@@ -1582,6 +1742,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         grad.addColorStop(1, shiftColor(maskColor, -0.08));
         ctx.fillStyle = grad;
         ctx.fill();
+        muzzleColor = maskColor;
       } else if (styleKey === "siamese") {
         const maskColor = palette.patternMask || palette.furAccent;
         ctx.beginPath();
@@ -1591,15 +1752,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         grad.addColorStop(1, shiftColor(maskColor, -0.14));
         ctx.fillStyle = grad;
         ctx.fill();
-
-        ctx.beginPath();
-        ctx.ellipse(-radius * 0.05, radius * 0.36, radius * 0.42, radius * 0.3, 0, 0, Math.PI * 2);
-        const muzzleColor = shiftColor(palette.belly, -0.02);
-        const muzzleGrad = ctx.createLinearGradient(0, radius * 0.2, 0, radius * 0.55);
-        muzzleGrad.addColorStop(0, shiftColor(muzzleColor, 0.12));
-        muzzleGrad.addColorStop(1, shiftColor(muzzleColor, -0.1));
-        ctx.fillStyle = muzzleGrad;
-        ctx.fill();
+        muzzleColor = shiftColor(palette.belly, -0.02);
       } else if (styleKey === "silver") {
         const detail = palette.patternDetail || shiftColor(palette.furSecondary, -0.08);
         ctx.strokeStyle = detail;
@@ -1610,6 +1763,49 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         ctx.quadraticCurveTo(0, -radius * 0.65, radius * 0.3, -radius * 0.45);
         ctx.stroke();
       }
+
+      if (muzzleColor) {
+        drawMuzzleDetail(radius, muzzleColor, { overlay: styleKey === "siamese" });
+      }
+    }
+
+    function drawMuzzleDetail(radius, color, { overlay = false } = {}) {
+      const width = radius * 0.46;
+      const height = radius * 0.32;
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(-radius * 0.05, radius * 0.36, width, height, 0, 0, Math.PI * 2);
+      const muzzleGrad = ctx.createLinearGradient(0, radius * 0.2, 0, radius * 0.56);
+      muzzleGrad.addColorStop(0, shiftColor(color, 0.16));
+      muzzleGrad.addColorStop(1, shiftColor(color, -0.12));
+      ctx.globalAlpha = overlay ? 0.78 : 0.88;
+      ctx.fillStyle = muzzleGrad;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.beginPath();
+      ctx.ellipse(-radius * 0.08, radius * 0.24, width * 0.52, height * 0.42, 0, 0, Math.PI * 2);
+      const highlightGrad = ctx.createRadialGradient(
+        -width * 0.2,
+        -height * 0.1,
+        width * 0.12,
+        0,
+        0,
+        width * 0.64
+      );
+      highlightGrad.addColorStop(0, "rgba(255, 255, 255, 0.25)");
+      highlightGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = highlightGrad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(-radius * 0.05, radius * 0.44, width * 0.8, height * 0.66, 0, 0, Math.PI);
+      ctx.strokeStyle = shiftColor(color, -0.2);
+      ctx.lineWidth = radius * 0.05;
+      ctx.globalAlpha = 0.28;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.restore();
     }
 
     function drawCheek(x, y) {
