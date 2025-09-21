@@ -263,30 +263,29 @@
         --y: 0px;
         --flip: 1;
         --shadow-scale: 1;
-        --bob-speed: 3.2s;
-        --shadow-opacity: 0.45;
+        --bob-speed: 3.6s;
+        --shadow-opacity: 0.36;
         position: absolute;
         left: 50%;
         bottom: 36px;
-        width: clamp(180px, 48vw, 280px);
+        width: clamp(200px, 50vw, 310px);
         transform: translate(calc(-50% + var(--x)), var(--y));
-        transition: transform 2.4s steps(18, end);
+        transition: transform 2.6s cubic-bezier(0.33, 1, 0.68, 1);
         will-change: transform;
-        image-rendering: pixelated;
       }
 
       .cat-shadow {
         position: absolute;
         left: 50%;
         bottom: -18px;
-        width: 64%;
-        height: 32px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 18px;
-        image-rendering: pixelated;
+        width: 60%;
+        height: 34px;
+        background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.26) 0%, rgba(0, 0, 0, 0) 70%);
+        border-radius: 50%;
         transform: translateX(-50%) scaleX(var(--shadow-scale));
         opacity: var(--shadow-opacity);
-        transition: transform 0.4s steps(6, end), opacity 0.3s linear;
+        transition: transform 0.45s ease, opacity 0.3s ease;
+        filter: blur(4px);
       }
 
       .cat {
@@ -294,8 +293,7 @@
         width: 100%;
         transform: scaleX(var(--flip));
         transform-origin: center bottom;
-        animation: pixel-bob var(--bob-speed) steps(2, end) infinite;
-        image-rendering: pixelated;
+        animation: cat-bob var(--bob-speed) ease-in-out infinite;
         --fur-main: #2f2c3d;
         --fur-secondary: #262338;
         --fur-accent: #454058;
@@ -312,23 +310,22 @@
       .cat-sprite {
         position: relative;
         width: 100%;
-        aspect-ratio: 48 / 40;
+        aspect-ratio: 220 / 180;
         display: flex;
         align-items: center;
         justify-content: center;
-        image-rendering: pixelated;
       }
 
       #catSpriteCanvas {
         width: 100%;
         height: auto;
-        image-rendering: pixelated;
+        display: block;
       }
 
       .cat-accessory {
         position: absolute;
-        inset: auto 0 22%;
-        height: 12%;
+        inset: auto 10% 26%;
+        height: 16%;
         pointer-events: none;
         opacity: 0;
       }
@@ -338,21 +335,21 @@
         position: absolute;
         left: 50%;
         top: 50%;
-        width: 60%;
-        height: 80%;
+        width: 68%;
+        height: 90%;
         transform: translate(-50%, -50%);
         background:
           linear-gradient(
             to right,
             transparent 0%,
-            var(--collar-stroke, #4aa5ff) 10%,
+            var(--collar-stroke, #4aa5ff) 12%,
             var(--collar, #6ee7ff) 50%,
-            var(--collar-stroke, #4aa5ff) 90%,
+            var(--collar-stroke, #4aa5ff) 88%,
             transparent 100%
           );
         border-radius: 999px;
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
-        filter: saturate(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        filter: saturate(1.08);
       }
 
       .activity-props {
@@ -369,7 +366,6 @@
         width: 28%;
         aspect-ratio: 1;
         opacity: 0;
-        image-rendering: pixelated;
       }
 
       #propBowl {
@@ -821,13 +817,13 @@
         border-radius: 999px;
       }
 
-      @keyframes pixel-bob {
+      @keyframes cat-bob {
         0%,
         100% {
-          transform: scaleX(var(--flip)) translateY(0);
+          transform: translateY(0) scaleX(var(--flip));
         }
         50% {
-          transform: scaleX(var(--flip)) translateY(-4px);
+          transform: translateY(-6px) scaleX(var(--flip));
         }
       }
 
