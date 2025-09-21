@@ -322,6 +322,137 @@
         height: auto;
       }
 
+      #faceFeatures {
+        transform-box: fill-box;
+        transform-origin: center;
+        transform: translateY(-18px);
+        transition: transform 0.35s ease;
+      }
+
+      #eyesOpen,
+      #eyesClosed {
+        transition: opacity 0.3s ease;
+      }
+
+      #eyesClosed {
+        opacity: 0;
+      }
+
+      .cat[data-activity="feed"] #faceFeatures {
+        transform: translateY(-20px);
+      }
+
+      .cat[data-activity="play"] #faceFeatures {
+        transform: translateY(-16px);
+      }
+
+      .cat[data-activity="nap"] #faceFeatures {
+        transform: translateY(-12px);
+      }
+
+      .cat[data-activity="nap"] #eyesOpen {
+        opacity: 0;
+      }
+
+      .cat[data-activity="nap"] #eyesClosed {
+        opacity: 1;
+      }
+
+      #whiskers {
+        transform-box: fill-box;
+        transform-origin: center;
+        transition: transform 0.3s ease;
+      }
+
+      .cat[data-activity="feed"] #whiskers {
+        transform: translateY(-2px);
+      }
+
+      .cat[data-activity="nap"] #whiskers {
+        transform: translateY(3px);
+      }
+
+      .cat[data-activity="play"] #whiskers {
+        animation: whiskerWiggle 0.9s ease-in-out infinite;
+      }
+
+      @keyframes whiskerWiggle {
+        0%,
+        100% {
+          transform: translateY(-1px) rotate(-3deg);
+        }
+        50% {
+          transform: translateY(1px) rotate(3deg);
+        }
+      }
+
+      #activityProps g {
+        opacity: 0;
+        transform-box: fill-box;
+        transform-origin: center;
+        transition: opacity 0.35s ease;
+      }
+
+      #propBowl {
+        transform: translateY(14px);
+      }
+
+      .cat[data-activity="feed"] #propBowl {
+        opacity: 1;
+        animation: bowlBounce 1.2s ease-in-out infinite;
+      }
+
+      @keyframes bowlBounce {
+        0% {
+          transform: translateY(14px);
+        }
+        50% {
+          transform: translateY(-4px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+
+      #propYarn {
+        transform: translateY(8px) rotate(-12deg);
+      }
+
+      .cat[data-activity="play"] #propYarn {
+        opacity: 1;
+        animation: yarnBounce 1.05s ease-in-out infinite;
+      }
+
+      @keyframes yarnBounce {
+        0% {
+          transform: translateY(6px) rotate(-12deg);
+        }
+        50% {
+          transform: translateY(-6px) rotate(10deg);
+        }
+        100% {
+          transform: translateY(6px) rotate(-12deg);
+        }
+      }
+
+      #propSleep {
+        transform: translateY(8px);
+      }
+
+      .cat[data-activity="nap"] #propSleep {
+        opacity: 1;
+        animation: floatZ 1.8s ease-in-out infinite alternate;
+      }
+
+      @keyframes floatZ {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-8px);
+        }
+      }
+
       .cat[data-mood="feliz"] svg {
         filter: saturate(1.1) brightness(1.05) drop-shadow(0 10px 18px rgba(112, 41, 104, 0.25));
       }
@@ -922,7 +1053,7 @@
             <div class="scene-floor"></div>
             <div class="cat-wanderer" id="catWanderer">
               <div class="cat-shadow"></div>
-              <div class="cat" id="cat" data-mood="feliz">
+              <div class="cat" id="cat" data-mood="feliz" data-activity="idle">
                 <svg viewBox="0 0 240 240" role="img" aria-label="Gato virtual">
                   <defs>
                     <radialGradient id="furMain" cx="50%" cy="30%" r="75%">
@@ -1008,65 +1139,89 @@
                       stroke-linejoin="round"
                     />
                   </g>
-                  <g id="face" transform="translate(0,-28)">
+                  <g id="face">
                     <path
+                      id="faceMaskShape"
                       d="M96 98 C86 120 90 150 112 170 C130 186 154 188 172 172 C194 154 200 124 190 100 C180 76 154 66 128 72 C112 76 102 86 96 98 Z"
                       fill="url(#faceMask)"
                       stroke="rgba(255, 255, 255, 0.75)"
                       stroke-width="3"
                       stroke-linejoin="round"
                     />
-                    <ellipse cx="120" cy="150" rx="20" ry="24" fill="#ffffff" opacity="0.95" />
-                    <ellipse cx="168" cy="150" rx="20" ry="24" fill="#ffffff" opacity="0.95" />
-                    <circle class="pupil" cx="120" cy="154" r="9" fill="#0e1018" />
-                    <circle class="pupil" cx="168" cy="154" r="9" fill="#0e1018" />
-                    <circle cx="116" cy="148" r="3" fill="#ffffff" opacity="0.75" />
-                    <circle cx="164" cy="148" r="3" fill="#ffffff" opacity="0.75" />
-                    <path
-                      d="M132 148 L140 158 L148 148 Z"
-                      fill="#f3b7c9"
-                      stroke="#c67c8f"
-                      stroke-width="2"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      id="mouth"
-                      d="M130 172 Q144 184 158 172"
-                      fill="none"
-                      stroke="#c67c8f"
-                      stroke-width="4"
-                      stroke-linecap="round"
-                    />
-                    <circle cx="108" cy="166" r="9" fill="url(#cheekGradient)" opacity="0.65" />
-                    <circle cx="180" cy="166" r="9" fill="url(#cheekGradient)" opacity="0.65" />
-                    <path
-                      d="M92 150 Q110 146 128 150"
-                      fill="none"
-                      stroke="#1f2230"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                    />
-                    <path
-                      d="M160 150 Q178 146 196 150"
-                      fill="none"
-                      stroke="#1f2230"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                    />
-                    <path
-                      d="M94 162 Q114 158 134 164"
-                      fill="none"
-                      stroke="rgba(31, 34, 48, 0.55)"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                    />
-                    <path
-                      d="M154 164 Q174 158 194 162"
-                      fill="none"
-                      stroke="rgba(31, 34, 48, 0.55)"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                    />
+                    <g id="faceFeatures">
+                      <g id="eyesOpen">
+                        <ellipse id="eyeLeft" cx="120" cy="150" rx="20" ry="24" fill="#ffffff" opacity="0.95" />
+                        <ellipse id="eyeRight" cx="168" cy="150" rx="20" ry="24" fill="#ffffff" opacity="0.95" />
+                        <circle class="pupil" id="pupilLeft" cx="120" cy="154" r="9" fill="#0e1018" />
+                        <circle class="pupil" id="pupilRight" cx="168" cy="154" r="9" fill="#0e1018" />
+                        <circle cx="116" cy="148" r="3" fill="#ffffff" opacity="0.75" />
+                        <circle cx="164" cy="148" r="3" fill="#ffffff" opacity="0.75" />
+                      </g>
+                      <g id="eyesClosed" opacity="0">
+                        <path
+                          d="M102 150 Q120 144 138 150"
+                          fill="none"
+                          stroke="#1f2230"
+                          stroke-width="4"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M150 150 Q168 144 186 150"
+                          fill="none"
+                          stroke="#1f2230"
+                          stroke-width="4"
+                          stroke-linecap="round"
+                        />
+                      </g>
+                      <path
+                        id="nose"
+                        d="M132 148 L140 158 L148 148 Z"
+                        fill="#f3b7c9"
+                        stroke="#c67c8f"
+                        stroke-width="2"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        id="mouth"
+                        d="M130 172 Q144 184 158 172"
+                        fill="none"
+                        stroke="#c67c8f"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                      />
+                      <circle cx="108" cy="166" r="9" fill="url(#cheekGradient)" opacity="0.65" />
+                      <circle cx="180" cy="166" r="9" fill="url(#cheekGradient)" opacity="0.65" />
+                      <g id="whiskers">
+                        <path
+                          d="M88 150 Q110 142 132 150"
+                          fill="none"
+                          stroke="#1f2230"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M88 162 Q110 156 132 164"
+                          fill="none"
+                          stroke="rgba(31, 34, 48, 0.55)"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M168 150 Q190 142 212 150"
+                          fill="none"
+                          stroke="#1f2230"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M168 162 Q190 156 212 164"
+                          fill="none"
+                          stroke="rgba(31, 34, 48, 0.55)"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
+                      </g>
+                    </g>
                   </g>
                   <g id="accessory" opacity="0">
                     <path
@@ -1076,6 +1231,52 @@
                       stroke-width="3"
                       stroke-linejoin="round"
                     />
+                  </g>
+                  <g id="activityProps">
+                    <g id="propBowl">
+                      <ellipse cx="140" cy="206" rx="44" ry="12" fill="#f7c27c" opacity="0.9" />
+                      <path
+                        d="M100 200 Q140 188 180 200 L174 216 Q140 226 106 216 Z"
+                        fill="#f4a261"
+                        stroke="#d6803a"
+                        stroke-width="3"
+                        stroke-linejoin="round"
+                      />
+                      <ellipse cx="140" cy="200" rx="40" ry="10" fill="#ffe6c6" opacity="0.9" />
+                    </g>
+                    <g id="propYarn">
+                      <circle cx="92" cy="202" r="16" fill="#ff8ad9" stroke="#d15fa8" stroke-width="3" />
+                      <path
+                        d="M80 196 Q92 194 104 196"
+                        stroke="#d15fa8"
+                        stroke-width="2"
+                        fill="none"
+                      />
+                      <path
+                        d="M84 206 Q92 202 100 206"
+                        stroke="#d15fa8"
+                        stroke-width="2"
+                        fill="none"
+                      />
+                      <path
+                        d="M108 210 Q122 218 138 214"
+                        stroke="#d15fa8"
+                        stroke-width="2"
+                        fill="none"
+                        stroke-linecap="round"
+                      />
+                    </g>
+                    <g id="propSleep">
+                      <text x="188" y="118" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="18">
+                        Z
+                      </text>
+                      <text x="204" y="94" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="14">
+                        Z
+                      </text>
+                      <text x="218" y="74" fill="#ffffff" font-family="'Press Start 2P', monospace" font-size="10">
+                        Z
+                      </text>
+                    </g>
                   </g>
                 </svg>
               </div>
@@ -1384,6 +1585,7 @@
       let degradeRates = { ...baseDegradeRates };
       const tickInterval = 2500;
       let wanderIntervalId;
+      let activityTimeout;
       const catMotion = { x: 0, y: 0 };
 
       initialize();
@@ -1509,6 +1711,10 @@
           state.history.forEach((entry) => addLogEntry(entry));
         }
 
+        if (cat && !cat.dataset.activity) {
+          cat.dataset.activity = "idle";
+        }
+
         updateUI();
         updateDayMode();
         startCatWander();
@@ -1613,12 +1819,37 @@
           pushLog(`${getName()} desbloquea su primer accesorio exclusivo.`, "🌟");
         }
 
+        setCatActivity(actionKey);
         const mood = getMood();
         cat.dataset.mood = mood.key;
         showToast(action.emoji, narration);
         updateUI();
         saveState();
         wanderCat(true);
+      }
+
+      function setCatActivity(activityKey) {
+        if (!cat) return;
+        if (activityTimeout) {
+          clearTimeout(activityTimeout);
+          activityTimeout = null;
+        }
+
+        const isAnimatedAction = activityKey === "feed" || activityKey === "play" || activityKey === "nap";
+        const nextActivity = isAnimatedAction ? activityKey : "idle";
+        cat.dataset.activity = nextActivity;
+
+        if (!isAnimatedAction) {
+          updateCatFace(getMood().key);
+          return;
+        }
+
+        const duration = nextActivity === "nap" ? 5200 : 2800;
+        activityTimeout = setTimeout(() => {
+          cat.dataset.activity = "idle";
+          activityTimeout = null;
+          updateCatFace(getMood().key);
+        }, duration);
       }
 
       function gainXp(amount) {
@@ -1683,38 +1914,75 @@
       function updateCatFace(moodKey) {
         const mouth = document.getElementById("mouth");
         const pupils = pupilElements;
+        const activity = cat?.dataset?.activity || "idle";
+
+        const setPupils = (cy, radius = 9) => {
+          pupils.forEach((pupil) => {
+            if (!pupil) return;
+            pupil.setAttribute("cy", cy);
+            pupil.setAttribute("r", radius);
+          });
+        };
+
+        if (activity === "nap") {
+          setPupils("158", 6);
+          mouth.setAttribute("d", "M132 176 Q144 178 156 176");
+          catWanderer.style.setProperty("--scale", "0.94");
+          catWanderer.style.setProperty("--bob-speed", "4.4s");
+          catWanderer.style.setProperty("--shadow-opacity", "0.32");
+          return;
+        }
+
+        if (activity === "feed") {
+          setPupils("150", 10);
+          mouth.setAttribute("d", "M126 170 Q144 200 162 170");
+          catWanderer.style.setProperty("--scale", "1.07");
+          catWanderer.style.setProperty("--bob-speed", "2.2s");
+          catWanderer.style.setProperty("--shadow-opacity", "0.52");
+          return;
+        }
+
+        if (activity === "play") {
+          setPupils("150", 11);
+          mouth.setAttribute("d", "M124 168 Q144 196 164 168");
+          catWanderer.style.setProperty("--scale", "1.08");
+          catWanderer.style.setProperty("--bob-speed", "2s");
+          catWanderer.style.setProperty("--shadow-opacity", "0.55");
+          return;
+        }
+
         switch (moodKey) {
           case "feliz":
             mouth.setAttribute("d", "M126 168 Q144 186 162 168");
-            pupils.forEach((p) => p.setAttribute("cy", "152"));
+            setPupils("152", 9);
             catWanderer.style.setProperty("--scale", "1.05");
             catWanderer.style.setProperty("--bob-speed", "2.4s");
             catWanderer.style.setProperty("--shadow-opacity", "0.5");
             break;
           case "contento":
             mouth.setAttribute("d", "M130 172 Q144 182 158 172");
-            pupils.forEach((p) => p.setAttribute("cy", "154"));
+            setPupils("154", 9);
             catWanderer.style.setProperty("--scale", "1");
             catWanderer.style.setProperty("--bob-speed", "2.8s");
             catWanderer.style.setProperty("--shadow-opacity", "0.45");
             break;
           case "neutro":
             mouth.setAttribute("d", "M132 172 Q144 172 156 172");
-            pupils.forEach((p) => p.setAttribute("cy", "156"));
+            setPupils("156", 8);
             catWanderer.style.setProperty("--scale", "0.98");
             catWanderer.style.setProperty("--bob-speed", "3.2s");
             catWanderer.style.setProperty("--shadow-opacity", "0.4");
             break;
           case "triste":
             mouth.setAttribute("d", "M132 176 Q144 166 156 176");
-            pupils.forEach((p) => p.setAttribute("cy", "160"));
+            setPupils("160", 7);
             catWanderer.style.setProperty("--scale", "0.96");
             catWanderer.style.setProperty("--bob-speed", "3.6s");
             catWanderer.style.setProperty("--shadow-opacity", "0.35");
             break;
           default:
             mouth.setAttribute("d", "M130 178 Q144 160 158 178");
-            pupils.forEach((p) => p.setAttribute("cy", "164"));
+            setPupils("164", 7);
             catWanderer.style.setProperty("--scale", "0.94");
             catWanderer.style.setProperty("--bob-speed", "3.8s");
             catWanderer.style.setProperty("--shadow-opacity", "0.32");
