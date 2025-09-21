@@ -117,8 +117,26 @@
         display: grid;
         place-items: center;
         font-size: 1.8rem;
+        font-family: inherit;
         box-shadow: 0 6px 0 rgba(255, 118, 197, 0.35);
         flex-shrink: 0;
+        appearance: none;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        line-height: 1;
+        padding: 0;
+        color: inherit;
+        user-select: none;
+      }
+
+      .identity-avatar:focus-visible {
+        outline: 2px solid rgba(89, 148, 255, 0.9);
+        outline-offset: 3px;
+      }
+
+      .identity-avatar:active {
+        transform: translateY(2px);
+        box-shadow: 0 3px 0 rgba(255, 118, 197, 0.35);
       }
 
       .identity-meta {
@@ -223,8 +241,8 @@
 
       .scene {
         position: relative;
-        height: clamp(220px, 42vw, 260px);
-        border-radius: 26px;
+        height: clamp(260px, 48vw, 320px);
+        border-radius: 28px;
         overflow: hidden;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 60%, transparent 100%);
         border: 2px dashed rgba(255, 255, 255, 0.4);
@@ -245,9 +263,9 @@
       }
 
       .scene::after {
-        bottom: -10px;
+        bottom: -14px;
         top: auto;
-        height: 120px;
+        height: 160px;
         background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.32) 0 2px, transparent 2px 8px);
         opacity: 0.5;
       }
@@ -255,7 +273,7 @@
       .scene-floor {
         position: absolute;
         inset: auto 0 0;
-        height: 38%;
+        height: 42%;
         background: linear-gradient(180deg, rgba(255, 229, 184, 0.7), rgba(255, 190, 150, 0.4));
         border-top: 2px solid rgba(255, 255, 255, 0.6);
       }
@@ -741,8 +759,8 @@
         }
 
         .scene {
-          height: clamp(165px, 56vw, 200px);
-          border-radius: 22px;
+          height: clamp(210px, 60vw, 260px);
+          border-radius: 24px;
         }
 
         .screen-hud {
@@ -835,7 +853,7 @@
         }
 
         .scene {
-          height: clamp(150px, 60vw, 185px);
+          height: clamp(185px, 64vw, 230px);
         }
 
         .activity-log {
@@ -858,7 +876,7 @@
         }
 
         .scene {
-          height: clamp(145px, 52vh, 185px);
+          height: clamp(170px, 52vh, 220px);
         }
 
         .screen-hud {
@@ -878,11 +896,19 @@
         <div class="screen" role="region" aria-live="polite">
           <div class="status-strip">
             <div class="identity">
-              <div class="identity-avatar" aria-hidden="true">🐈‍⬛</div>
+              <button
+                class="identity-avatar"
+                id="identityAvatar"
+                type="button"
+                aria-label="Cambiar estilo del gato"
+                title="Cambiar estilo del gato"
+              >
+                🐈‍⬛
+              </button>
               <div class="identity-meta">
                 <label class="name-field" for="catName">
                   <span>Nombre</span>
-                  <input id="catName" maxlength="16" placeholder="PIXEL" />
+                  <input id="catName" maxlength="16" placeholder="LUKIS" />
                 </label>
                 <span class="level-pill" aria-live="polite">Nv. <strong id="level-label">1</strong></span>
               </div>
@@ -982,7 +1008,7 @@
                       stroke-linejoin="round"
                     />
                   </g>
-                  <g id="face">
+                  <g id="face" transform="translate(0,-8)">
                     <path
                       d="M96 98 C86 120 90 150 112 170 C130 186 154 188 172 172 C194 154 200 124 190 100 C180 76 154 66 128 72 C112 76 102 86 96 98 Z"
                       fill="url(#faceMask)"
@@ -1124,6 +1150,16 @@
       const catScene = document.getElementById("catScene");
       const catWanderer = document.getElementById("catWanderer");
       const cat = document.getElementById("cat");
+      const identityAvatar = document.getElementById("identityAvatar");
+      const gradientRefs = {
+        furMain: document.getElementById("furMain"),
+        furBelly: document.getElementById("furBelly"),
+        faceMask: document.getElementById("faceMask"),
+        tailGradient: document.getElementById("tailGradient"),
+        earInner: document.getElementById("earInner"),
+        cheekGradient: document.getElementById("cheekGradient"),
+      };
+      const pupilElements = document.querySelectorAll(".pupil");
       const hungerBar = document.getElementById("hungerBar");
       const hungerValue = document.getElementById("hungerValue");
       const energyBar = document.getElementById("energyBar");
@@ -1138,8 +1174,55 @@
       const log = document.getElementById("log");
       const logEntryTemplate = document.getElementById("logEntryTemplate");
 
+      let currentSkinIndex = 0;
+
+      const catSkins = [
+        {
+          id: "lukis",
+          name: "Lukis",
+          emoji: "🐈‍⬛",
+          colors: {
+            furMain: ["#4f5662", "#242832", "#0e1118"],
+            furBelly: ["#f4f7ff", "#d6dbea"],
+            faceMask: ["#ffffff", "#eef2f7"],
+            tailGradient: ["#505867", "#181c25"],
+            earInner: ["#ffd6e6", "#f1a7c5"],
+            cheekGradient: ["#ffd1dc", "#f9a6bf"],
+            pupil: "#0e1018",
+          },
+        },
+        {
+          id: "arwen",
+          name: "Arwen",
+          emoji: "🐈",
+          colors: {
+            furMain: ["#e0e5ef", "#b5bdc9", "#848d9c"],
+            furBelly: ["#ffffff", "#e8edf5"],
+            faceMask: ["#f4f7fb", "#dce2ec"],
+            tailGradient: ["#c7ceda", "#8f97a5"],
+            earInner: ["#ffe0ee", "#f5bcd4"],
+            cheekGradient: ["#ffd7e4", "#f7abc6"],
+            pupil: "#1a1c26",
+          },
+        },
+        {
+          id: "iria",
+          name: "Iria",
+          emoji: "🐈‍⬜",
+          colors: {
+            furMain: ["#f8e8d3", "#e0c3a3", "#b88760"],
+            furBelly: ["#fff3e5", "#f1d6b6"],
+            faceMask: ["#a26a47", "#5d3923"],
+            tailGradient: ["#b88963", "#533726"],
+            earInner: ["#f9c6ad", "#e29a76"],
+            cheekGradient: ["#ffc7b2", "#f3997f"],
+            pupil: "#221510",
+          },
+        },
+      ];
+
       const defaultState = {
-        name: "Pixel",
+        name: catSkins[0].name,
         hunger: 80,
         energy: 80,
         fun: 80,
@@ -1149,9 +1232,24 @@
         history: [],
         accessoriesUnlocked: false,
         dayMode: "day",
+        skin: catSkins[0].id,
       };
 
       const state = loadState();
+
+      if (!state.skin || !catSkins.some((skin) => skin.id === state.skin)) {
+        state.skin = catSkins[0].id;
+      }
+
+      currentSkinIndex = catSkins.findIndex((skin) => skin.id === state.skin);
+      if (currentSkinIndex === -1) {
+        currentSkinIndex = 0;
+        state.skin = catSkins[0].id;
+      }
+
+      if (!state.name || state.name === "Pixel") {
+        state.name = catSkins[currentSkinIndex].name;
+      }
 
       const actions = {
         feed: {
@@ -1188,10 +1286,70 @@
       initialize();
       setInterval(tick, tickInterval);
 
+      function setGradientStops(id, colors = []) {
+        const gradient = gradientRefs[id];
+        if (!gradient) return;
+        const stops = gradient.querySelectorAll("stop");
+        stops.forEach((stop, index) => {
+          if (colors[index]) {
+            stop.setAttribute("stop-color", colors[index]);
+          }
+        });
+      }
+
+      function applyCatSkinVisuals(skin) {
+        if (!skin) return;
+        setGradientStops("furMain", skin.colors.furMain);
+        setGradientStops("furBelly", skin.colors.furBelly);
+        setGradientStops("faceMask", skin.colors.faceMask);
+        setGradientStops("tailGradient", skin.colors.tailGradient);
+        setGradientStops("earInner", skin.colors.earInner);
+        setGradientStops("cheekGradient", skin.colors.cheekGradient);
+        if (skin.colors.pupil) {
+          pupilElements.forEach((pupil) => pupil.setAttribute("fill", skin.colors.pupil));
+        }
+        if (identityAvatar) {
+          identityAvatar.textContent = skin.emoji;
+          identityAvatar.setAttribute("aria-label", `Cambiar estilo del gato (actual: ${skin.name})`);
+          identityAvatar.setAttribute("title", `${skin.name} · Toca para cambiar de estilo`);
+        }
+        cat.dataset.skin = skin.id;
+        if (catNameInput) {
+          catNameInput.setAttribute("placeholder", skin.name.toUpperCase());
+        }
+      }
+
+      function setSkin(index, options = {}) {
+        const { preserveName = false, announce = false } = options;
+        if (catSkins.length === 0) return;
+        currentSkinIndex = ((index % catSkins.length) + catSkins.length) % catSkins.length;
+        const skin = catSkins[currentSkinIndex];
+        applyCatSkinVisuals(skin);
+        state.skin = skin.id;
+        if (!preserveName) {
+          state.name = skin.name;
+          catNameInput.value = skin.name;
+        }
+        updateUI();
+        if (announce) {
+          pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺");
+          showToast("😺", `Ahora cuidas a ${skin.name}.`);
+        } else {
+          saveState();
+        }
+      }
+
+      function cycleCatSkin() {
+        const nextIndex = (currentSkinIndex + 1) % catSkins.length;
+        setSkin(nextIndex, { announce: true });
+      }
+
       function initialize() {
+        setSkin(currentSkinIndex, { preserveName: true });
         catNameInput.value = state.name;
         catNameInput.addEventListener("change", () => {
-          state.name = catNameInput.value.trim() || "Pixel";
+          const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
+          state.name = catNameInput.value.trim() || fallbackName;
           saveState();
           pushLog(`Ahora se llama ${state.name}.`, "✨");
         });
@@ -1201,6 +1359,9 @@
         });
 
         daySwitch.addEventListener("click", toggleDayMode);
+        if (identityAvatar) {
+          identityAvatar.addEventListener("click", cycleCatSkin);
+        }
 
         if (state.history.length === 0) {
           pushLog(`Comienza una nueva aventura con ${state.name}.`, "🚀");
@@ -1346,7 +1507,7 @@
 
       function updateCatFace(moodKey) {
         const mouth = document.getElementById("mouth");
-        const pupils = document.querySelectorAll(".pupil");
+        const pupils = pupilElements;
         switch (moodKey) {
           case "feliz":
             mouth.setAttribute("d", "M126 168 Q144 186 162 168");
@@ -1452,7 +1613,8 @@
       }
 
       function getName() {
-        return state.name || "Pixel";
+        const fallbackSkin = catSkins[currentSkinIndex] ?? catSkins[0];
+        return state.name || fallbackSkin?.name || "Pixel";
       }
 
       function startCatWander() {
