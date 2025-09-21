@@ -279,8 +279,8 @@
         --shadow-opacity: 0.45;
         position: absolute;
         left: 50%;
-        bottom: 38px;
-        width: clamp(160px, 40vw, 220px);
+        bottom: 32px;
+        width: clamp(150px, 38vw, 208px);
         transform: translate(calc(-50% + var(--x)), var(--y));
         transition: transform 2.4s cubic-bezier(0.55, 0, 0.25, 1);
         will-change: transform;
@@ -289,7 +289,7 @@
       .cat-shadow {
         position: absolute;
         left: 50%;
-        bottom: -20px;
+        bottom: -14px;
         width: 70%;
         height: 26px;
         background: rgba(0, 0, 0, 0.18);
@@ -700,6 +700,185 @@
         }
       }
 
+      @media (max-width: 520px) {
+        body {
+          padding: 16px 12px;
+        }
+
+        main.device {
+          width: min(360px, 100%);
+          max-height: calc(100vh - 20px);
+          padding: 28px 20px 36px;
+          border-radius: 180px 180px 220px 220px;
+          gap: 14px;
+        }
+
+        main.device::before {
+          inset: 12px 18px;
+          border-radius: 160px 160px 200px 200px;
+        }
+
+        .device-header {
+          gap: 4px;
+        }
+
+        .device-logo {
+          font-size: clamp(0.95rem, 4vw, 1.1rem);
+        }
+
+        .name-band {
+          gap: 10px;
+          justify-content: center;
+        }
+
+        .name-field {
+          font-size: 0.56rem;
+        }
+
+        .name-field input {
+          width: 110px;
+          padding: 5px 7px 4px;
+        }
+
+        .chip {
+          font-size: 0.5rem;
+          padding: 5px 8px 4px;
+        }
+
+        .screen {
+          padding: 16px 14px;
+          gap: 14px;
+        }
+
+        .day-switch {
+          font-size: 0.55rem;
+          padding: 5px 9px;
+        }
+
+        .scene {
+          height: clamp(165px, 56vw, 200px);
+          border-radius: 22px;
+        }
+
+        .screen-hud {
+          padding: 12px 12px;
+          gap: 12px;
+        }
+
+        .hud-top {
+          gap: 10px;
+        }
+
+        .mood-chip {
+          font-size: 0.58rem;
+          padding: 5px 10px 4px;
+        }
+
+        .xp-bar {
+          font-size: 0.56rem;
+          gap: 8px;
+        }
+
+        .progress-track {
+          height: 9px;
+        }
+
+        .stat-grid {
+          gap: 10px;
+          font-size: 0.52rem;
+        }
+
+        .stat {
+          padding: 9px 10px 11px;
+        }
+
+        .log-window {
+          padding: 14px;
+        }
+
+        .log-title {
+          font-size: 0.64rem;
+          margin-bottom: 12px;
+        }
+
+        .activity-log {
+          max-height: 120px;
+          font-size: 0.78rem;
+        }
+
+        .button-row {
+          gap: 14px;
+          margin-top: 4px;
+        }
+
+        .device-button {
+          width: 52px;
+          height: 52px;
+          box-shadow: 0 8px 0 var(--button-shadow);
+          font-size: 1.6rem;
+        }
+
+        .device-button::after {
+          bottom: -24px;
+          font-size: 0.45rem;
+        }
+      }
+
+      @media (max-width: 360px) {
+        body {
+          padding: 14px 10px;
+        }
+
+        main.device {
+          max-width: 320px;
+          padding: 24px 18px 32px;
+          gap: 12px;
+        }
+
+        .name-field input {
+          width: 96px;
+        }
+
+        .screen {
+          padding: 14px 12px;
+        }
+
+        .scene {
+          height: clamp(150px, 60vw, 185px);
+        }
+
+        .activity-log {
+          max-height: 110px;
+        }
+      }
+
+      @media (max-height: 680px) {
+        body {
+          padding: 12px 10px;
+        }
+
+        main.device {
+          max-height: calc(100vh - 16px);
+          gap: 12px;
+        }
+
+        .screen {
+          gap: 12px;
+        }
+
+        .scene {
+          height: clamp(145px, 52vh, 185px);
+        }
+
+        .screen-hud {
+          gap: 10px;
+        }
+
+        .activity-log {
+          max-height: 100px;
+        }
+      }
+
       @keyframes twinkle {
         0%,
         100% {
@@ -738,68 +917,154 @@
             <div class="cat-wanderer" id="catWanderer">
               <div class="cat-shadow"></div>
               <div class="cat" id="cat" data-mood="feliz">
-                <svg viewBox="0 0 320 320" role="img" aria-label="Gato virtual">
+                <svg viewBox="0 0 260 260" role="img" aria-label="Gato virtual">
                   <defs>
-                    <radialGradient id="furGradient" cx="50%" cy="35%" r="70%">
-                      <stop offset="0%" stop-color="#ffe6cc" />
-                      <stop offset="60%" stop-color="#f3b37b" />
-                      <stop offset="100%" stop-color="#d48f5a" />
+                    <radialGradient id="furMain" cx="50%" cy="35%" r="65%">
+                      <stop offset="0%" stop-color="#ffeadd" />
+                      <stop offset="55%" stop-color="#f4bfa4" />
+                      <stop offset="100%" stop-color="#e2917a" />
                     </radialGradient>
-                    <radialGradient id="earGradient" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stop-color="#ffb6d9" />
-                      <stop offset="100%" stop-color="#f38cc7" />
+                    <radialGradient id="bellyGradient" cx="50%" cy="35%" r="65%">
+                      <stop offset="0%" stop-color="#fff7f0" />
+                      <stop offset="100%" stop-color="#ffd7c0" />
+                    </radialGradient>
+                    <linearGradient id="tailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fdd1b8" />
+                      <stop offset="100%" stop-color="#e78f74" />
+                    </linearGradient>
+                    <radialGradient id="earInner" cx="50%" cy="55%" r="60%">
+                      <stop offset="0%" stop-color="#ffd5e8" />
+                      <stop offset="100%" stop-color="#f49ac6" />
+                    </radialGradient>
+                    <radialGradient id="cheekGradient" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#ffb7c9" />
+                      <stop offset="100%" stop-color="#ff8fae" />
                     </radialGradient>
                   </defs>
-                  <ellipse cx="160" cy="256" rx="96" ry="30" fill="rgba(15, 8, 40, 0.18)" />
-                  <g id="cat-body">
+                  <g id="tail">
                     <path
-                      d="M60 120 C40 40, 90 40, 120 90 C140 45, 180 45, 200 90 C220 45, 260 45, 280 120 C290 160, 290 240, 240 270 C220 285, 190 295, 160 295 C130 295, 100 285, 80 270 C30 240, 30 160, 40 120 Z"
-                      fill="url(#furGradient)"
-                      stroke="#d48f5a"
-                      stroke-width="4"
+                      d="M188 186 C218 170 226 144 214 120 C206 104 188 96 172 104"
+                      fill="none"
+                      stroke="url(#tailGradient)"
+                      stroke-width="18"
+                      stroke-linecap="round"
                     />
                     <path
-                      d="M60 120 C40 40, 90 40, 120 90 C140 45, 180 45, 200 90 C220 45, 260 45, 280 120"
+                      d="M188 186 C202 188 214 182 220 170"
                       fill="none"
-                      stroke="rgba(255, 255, 255, 0.3)"
+                      stroke="#fcd0b8"
                       stroke-width="6"
                       stroke-linecap="round"
                     />
-                    <path d="M120 90 Q160 40 200 90" fill="rgba(255, 255, 255, 0.08)" />
-                    <path d="M100 110 C140 135, 180 135, 220 110" stroke="rgba(255, 255, 255, 0.2)" stroke-width="6" />
+                  </g>
+                  <g id="cat-body">
+                    <path
+                      d="M88 166 C70 182 66 214 82 236 C98 258 128 268 156 258 C184 248 198 220 188 190 C180 162 156 150 132 150 C112 150 98 156 88 166 Z"
+                      fill="url(#furMain)"
+                      stroke="#d87f64"
+                      stroke-width="4"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M116 174 C104 186 102 212 114 230 C128 250 160 242 166 212 C170 186 150 172 132 170 C126 170 120 170 116 174 Z"
+                      fill="url(#bellyGradient)"
+                      opacity="0.92"
+                    />
+                    <path
+                      d="M101 200 C108 220 122 228 132 228"
+                      stroke="rgba(255, 255, 255, 0.6)"
+                      stroke-width="6"
+                      stroke-linecap="round"
+                      opacity="0.8"
+                    />
+                    <ellipse cx="110" cy="236" rx="16" ry="10" fill="#f7c9ad" opacity="0.8" />
+                    <ellipse cx="150" cy="236" rx="16" ry="10" fill="#f7c9ad" opacity="0.8" />
+                    <path
+                      d="M92 188 C98 174 112 166 132 166 C152 166 168 174 174 188"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.35)"
+                      stroke-width="6"
+                      stroke-linecap="round"
+                    />
                   </g>
                   <g id="ears">
-                    <path d="M90 96 L68 36 Q108 24 126 70 Z" fill="#d48f5a" />
-                    <path d="M90 96 L74 52 Q110 42 122 74 Z" fill="url(#earGradient)" opacity="0.85" />
-                    <path d="M230 96 L252 36 Q212 24 194 70 Z" fill="#d48f5a" />
-                    <path d="M230 96 L246 52 Q210 42 198 74 Z" fill="url(#earGradient)" opacity="0.85" />
+                    <path d="M94 70 L66 28 Q100 16 120 50 Z" fill="#e2927b" />
+                    <path d="M94 70 L72 34 Q100 28 114 54 Z" fill="url(#earInner)" opacity="0.9" />
+                    <path d="M170 70 L198 28 Q164 16 144 50 Z" fill="#e2927b" />
+                    <path d="M170 70 L192 34 Q164 28 150 54 Z" fill="url(#earInner)" opacity="0.9" />
                   </g>
-                  <g id="face" fill="#1b0a2c">
-                    <ellipse class="eye" cx="125" cy="160" rx="18" ry="22" />
-                    <ellipse class="eye" cx="195" cy="160" rx="18" ry="22" />
-                    <circle class="pupil" cx="125" cy="160" r="9" fill="#0a0315" />
-                    <circle class="pupil" cx="195" cy="160" r="9" fill="#0a0315" />
-                    <path id="mouth" d="M150 190 Q160 205 170 190" stroke="#1b0a2c" stroke-width="6" fill="none" stroke-linecap="round" />
-                    <path d="M160 174 Q160 190 148 192" stroke="#f59cb3" stroke-width="4" stroke-linecap="round" />
-                    <path d="M160 174 Q160 190 172 192" stroke="#f59cb3" stroke-width="4" stroke-linecap="round" />
-                    <circle cx="140" cy="176" r="10" fill="#f59cb3" opacity="0.7" />
-                    <circle cx="180" cy="176" r="10" fill="#f59cb3" opacity="0.7" />
-                  </g>
-                  <g id="tail">
+                  <g id="head">
                     <path
-                      d="M278 210 C310 190, 310 150, 280 120"
-                      stroke="#d48f5a"
-                      stroke-width="18"
+                      d="M70 122 C66 86 90 60 118 58 C126 36 150 36 162 58 C190 60 214 86 210 122 C206 160 178 186 140 186 C102 186 74 160 70 122 Z"
+                      fill="url(#furMain)"
+                      stroke="#d87f64"
+                      stroke-width="4"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M86 104 C92 86 108 74 128 74 C148 74 164 86 170 104"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.45)"
+                      stroke-width="8"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M120 66 Q132 58 144 66"
+                      stroke="rgba(255, 255, 255, 0.65)"
+                      stroke-width="6"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M92 142 Q110 158 132 158 Q154 158 172 142"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.28)"
+                      stroke-width="6"
+                      stroke-linecap="round"
+                    />
+                  </g>
+                  <g id="face" fill="#27132f">
+                    <path
+                      d="M124 150 Q132 158 140 150"
+                      stroke="#27132f"
+                      stroke-width="6"
                       stroke-linecap="round"
                       fill="none"
                     />
+                    <ellipse cx="110" cy="130" rx="14" ry="18" />
+                    <ellipse cx="154" cy="130" rx="14" ry="18" />
+                    <circle cx="110" cy="130" r="6" fill="#12081d" />
+                    <circle cx="154" cy="130" r="6" fill="#12081d" />
+                    <circle cx="104" cy="126" r="3" fill="#fff" opacity="0.6" />
+                    <circle cx="148" cy="126" r="3" fill="#fff" opacity="0.6" />
+                    <path d="M132 140 Q130 146 124 148" stroke="#f7a7ba" stroke-width="4" stroke-linecap="round" fill="none" />
+                    <path d="M132 140 Q134 146 140 148" stroke="#f7a7ba" stroke-width="4" stroke-linecap="round" fill="none" />
+                    <polygon points="128,138 132,130 136,138" fill="#f7a7ba" />
+                    <circle cx="100" cy="144" r="8" fill="url(#cheekGradient)" opacity="0.7" />
+                    <circle cx="164" cy="144" r="8" fill="url(#cheekGradient)" opacity="0.7" />
+                    <path d="M88 138 Q104 142 120 140" stroke="#27132f" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <path d="M144 140 Q160 142 176 138" stroke="#27132f" stroke-width="3" stroke-linecap="round" fill="none" />
                   </g>
+                  <path
+                    d="M106 120 C108 114 118 110 132 110 C146 110 156 114 158 120"
+                    fill="none"
+                    stroke="rgba(39, 19, 47, 0.35)"
+                    stroke-width="4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M118 172 Q132 184 146 172"
+                    fill="none"
+                    stroke="rgba(214, 143, 116, 0.6)"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
                   <g id="accessory" opacity="0">
                     <path
-                      d="M130 232 C150 220, 170 220, 190 232 L180 246 C167 242, 153 242, 140 246 Z"
+                      d="M106 206 C122 198 142 198 158 206 L152 220 C140 214 124 214 112 220 Z"
                       fill="#6ee7ff"
                       stroke="#4aa5ff"
                       stroke-width="3"
+                      stroke-linejoin="round"
                     />
                   </g>
                 </svg>
