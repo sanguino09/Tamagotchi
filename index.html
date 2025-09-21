@@ -1008,7 +1008,7 @@
                       stroke-linejoin="round"
                     />
                   </g>
-                  <g id="face" transform="translate(0,-18)">
+                  <g id="face" transform="translate(0,-28)">
                     <path
                       d="M96 98 C86 120 90 150 112 170 C130 186 154 188 172 172 C194 154 200 124 190 100 C180 76 154 66 128 72 C112 76 102 86 96 98 Z"
                       fill="url(#faceMask)"
@@ -1282,33 +1282,61 @@
       };
 
       const soundEngine = createSoundEngine();
-      const soundPatterns = {
-        feed: () => [
-          { freq: 420, duration: 0.12, type: "triangle", volume: 0.6 },
-          { freq: 260, duration: 0.12, type: "square", volume: 0.5, delay: 0.04 },
-          { freq: 520, duration: 0.16, type: "square", volume: 0.45, delay: 0.02 },
-        ],
-        play: () => [
-          { freq: 680, duration: 0.1, type: "square", volume: 0.6 },
-          { freq: 820, duration: 0.14, type: "square", volume: 0.52, delay: 0.05, slide: -160 },
-          { freq: 760, duration: 0.12, type: "square", volume: 0.46, delay: 0.03 },
-        ],
-        nap: () => [
-          { freq: 180, duration: 0.52, type: "sine", volume: 0.38 },
-          { freq: 150, duration: 0.58, type: "sine", volume: 0.34, delay: 0.32 },
-        ],
-        meow: () => [
-          { freq: 520, duration: 0.14, type: "triangle", volume: 0.6, slide: 180 },
-          { freq: 430, duration: 0.2, type: "triangle", volume: 0.55, delay: 0.06, slide: -220 },
-        ],
-        purr: () =>
-          Array.from({ length: 6 }, (_, index) => ({
-            freq: 90 + (index % 2 === 0 ? 8 : -8),
+
+      function createMeowPattern({ base = 460, stretch = 1, volume = 0.5 } = {}) {
+        const sustain = 0.18 * stretch;
+        return [
+          {
+            freq: base,
+            duration: sustain,
+            type: "triangle",
+            volume,
+            slide: 160,
+          },
+          {
+            freq: base + 160,
+            duration: 0.22 * stretch,
+            type: "triangle",
+            volume: volume * 0.9,
+            delay: 0.04,
+            slide: -240,
+          },
+          {
+            freq: base - 40,
+            duration: 0.2 * stretch,
+            type: "sine",
+            volume: volume * 0.75,
+            delay: 0.02,
+          },
+        ];
+      }
+
+      function createPurrPattern({ base = 90, cycles = 6, volume = 0.3 } = {}) {
+        return Array.from({ length: cycles }, (_, index) => {
+          const offset = index % 2 === 0 ? -8 : 8;
+          return {
+            freq: base + offset,
             duration: 0.18,
             type: "sine",
-            volume: 0.32,
-            delay: index === 0 ? 0 : 0.04,
-          })),
+            volume: volume * (index === 0 ? 1 : 0.85),
+            delay: index === 0 ? 0 : 0.06,
+            slide: offset > 0 ? -14 : 14,
+          };
+        });
+      }
+
+      const soundPatterns = {
+        feed: () => createMeowPattern({ base: 400, stretch: 1.15, volume: 0.48 }),
+        play: () => [
+          ...createMeowPattern({ base: 540, stretch: 0.9, volume: 0.52 }),
+          { freq: 720, duration: 0.12, type: "triangle", volume: 0.3, delay: 0.04, slide: -200 },
+        ],
+        nap: () => [
+          { freq: 220, duration: 0.24, type: "sine", volume: 0.22, slide: -80 },
+          ...createPurrPattern({ base: 86, cycles: 6, volume: 0.26 }),
+        ],
+        meow: () => createMeowPattern({ base: 460, stretch: 1, volume: 0.52 }),
+        purr: () => createPurrPattern({ base: 88, cycles: 8, volume: 0.28 }),
       };
 
       function playSoundEffect(effectKey) {
