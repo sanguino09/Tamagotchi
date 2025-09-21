@@ -23,15 +23,15 @@
         --screen-border: #ffbcd9;
         --hud-bg: rgba(255, 255, 255, 0.36);
         --hud-border: #ff9cca;
-        --hud-text: #87245f;
+        --hud-text: #4a1031;
         --stat-bg: rgba(255, 255, 255, 0.42);
         --stat-border: #ff87c9;
         --progress-bg: rgba(255, 255, 255, 0.5);
         --progress-fill: linear-gradient(90deg, #ff9bc6 0%, #ffda85 100%);
         --progress-fill-cool: linear-gradient(90deg, #8bc6ff 0%, #74f2ff 100%);
         --progress-fill-fun: linear-gradient(90deg, #f996ff 0%, #ffa4d4 100%);
-        --text-primary: #53163c;
-        --text-secondary: #a13a6f;
+        --text-primary: #351026;
+        --text-secondary: #6d1c45;
         --button-bg: #ffe5f3;
         --button-shadow: #ffa4d0;
         --device-shadow: rgba(218, 44, 129, 0.28);
@@ -210,33 +210,26 @@
         color: var(--hud-text);
       }
 
-      .day-switch {
+      .environment-indicator {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        border: none;
         border-radius: 999px;
         padding: 8px 12px 6px;
         font: inherit;
         font-size: 0.62rem;
         text-transform: uppercase;
-        background: rgba(255, 255, 255, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.5);
+        border: 2px solid rgba(255, 255, 255, 0.75);
         color: inherit;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
         white-space: nowrap;
         flex-shrink: 0;
+        letter-spacing: 0.08em;
       }
 
-      .day-switch:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 0 rgba(255, 118, 197, 0.35);
-      }
-
-      .day-switch:focus-visible {
-        outline: 2px solid rgba(89, 148, 255, 0.8);
-        outline-offset: 2px;
+      .environment-indicator span:first-child {
+        font-size: 1.1rem;
+        line-height: 1;
       }
 
       .scene {
@@ -730,12 +723,12 @@
         --screen-border: #8f88ff;
         --hud-bg: rgba(24, 18, 61, 0.55);
         --hud-border: rgba(141, 129, 255, 0.6);
-        --hud-text: #e2dcff;
+        --hud-text: #f3efff;
         --stat-bg: rgba(39, 29, 84, 0.65);
         --stat-border: rgba(165, 153, 255, 0.55);
         --progress-bg: rgba(255, 255, 255, 0.35);
-        --text-primary: #f6f4ff;
-        --text-secondary: #c7c1ff;
+        --text-primary: #ffffff;
+        --text-secondary: #d8d2ff;
         --button-bg: #ede9ff;
         --button-shadow: #a29dff;
         color: var(--text-primary);
@@ -884,7 +877,7 @@
           gap: 14px;
         }
 
-        .day-switch {
+        .environment-indicator {
           font-size: 0.55rem;
           padding: 6px 9px 5px;
         }
@@ -1044,10 +1037,15 @@
                 <span class="level-pill" aria-live="polite">Nv. <strong id="level-label">1</strong></span>
               </div>
             </div>
-            <button class="day-switch" id="daySwitch" type="button" aria-label="Cambiar entorno">
+            <div
+              class="environment-indicator"
+              id="environmentIndicator"
+              role="status"
+              aria-live="polite"
+            >
               <span id="dayEmoji">🌞</span>
               <span id="dayLabel">Parque soleado</span>
-            </button>
+            </div>
           </div>
           <div class="scene" id="catScene">
             <div class="scene-floor"></div>
@@ -1140,13 +1138,14 @@
                     />
                   </g>
                   <g id="face">
-                    <path
+                    <circle
                       id="faceMaskShape"
-                      d="M96 98 C86 120 90 150 112 170 C130 186 154 188 172 172 C194 154 200 124 190 100 C180 76 154 66 128 72 C112 76 102 86 96 98 Z"
+                      cx="140"
+                      cy="128"
+                      r="54"
                       fill="url(#faceMask)"
                       stroke="rgba(255, 255, 255, 0.75)"
                       stroke-width="3"
-                      stroke-linejoin="round"
                     />
                     <g id="faceFeatures">
                       <g id="eyesOpen">
@@ -1345,7 +1344,6 @@
       const MAX_STAT = 100;
       const catNameInput = document.getElementById("catName");
       const levelLabel = document.getElementById("level-label");
-      const daySwitch = document.getElementById("daySwitch");
       const dayEmoji = document.getElementById("dayEmoji");
       const dayLabel = document.getElementById("dayLabel");
       const catScene = document.getElementById("catScene");
@@ -1444,6 +1442,8 @@
       };
 
       const state = loadState();
+
+      state.dayMode = getAutomaticDayMode();
 
       if (!state.skin || !catSkins.some((skin) => skin.id === state.skin)) {
         state.skin = catSkins[0].id;
@@ -1598,6 +1598,8 @@
       };
 
       let degradeRates = { ...baseDegradeRates };
+      const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
+      let dayModeIntervalId;
       const tickInterval = 2500;
       let wanderIntervalId;
       let activityTimeout;
@@ -1715,7 +1717,6 @@
           btn.addEventListener("click", () => handleAction(btn.dataset.action));
         });
 
-        daySwitch.addEventListener("click", toggleDayMode);
         if (identityAvatar) {
           identityAvatar.addEventListener("click", cycleCatSkin);
         }
@@ -1731,7 +1732,7 @@
         }
 
         updateUI();
-        updateDayMode();
+        startDayModeWatcher();
         startCatWander();
       }
 
@@ -2200,11 +2201,30 @@
         accessory.style.opacity = show ? 1 : 0;
       }
 
-      function toggleDayMode() {
-        state.dayMode = state.dayMode === "day" ? "night" : "day";
+      function getAutomaticDayMode(date = new Date()) {
+        const hour = date.getHours();
+        return hour >= 22 || hour < 6 ? "night" : "day";
+      }
+
+      function refreshDayMode({ announce = false } = {}) {
+        const desiredMode = getAutomaticDayMode();
+        const modeChanged = state.dayMode !== desiredMode;
+        state.dayMode = desiredMode;
         updateDayMode();
-        saveState();
-        pushLog(`El entorno cambia a modo ${state.dayMode === "day" ? "día" : "noche"}.`, "🌗");
+        if (modeChanged) {
+          if (announce) {
+            pushLog(`El entorno cambia a modo ${state.dayMode === "day" ? "día" : "noche"}.`, "🌗");
+          }
+          saveState();
+        }
+      }
+
+      function startDayModeWatcher() {
+        if (dayModeIntervalId) {
+          clearInterval(dayModeIntervalId);
+        }
+        refreshDayMode();
+        dayModeIntervalId = setInterval(() => refreshDayMode({ announce: true }), DAY_MODE_CHECK_INTERVAL);
       }
 
       function updateDayMode() {
@@ -2261,6 +2281,9 @@
 
       window.addEventListener("visibilitychange", () => {
         state.lastTick = Date.now();
+        if (document.visibilityState === "visible") {
+          refreshDayMode({ announce: true });
+        }
       });
 
       window.addEventListener("beforeunload", saveState);
