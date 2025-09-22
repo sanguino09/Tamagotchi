@@ -1,0 +1,24 @@
+{
+  "name": "Catagotchi",
+  "short_name": "Catagotchi",
+  "description": "Cuida a tu gatito virtual y a la familia Sylvanian en un salón lleno de encanto pixel art.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ff85c5",
+  "theme_color": "#ff85c5",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

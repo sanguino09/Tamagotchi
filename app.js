@@ -29,11 +29,52 @@ const toastEmoji = document.getElementById("toastEmoji");
 const toastMessage = document.getElementById("toastMessage");
 const log = document.getElementById("log");
 const logEntryTemplate = document.getElementById("logEntryTemplate");
+const installButton = document.getElementById("installButton");
+
+const motionPreference =
+  typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
+
+let deferredInstallPrompt = null;
+let hasWarnedStructuredCloneFallback = false;
+
+function deepClone(value) {
+  if (typeof structuredClone === "function") {
+    try {
+      return structuredClone(value);
+    } catch (error) {
+      if (!hasWarnedStructuredCloneFallback) {
+        console.warn("structuredClone no disponible, usando copia alternativa", error);
+        hasWarnedStructuredCloneFallback = true;
+      }
+    }
+  }
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => deepClone(item));
+  }
+  const clone = {};
+  Object.keys(value).forEach((key) => {
+    clone[key] = deepClone(value[key]);
+  });
+  return clone;
+}
 
 const MODES = { CAT: "cat", FAMILY: "family" };
 
 let currentSkinIndex = 0;
 const lastMoodKey = { cat: null, family: null };
+const lastMoodLabelByMode = { cat: "", family: "" };
+const statSnapshot = { hunger: null, energy: null, fun: null, xp: null };
+let lastLevelDisplayed = null;
+let lastTitleRendered = "";
+let lastCatPresentationKey = "";
 
 const catSkins = [
   {
@@ -117,7 +158,7 @@ const defaultProgressBySkin = catSkins.reduce((acc, skin) => {
 
 function createDefaultFamilyState() {
   return {
-    name: "Familia Arce",
+    name: "Familia Conejo Chocolate",
     hunger: 78,
     energy: 82,
     fun: 84,
@@ -198,7 +239,7 @@ const defaultState = {
   accessoriesUnlocked: false,
   dayMode: "day",
   skin: catSkins[0].id,
-  progressBySkin: structuredClone(defaultProgressBySkin),
+  progressBySkin: deepClone(defaultProgressBySkin),
   activeMode: MODES.CAT,
   family: createDefaultFamilyState(),
 };
@@ -391,17 +432,156 @@ const familyDegradeRates = {
 const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
 let dayModeIntervalId;
 const tickInterval = 2500;
-let wanderIntervalId;
+let tickIntervalId = null;
+const WANDER_DELAY = 4200;
+let catWanderTimeoutId;
 let activityTimeout;
 let motionTimeout;
 const WALK_MOTION_DURATION = 2200;
 const catMotion = { x: 0, y: 0 };
 let familyActivityTimeout;
-let familyWanderIntervalId;
+let familyWanderTimeoutId;
 const familyMotion = new Map();
+const SAVE_THROTTLE_MS = 5000;
+let pendingSaveTimeoutId = null;
+let lastSavedAt = Date.now();
+
+function shouldReduceMotion() {
+  return !!(motionPreference && motionPreference.matches);
+}
+
+function isDocumentHidden() {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
+
+function shouldAnimateCat() {
+  return state.activeMode === MODES.CAT && !shouldReduceMotion() && !isDocumentHidden();
+}
+
+function shouldAnimateFamily() {
+  return state.activeMode === MODES.FAMILY && !shouldReduceMotion() && !isDocumentHidden();
+}
+
+function applyMotionPreferenceClass() {
+  if (document.body) {
+    document.body.classList.toggle("reduce-motion", shouldReduceMotion());
+  }
+}
+
+function clearCatWander() {
+  if (catWanderTimeoutId) {
+    clearTimeout(catWanderTimeoutId);
+    catWanderTimeoutId = null;
+  }
+}
+
+function clearFamilyWander() {
+  if (familyWanderTimeoutId) {
+    clearTimeout(familyWanderTimeoutId);
+    familyWanderTimeoutId = null;
+  }
+}
+
+function refreshMotionSystems() {
+  applyMotionPreferenceClass();
+  if (shouldReduceMotion() || isDocumentHidden()) {
+    clearCatWander();
+    clearFamilyWander();
+    if (state.activeMode === MODES.CAT) {
+      wanderCat(true);
+    } else if (state.activeMode === MODES.FAMILY) {
+      wanderFamilyMembers(true);
+    }
+    if (typeof catSpriteController?.pause === "function") {
+      catSpriteController.pause();
+    }
+    return;
+  }
+  if (typeof catSpriteController?.resume === "function") {
+    catSpriteController.resume();
+  }
+  if (state.activeMode === MODES.CAT) {
+    startCatWander();
+    clearFamilyWander();
+  } else {
+    startFamilyWander();
+    clearCatWander();
+  }
+}
+
+function attachMotionPreferenceListener() {
+  if (!motionPreference) {
+    return;
+  }
+  const handler = () => {
+    refreshMotionSystems();
+  };
+  if (typeof motionPreference.addEventListener === "function") {
+    motionPreference.addEventListener("change", handler);
+  } else if (typeof motionPreference.addListener === "function") {
+    motionPreference.addListener(handler);
+  }
+}
+
+function setupInstallPromptHandlers() {
+  if (installButton) {
+    installButton.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) {
+        showToast("ℹ️", "Pulsa compartir en tu navegador para instalar Catagotchi.");
+        return;
+      }
+      installButton.disabled = true;
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice?.outcome === "accepted") {
+          showToast("📲", "Catagotchi se añadirá a tu pantalla de inicio.");
+          installButton.hidden = true;
+        } else {
+          showToast("ℹ️", "Puedes intentar instalar Catagotchi más tarde.");
+          installButton.hidden = false;
+        }
+      } catch (error) {
+        console.error("Instalación PWA interrumpida", error);
+      } finally {
+        installButton.disabled = false;
+        deferredInstallPrompt = null;
+      }
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    if (installButton) {
+      installButton.hidden = false;
+      installButton.disabled = false;
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    if (installButton) {
+      installButton.hidden = true;
+      installButton.disabled = false;
+    }
+    showToast("📲", "Catagotchi está en tu pantalla de inicio.");
+  });
+}
+
+function registerServiceWorker() {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+    return;
+  }
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("service-worker.js")
+      .catch((error) => console.error("No se pudo registrar el service worker", error));
+  });
+}
 
 initialize();
-setInterval(tick, tickInterval);
+startTickLoop();
 
 function applyCatSkinVisuals(skin) {
   if (!skin) return;
@@ -464,7 +644,7 @@ function getCurrentSkinId() {
 function ensureSkinProgress(skinId) {
   if (!skinId) return { level: 1, xp: 0 };
   if (!state.progressBySkin) {
-    state.progressBySkin = structuredClone(defaultProgressBySkin);
+    state.progressBySkin = deepClone(defaultProgressBySkin);
   }
   if (!state.progressBySkin[skinId]) {
     state.progressBySkin[skinId] = { level: 1, xp: 0 };
@@ -509,9 +689,8 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     if (announce) {
       pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺", state);
       showToast("😺", `Ahora cuidas a ${skin.name}.`);
-    } else {
-      saveState();
     }
+    scheduleStateSave();
   }
 
   function syncSpriteState({ moodKey } = {}) {
@@ -562,7 +741,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         }
         const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
         state.name = catNameInput.value.trim() || fallbackName;
-        saveState();
+        scheduleStateSave();
         pushLog(`Ahora se llama ${state.name}.`, "✨", state);
         updateUI();
       });
@@ -604,8 +783,8 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     applyActiveMode(getActiveMode());
     updateUI();
     startDayModeWatcher();
-    startCatWander();
-    startFamilyWander();
+    refreshMotionSystems();
+    attachMotionPreferenceListener();
   }
 
     function setActiveMode(mode) {
@@ -615,7 +794,8 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       }
       state.activeMode = normalized;
       applyActiveMode(normalized);
-      saveState();
+      refreshMotionSystems();
+      scheduleStateSave();
     }
 
     function applyActiveMode(mode = getActiveMode()) {
@@ -667,9 +847,6 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
           identityAvatar.classList.add("is-static");
         }
       }
-      if (mode === MODES.FAMILY) {
-        wanderFamilyMembers(true);
-      }
       renderLog(getProfile(mode));
       updateUI();
     }
@@ -677,11 +854,11 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     function loadState() {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) return structuredClone(defaultState);
+        if (!stored) return deepClone(defaultState);
         const parsed = JSON.parse(stored);
-        const merged = { ...structuredClone(defaultState), ...parsed };
+        const merged = { ...deepClone(defaultState), ...parsed };
         const { clean, health, vetCooldown, ...safeState } = merged;
-        const baseProgress = structuredClone(defaultProgressBySkin);
+        const baseProgress = deepClone(defaultProgressBySkin);
         const storedProgress = parsed?.progressBySkin || merged.progressBySkin || {};
         const fallbackLevel = Math.max(1, Math.floor(Number(parsed?.level ?? merged.level ?? 1)));
         const fallbackXp = Math.max(0, Number(parsed?.xp ?? merged.xp ?? 0));
@@ -711,7 +888,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         return safeState;
       } catch (error) {
         console.error("Error cargando estado", error);
-        return structuredClone(defaultState);
+        return deepClone(defaultState);
       }
     }
 
@@ -727,16 +904,67 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
           },
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+        lastSavedAt = Date.now();
       } catch (error) {
         console.error("Error guardando estado", error);
       }
     }
 
-    function tick() {
+    function scheduleStateSave(options = {}) {
+      const { immediate = false } = options;
+      if (immediate || typeof setTimeout !== "function") {
+        flushStateSave();
+        return;
+      }
+      const now = Date.now();
+      const elapsed = now - lastSavedAt;
+      if (elapsed >= SAVE_THROTTLE_MS) {
+        flushStateSave();
+        return;
+      }
+      if (pendingSaveTimeoutId !== null) {
+        return;
+      }
+      const delay = Math.max(250, SAVE_THROTTLE_MS - elapsed);
+      pendingSaveTimeoutId = setTimeout(() => {
+        pendingSaveTimeoutId = null;
+        flushStateSave();
+      }, delay);
+    }
+
+    function flushStateSave() {
+      if (pendingSaveTimeoutId !== null) {
+        clearTimeout(pendingSaveTimeoutId);
+        pendingSaveTimeoutId = null;
+      }
+      lastSavedAt = Date.now();
+      saveState();
+    }
+
+function startTickLoop() {
+  if (tickIntervalId !== null) {
+    return;
+  }
+  tickIntervalId = window.setInterval(() => {
+    if (!isDocumentHidden()) {
+      tick();
+    }
+  }, tickInterval);
+}
+
+function stopTickLoop() {
+  if (tickIntervalId === null) {
+    return;
+  }
+  clearInterval(tickIntervalId);
+  tickIntervalId = null;
+}
+
+function tick() {
       tickProfile(state, degradeRates);
       tickProfile(state.family, familyDegradeRates);
       updateUI();
-      saveState();
+      scheduleStateSave();
     }
 
     function tickProfile(profile, rates) {
@@ -803,7 +1031,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       cat.dataset.mood = mood.key;
       showToast(action.emoji, narration);
       updateUI();
-      saveState();
+      scheduleStateSave();
       wanderCat(true);
     }
 
@@ -824,7 +1052,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       setFamilyActivity(actionKey);
       showToast(action.emoji, narration);
       updateUI();
-      saveState();
+      scheduleStateSave();
     }
 
     function setFamilyActivity(activityKey) {
@@ -843,23 +1071,37 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         familyScene.dataset.activity = "idle";
         familyActivityTimeout = null;
       }, duration);
-      wanderFamilyMembers(true);
+      startFamilyWander();
     }
 
     function startFamilyWander() {
       if (!familyScene || familyMembers.length === 0) return;
-      if (familyWanderIntervalId) {
-        clearInterval(familyWanderIntervalId);
-      }
+      clearFamilyWander();
       if (!familyScene.dataset.activity) {
         familyScene.dataset.activity = "idle";
       }
       wanderFamilyMembers(true);
-      familyWanderIntervalId = setInterval(() => wanderFamilyMembers(), 4200);
+      if (!shouldAnimateFamily()) {
+        return;
+      }
+      const schedule = () => {
+        familyWanderTimeoutId = window.setTimeout(() => {
+          if (!shouldAnimateFamily()) {
+            clearFamilyWander();
+            return;
+          }
+          wanderFamilyMembers();
+          schedule();
+        }, WANDER_DELAY);
+      };
+      schedule();
     }
 
     function wanderFamilyMembers(force = false) {
       if (!familyScene || familyMembers.length === 0) return;
+      if (!force && !shouldAnimateFamily()) {
+        return;
+      }
       const sceneWidth = familyScene.clientWidth || 1;
       const maxHorizontal = sceneWidth * 0.18;
       familyMembers.forEach((member, index) => {
@@ -939,49 +1181,113 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     function updateUI() {
       const mode = getActiveMode();
       const profile = getProfile(mode);
-      updateStat(hungerBar, hungerValue, profile.hunger ?? 0);
-      updateStat(energyBar, energyValue, profile.energy ?? 0);
-      updateStat(funBar, funValue, profile.fun ?? 0);
+      updateStat("hunger", hungerBar, hungerValue, profile.hunger ?? 0);
+      updateStat("energy", energyBar, energyValue, profile.energy ?? 0);
+      updateStat("fun", funBar, funValue, profile.fun ?? 0);
       updateXP(profile);
 
       const mood = getMood(profile);
-      moodLabel.textContent = mood.label;
+      if (lastMoodLabelByMode[mode] !== mood.label) {
+        moodLabel.textContent = mood.label;
+        lastMoodLabelByMode[mode] = mood.label;
+      }
       if (mode === MODES.CAT) {
-        cat.dataset.mood = mood.key;
+        if (cat && cat.dataset.mood !== mood.key) {
+          cat.dataset.mood = mood.key;
+        }
         updateCatFace(mood.key);
       } else if (familyScene) {
-        familyScene.dataset.mood = mood.key;
+        if (familyScene.dataset.mood !== mood.key) {
+          familyScene.dataset.mood = mood.key;
+        }
       }
       if (lastMoodKey[mode] && lastMoodKey[mode] !== mood.key) {
         playMoodSound(mood.key);
       }
       lastMoodKey[mode] = mood.key;
-      levelLabel.textContent = profile.level;
-      document.title = `${getName(profile)} · Nivel ${profile.level} | Catagotchi`;
+
+      const levelValue = String(Math.max(1, Math.floor(Number(profile.level) || 1)));
+      if (lastLevelDisplayed !== levelValue) {
+        levelLabel.textContent = levelValue;
+        lastLevelDisplayed = levelValue;
+      }
+
+      const nextTitle = `${getName(profile)} · Nivel ${levelValue} | Catagotchi`;
+      if (lastTitleRendered !== nextTitle) {
+        document.title = nextTitle;
+        lastTitleRendered = nextTitle;
+      }
     }
 
-    function updateStat(bar, valueLabel, statValue) {
-      bar.style.setProperty("--value", `${statValue}%`);
-      bar.style.width = `${statValue}%`;
-      valueLabel.textContent = `${Math.round(statValue)}%`;
-      if (statValue < 30) {
-        valueLabel.style.color = "#ff4770";
-      } else if (statValue > 70) {
-        valueLabel.style.color = "#2eab6f";
-      } else {
-        valueLabel.style.color = "inherit";
+    function updateStat(statKey, bar, valueLabel, statValue) {
+      if (!bar || !valueLabel) return;
+      const numericValue = Number(statValue);
+      const normalized = Math.min(
+        MAX_STAT,
+        Math.max(MIN_STAT, Number.isFinite(numericValue) ? numericValue : 0)
+      );
+      const previous = statSnapshot[statKey];
+      if (previous !== null && Math.abs(previous - normalized) < 0.35) {
+        return;
+      }
+      statSnapshot[statKey] = normalized;
+      const width = `${normalized}%`;
+      if (bar.style.width !== width) {
+        bar.style.width = width;
+      }
+      if (bar.style.getPropertyValue("--value") !== width) {
+        bar.style.setProperty("--value", width);
+      }
+      const rounded = Math.round(normalized);
+      const displayValue = `${rounded}%`;
+      if (valueLabel.textContent !== displayValue) {
+        valueLabel.textContent = displayValue;
+      }
+      let color = "inherit";
+      if (normalized < 30) {
+        color = "#ff4770";
+      } else if (normalized > 70) {
+        color = "#2eab6f";
+      }
+      if (valueLabel.style.color !== color) {
+        valueLabel.style.color = color;
       }
     }
 
     function updateXP(profile = getProfile()) {
-      const levelThreshold = Math.max(1, profile.level) * 120;
-      const xpPercent = Math.min(100, (Number(profile.xp) / levelThreshold) * 100);
-      xpBar.style.setProperty("--value", `${xpPercent}%`);
-      xpBar.style.width = `${xpPercent}%`;
+      if (!xpBar) return;
+      const levelValue = Math.max(1, Math.floor(Number(profile.level) || 1));
+      const levelThreshold = levelValue * 120;
+      const baseXp = Number(profile.xp);
+      const safeXp = Number.isFinite(baseXp) ? baseXp : 0;
+      const rawPercent = levelThreshold > 0 ? (safeXp / levelThreshold) * 100 : 0;
+      const xpPercent = Math.min(100, Math.max(0, rawPercent));
+      const previous = statSnapshot.xp;
+      if (previous !== null && Math.abs(previous - xpPercent) < 0.35) {
+        return;
+      }
+      statSnapshot.xp = xpPercent;
+      const width = `${xpPercent}%`;
+      if (xpBar.style.width !== width) {
+        xpBar.style.width = width;
+      }
+      if (xpBar.style.getPropertyValue("--value") !== width) {
+        xpBar.style.setProperty("--value", width);
+      }
     }
 
     function updateCatFace(moodKey) {
-      const activity = cat?.dataset?.activity || "idle";
+      if (!cat || !catWanderer) {
+        syncSpriteState({ moodKey });
+        return;
+      }
+      const activity = cat.dataset?.activity || "idle";
+      const presentationKey = `${activity}|${moodKey}`;
+      if (presentationKey === lastCatPresentationKey) {
+        syncSpriteState({ moodKey });
+        return;
+      }
+      lastCatPresentationKey = presentationKey;
 
       const setPresentation = ({ bobSpeed, shadow, shadowScale = "1" }) => {
         catWanderer.style.setProperty("--bob-speed", bobSpeed);
@@ -1073,7 +1379,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
       function pushLog(message, emoji = "✨", profile = getProfile()) {
         recordLog({ emoji, message, timestamp: Date.now() }, profile);
-        saveState();
+        scheduleStateSave();
       }
 
       function showToast(emoji, message) {
@@ -1419,7 +1725,10 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
     let animationKey = resolveAnimationKey(state);
     let frameIndex = 0;
-    let intervalId = null;
+    let animationFrameId = null;
+    let lastTimestamp = 0;
+    let frameAccumulator = 0;
+    let paused = false;
 
     function setPalette(newPalette = {}) {
       const mapping = {
@@ -1448,11 +1757,13 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         }
       });
       drawCurrentFrame();
+      scheduleLoop();
     }
 
     function setAccessory(show) {
       state.accessory = !!show;
       drawCurrentFrame();
+      scheduleLoop();
     }
 
     function setState(partial) {
@@ -1463,6 +1774,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         restartLoop();
       } else {
         drawCurrentFrame();
+        scheduleLoop();
       }
     }
 
@@ -1476,22 +1788,78 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
 
     function restartLoop() {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+      cancelLoop();
       const settings = animations[animationKey] || animations.idle;
       frameIndex = 0;
+      frameAccumulator = 0;
+      lastTimestamp = 0;
       drawCurrentFrame();
-      intervalId = window.setInterval(() => {
-        frameIndex = (frameIndex + 1) % settings.frames;
-        drawCurrentFrame();
-      }, settings.duration);
+      scheduleLoop();
     }
 
     function drawCurrentFrame() {
       const settings = animations[animationKey] || animations.idle;
       ctx.clearRect(0, 0, base.width, base.height);
       settings.draw({ frameIndex });
+    }
+
+    function step(timestamp) {
+      animationFrameId = null;
+      if (paused) {
+        return;
+      }
+      const settings = animations[animationKey] || animations.idle;
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+        scheduleLoop();
+        return;
+      }
+      if (isDocumentHidden()) {
+        lastTimestamp = 0;
+        scheduleLoop();
+        return;
+      }
+      const delta = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+      frameAccumulator += delta;
+      const frameDuration = settings.duration;
+      if (frameAccumulator >= frameDuration) {
+        const framesToAdvance = Math.max(1, Math.floor(frameAccumulator / frameDuration));
+        frameAccumulator -= framesToAdvance * frameDuration;
+        frameIndex = (frameIndex + framesToAdvance) % settings.frames;
+        drawCurrentFrame();
+      }
+      scheduleLoop();
+    }
+
+    function scheduleLoop() {
+      if (paused) {
+        return;
+      }
+      if (animationFrameId !== null) {
+        return;
+      }
+      animationFrameId = window.requestAnimationFrame(step);
+    }
+
+    function cancelLoop() {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      lastTimestamp = 0;
+    }
+
+    function pause() {
+      if (paused) return;
+      paused = true;
+      cancelLoop();
+    }
+
+    function resume() {
+      if (!paused) return;
+      paused = false;
+      scheduleLoop();
     }
 
     function drawIdleFrame({ frameIndex }) {
@@ -2517,13 +2885,14 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
 
     restartLoop();
-    drawCurrentFrame();
 
     return {
       setPalette,
       setState,
       setAccessory,
       redraw: drawCurrentFrame,
+      pause,
+      resume,
     };
   }
   function getAutomaticDayMode(date = new Date()) {
@@ -2540,7 +2909,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
           if (announce) {
             pushLog(`El entorno cambia a modo ${state.dayMode === "day" ? "día" : "noche"}.`, "🌗");
           }
-          saveState();
+          scheduleStateSave();
         }
       }
 
@@ -2574,14 +2943,28 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         }
 
         function startCatWander() {
-          if (wanderIntervalId) clearInterval(wanderIntervalId);
-          wanderIntervalId = setInterval(() => wanderCat(), 4200);
+          if (!catScene || !catWanderer || !cat) return;
+          clearCatWander();
           wanderCat(true);
+          if (!shouldAnimateCat()) {
+            return;
+          }
+          const schedule = () => {
+            catWanderTimeoutId = window.setTimeout(() => {
+              if (!shouldAnimateCat()) {
+                clearCatWander();
+                return;
+              }
+              wanderCat();
+              schedule();
+            }, WANDER_DELAY);
+          };
+          schedule();
         }
 
         function wanderCat(force = false) {
           if (!catScene || !catWanderer || !cat) return;
-          if (!force && cat.dataset.activity !== "idle") {
+          if (!force && (!shouldAnimateCat() || cat.dataset.activity !== "idle")) {
             return;
           }
           const snapToGrid = (value, size = 2) => Math.round(value / size) * size;
@@ -2610,12 +2993,26 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
           }
         }
 
-        window.addEventListener("visibilitychange", () => {
-          state.lastTick = Date.now();
-          state.family.lastTick = Date.now();
-          if (document.visibilityState === "visible") {
-            refreshDayMode({ announce: true });
-          }
-        });
+window.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    stopTickLoop();
+    flushStateSave();
+    refreshMotionSystems();
+    return;
+  }
+  const now = Date.now();
+  state.lastTick = Number(state.lastTick) || now;
+  state.family.lastTick = Number(state.family.lastTick) || now;
+  tick();
+  refreshDayMode({ announce: true });
+  refreshMotionSystems();
+  startTickLoop();
+});
 
-        window.addEventListener("beforeunload", saveState);
+window.addEventListener("beforeunload", () => {
+  stopTickLoop();
+  flushStateSave();
+});
+
+        setupInstallPromptHandlers();
+        registerServiceWorker();
