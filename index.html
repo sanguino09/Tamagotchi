@@ -38,7 +38,7 @@
               <div class="identity-meta">
                 <label class="name-field" for="catName">
                   <span>Nombre</span>
-                  <input id="catName" maxlength="16" placeholder="LUKIS" />
+                  <input id="catName" maxlength="16" placeholder="MERENGUE" />
                 </label>
                 <span class="level-pill" aria-live="polite">Nv. <strong id="level-label">1</strong></span>
               </div>
@@ -56,29 +56,7 @@
               ⬇️ Instalar
             </button>
           </div>
-          <nav class="mode-toggle" role="tablist" aria-label="Mundos disponibles">
-            <button
-              class="mode-toggle-button is-active"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              data-mode="cat"
-              aria-controls="catScene"
-            >
-              Gatitos
-            </button>
-            <button
-              class="mode-toggle-button"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              data-mode="family"
-              aria-controls="familyScene"
-            >
-              Sylvanians
-            </button>
-          </nav>
-          <div class="scene" id="virtualScene" data-active="cat">
+          <div class="scene" id="virtualScene">
             <div class="stage stage-cat" id="catScene" aria-hidden="false">
               <div class="scene-floor"></div>
               <div class="cat-wanderer" id="catWanderer">
@@ -93,68 +71,6 @@
                     <div class="pixel-prop" id="propYarn"></div>
                     <div class="pixel-prop" id="propSleep">Z</div>
                   </div>
-                </div>
-              </div>
-            </div>
-            <div class="stage stage-family" id="familyScene" aria-hidden="true">
-              <div class="living-room">
-                <div class="living-room-wall"></div>
-                <div class="living-room-floor"></div>
-                <div class="family-props" id="familyProps" aria-hidden="true">
-                  <div class="family-prop" data-prop="snack"></div>
-                  <div class="family-prop" data-prop="play"></div>
-                  <div class="family-prop" data-prop="nap">Zz</div>
-                </div>
-                <div class="family-member" data-member="mama">
-                  <div class="sylvanian" aria-hidden="true">
-                    <div class="sylvanian-ears"></div>
-                    <div class="sylvanian-head">
-                      <span class="eye eye-left"></span>
-                      <span class="eye eye-right"></span>
-                      <span class="nose"></span>
-                      <span class="blush blush-left"></span>
-                      <span class="blush blush-right"></span>
-                    </div>
-                    <div class="sylvanian-body">
-                      <span class="outfit"></span>
-                      <span class="paws"></span>
-                    </div>
-                  </div>
-                  <span class="member-label">Teri Chocolate</span>
-                </div>
-                <div class="family-member" data-member="papa">
-                  <div class="sylvanian" aria-hidden="true">
-                    <div class="sylvanian-ears"></div>
-                    <div class="sylvanian-head">
-                      <span class="eye eye-left"></span>
-                      <span class="eye eye-right"></span>
-                      <span class="nose"></span>
-                      <span class="blush blush-left"></span>
-                      <span class="blush blush-right"></span>
-                    </div>
-                    <div class="sylvanian-body">
-                      <span class="outfit"></span>
-                      <span class="paws"></span>
-                    </div>
-                  </div>
-                  <span class="member-label">Frasier Chocolate</span>
-                </div>
-                <div class="family-member" data-member="peque">
-                  <div class="sylvanian" aria-hidden="true">
-                    <div class="sylvanian-ears"></div>
-                    <div class="sylvanian-head">
-                      <span class="eye eye-left"></span>
-                      <span class="eye eye-right"></span>
-                      <span class="nose"></span>
-                      <span class="blush blush-left"></span>
-                      <span class="blush blush-right"></span>
-                    </div>
-                    <div class="sylvanian-body">
-                      <span class="outfit"></span>
-                      <span class="paws"></span>
-                    </div>
-                  </div>
-                  <span class="member-label">Freya Chocolate</span>
                 </div>
               </div>
             </div>

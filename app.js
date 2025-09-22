@@ -12,10 +12,6 @@ const identityAvatar = document.getElementById("identityAvatar");
 const catSpriteCanvas = document.getElementById("catSpriteCanvas");
 const catAccessoryOverlay = document.getElementById("accessory");
 const catSpriteController = createCatSpriteController(catSpriteCanvas);
-const sceneContainer = document.getElementById("virtualScene");
-const familyScene = document.getElementById("familyScene");
-const familyMembers = familyScene ? Array.from(familyScene.querySelectorAll(".family-member")) : [];
-const modeButtons = document.querySelectorAll(".mode-toggle-button");
 const hungerBar = document.getElementById("hungerBar");
 const hungerValue = document.getElementById("hungerValue");
 const energyBar = document.getElementById("energyBar");
@@ -66,11 +62,9 @@ function deepClone(value) {
   return clone;
 }
 
-const MODES = { CAT: "cat", FAMILY: "family" };
-
 let currentSkinIndex = 0;
-const lastMoodKey = { cat: null, family: null };
-const lastMoodLabelByMode = { cat: "", family: "" };
+let lastMoodKey = null;
+let lastMoodLabel = "";
 const statSnapshot = { hunger: null, energy: null, fun: null, xp: null };
 let lastLevelDisplayed = null;
 let lastTitleRendered = "";
@@ -78,75 +72,75 @@ let lastCatPresentationKey = "";
 
 const catSkins = [
   {
-    id: "tuxedo",
-    name: "Lukis",
-    emoji: "🐈‍⬛",
-    pattern: "tuxedo",
+    id: "sakura",
+    name: "Sakura",
+    emoji: "🌸",
+    pattern: "sakura",
     colors: {
-      furMain: "#2b2f3c",
-      furSecondary: "#1b202b",
-      furAccent: "#3a4154",
-      belly: "#f5f7fb",
-      earInner: "#f7b4c3",
-      cheek: "#f7c2d4",
-      outline: "#10131b",
-      paw: "#ffffff",
-      collar: "#6ee7ff",
-      collarStroke: "#3a9bff",
-      nose: "#f3a9bb",
-      pupil: "#11141f",
-      tailTip: "#f1f4fb",
-      iris: "#7fd1f1",
-      patternMask: "#f5f7fb",
-      patternDetail: "#dbe3f6",
+      furMain: "#fbd6e8",
+      furSecondary: "#f6adc9",
+      furAccent: "#ffeef7",
+      belly: "#fff8fb",
+      earInner: "#ffb8d6",
+      cheek: "#ff9ac4",
+      outline: "#602041",
+      paw: "#fff1f8",
+      collar: "#ffdff2",
+      collarStroke: "#ff9acc",
+      nose: "#ff86b6",
+      pupil: "#2d1428",
+      tailTip: "#ffe9f4",
+      iris: "#8ff0ff",
+      patternMask: "#ffe2f2",
+      patternDetail: "#ff9bcf",
     },
   },
   {
-    id: "silver",
-    name: "Arwen",
-    emoji: "🐈",
-    pattern: "silver",
+    id: "galaxia",
+    name: "Luna",
+    emoji: "🌙",
+    pattern: "galaxia",
     colors: {
-      furMain: "#c7d0dd",
-      furSecondary: "#a9b2c2",
-      furAccent: "#e3e7f2",
-      belly: "#f6f8fd",
-      earInner: "#f6c4da",
-      cheek: "#f7a8c8",
-      outline: "#3b465a",
-      paw: "#ffffff",
-      collar: "#7ed8ff",
-      collarStroke: "#4aa5d4",
-      nose: "#f3afc6",
-      pupil: "#1f242e",
-      tailTip: "#dfe4ef",
-      iris: "#6bcfbe",
-      patternMask: "#e8edf6",
-      patternDetail: "#b2bbc9",
+      furMain: "#dfe4ff",
+      furSecondary: "#b8c0ff",
+      furAccent: "#f5f7ff",
+      belly: "#f9fbff",
+      earInner: "#d6c4ff",
+      cheek: "#ffb7f4",
+      outline: "#2c2f6c",
+      paw: "#eef2ff",
+      collar: "#99f0ff",
+      collarStroke: "#52c8f2",
+      nose: "#ff89d2",
+      pupil: "#221b46",
+      tailTip: "#f0f3ff",
+      iris: "#9cf6ff",
+      patternMask: "#cfd6ff",
+      patternDetail: "#96a2ff",
     },
   },
   {
-    id: "siamese",
-    name: "Iria",
-    emoji: "🐱",
-    pattern: "siamese",
+    id: "crema",
+    name: "Dulce",
+    emoji: "🍮",
+    pattern: "crema",
     colors: {
-      furMain: "#efe2cf",
-      furSecondary: "#d2c2ac",
-      furAccent: "#765947",
-      belly: "#fdf4e6",
-      earInner: "#f4c7bb",
-      cheek: "#f2a89a",
-      outline: "#3a2822",
-      paw: "#765947",
-      collar: "#5fe0dd",
-      collarStroke: "#2aa7a4",
-      nose: "#d48c7d",
-      pupil: "#1a1410",
-      tailTip: "#5c4436",
-      iris: "#8bc5d8",
-      patternMask: "#5c4436",
-      patternDetail: "#7d5b49",
+      furMain: "#fbe2b8",
+      furSecondary: "#f3c585",
+      furAccent: "#ffe9c6",
+      belly: "#fff6e7",
+      earInner: "#ffbfa4",
+      cheek: "#ff9c84",
+      outline: "#6b3a1f",
+      paw: "#ffe9d0",
+      collar: "#ffe27d",
+      collarStroke: "#f2b83a",
+      nose: "#ff8f6a",
+      pupil: "#3a1a0e",
+      tailTip: "#ffe0b0",
+      iris: "#8bf8ff",
+      patternMask: "#f4d19a",
+      patternDetail: "#e8a963",
     },
   },
 ];
@@ -156,82 +150,19 @@ const defaultProgressBySkin = catSkins.reduce((acc, skin) => {
   return acc;
 }, {});
 
-function createDefaultFamilyState() {
-  return {
-    name: "Familia Conejo Chocolate",
-    hunger: 78,
-    energy: 82,
-    fun: 84,
-    xp: 0,
-    level: 1,
-    lastTick: Date.now(),
-    history: [],
-  };
-}
-
-function sanitizeHistory(entries = []) {
-  if (!Array.isArray(entries)) return [];
-  return entries
-    .filter((entry) => entry && typeof entry.message === "string")
-    .map((entry) => ({
-      emoji: entry.emoji || "✨",
-      message: String(entry.message),
-      timestamp: Number(entry.timestamp) || Date.now(),
-    }))
-    .slice(-40);
-}
-
-function ensureFamilyStructure(targetState = state) {
-  const baseFamily = createDefaultFamilyState();
-  const storedFamily = targetState?.family && typeof targetState.family === "object" ? targetState.family : {};
-  targetState.family = { ...baseFamily, ...storedFamily };
-  targetState.family.history = sanitizeHistory(storedFamily.history || baseFamily.history);
-  targetState.family.lastTick = Number(storedFamily.lastTick) || Date.now();
-  targetState.family.level = Math.max(1, Math.floor(Number(storedFamily.level ?? baseFamily.level) || 1));
-  targetState.family.xp = Math.max(0, Number(storedFamily.xp ?? baseFamily.xp) || 0);
-  if (typeof targetState.family.name !== "string" || targetState.family.name.trim() === "") {
-    targetState.family.name = baseFamily.name;
-  } else {
-    targetState.family.name = targetState.family.name.trim().slice(0, 24);
-  }
-  targetState.activeMode = targetState.activeMode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
-  targetState.history = sanitizeHistory(targetState.history);
-  targetState.lastTick = Number(targetState.lastTick) || Date.now();
-}
-
-function getActiveMode() {
-  return state.activeMode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
-}
-
-function getProfile(mode = getActiveMode()) {
-  return mode === MODES.FAMILY ? state.family : state;
-}
-
-function isCatMode(mode = getActiveMode()) {
-  return mode === MODES.CAT;
-}
-
-function isFamilyMode(mode = getActiveMode()) {
-  return mode === MODES.FAMILY;
-}
-
-function getName(profile = getProfile()) {
-  if (profile === state.family) {
-    return profile.name || createDefaultFamilyState().name;
-  }
+function getName() {
   const fallbackSkin = catSkins[currentSkinIndex] ?? catSkins[0];
-  const candidate = profile && profile !== state ? profile.name : state.name;
-  if (typeof candidate === "string" && candidate.trim() !== "") {
-    return candidate.trim();
+  if (typeof state.name === "string" && state.name.trim() !== "") {
+    return state.name.trim();
   }
   return fallbackSkin?.name || "Pixel";
 }
 
 const defaultState = {
   name: catSkins[0].name,
-  hunger: 80,
-  energy: 80,
-  fun: 80,
+  hunger: 82,
+  energy: 82,
+  fun: 82,
   xp: 0,
   level: 1,
   lastTick: Date.now(),
@@ -240,13 +171,9 @@ const defaultState = {
   dayMode: "day",
   skin: catSkins[0].id,
   progressBySkin: deepClone(defaultProgressBySkin),
-  activeMode: MODES.CAT,
-  family: createDefaultFamilyState(),
 };
 
 const state = loadState();
-
-ensureFamilyStructure(state);
 
 state.dayMode = getAutomaticDayMode();
 
@@ -268,43 +195,22 @@ loadSkinProgress(state.skin);
 
 const catActions = {
   feed: {
-    emoji: "🍣",
-    text: () => `${getName()} disfruta del mejor salmón nigiri.`,
-    effects: { hunger: +26, fun: +6, energy: -4 },
-    xp: 12,
-  },
-  play: {
-    emoji: "🧶",
-    text: () => `${getName()} persigue el ovillo como si fuera la última vez.`,
-    effects: { fun: +24, energy: -12, hunger: -8 },
-    xp: 16,
-  },
-  nap: {
-    emoji: "😴",
-    text: () => `${getName()} ronronea mientras duerme la siesta.`,
-    effects: { energy: +32, hunger: -8, fun: -4 },
-    xp: 10,
-  },
-};
-
-const familyActions = {
-  feed: {
-    emoji: "🍰",
-    text: () => `${getName(state.family)} comparte una merienda de frutas del bosque.`,
-    effects: { hunger: +18, fun: +8, energy: +4 },
-    xp: 10,
-  },
-  play: {
-    emoji: "🧸",
-    text: () => `${getName(state.family)} levanta un castillo de cojines y risas.`,
-    effects: { fun: +24, energy: -10, hunger: -6 },
+    emoji: "🍓",
+    text: () => `${getName()} saborea un pastelito de flores y crema batida.`,
+    effects: { hunger: +26, fun: +8, energy: -3 },
     xp: 14,
   },
+  play: {
+    emoji: "🪄",
+    text: () => `${getName()} persigue destellos estelares por todo el salón.`,
+    effects: { fun: +26, energy: -12, hunger: -8 },
+    xp: 18,
+  },
   nap: {
-    emoji: "🛋️",
-    text: () => `${getName(state.family)} descansa arropada en el sofá del salón.`,
-    effects: { energy: +28, hunger: -6, fun: -4 },
-    xp: 9,
+    emoji: "💤",
+    text: () => `${getName()} se acurruca en una nube tibia de vainilla y ronronea.`,
+    effects: { energy: +34, hunger: -8, fun: -4 },
+    xp: 11,
   },
 };
 
@@ -418,17 +324,12 @@ function playMoodSound(moodKey) {
 }
 
 const baseDegradeRates = {
-  hunger: -2.5,
+  hunger: -2.4,
   energy: -2,
-  fun: -2.3,
+  fun: -2.2,
 };
 
 let degradeRates = { ...baseDegradeRates };
-const familyDegradeRates = {
-  hunger: -2.1,
-  energy: -1.7,
-  fun: -2.4,
-};
 const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
 let dayModeIntervalId;
 const tickInterval = 2500;
@@ -439,9 +340,6 @@ let activityTimeout;
 let motionTimeout;
 const WALK_MOTION_DURATION = 2200;
 const catMotion = { x: 0, y: 0 };
-let familyActivityTimeout;
-let familyWanderTimeoutId;
-const familyMotion = new Map();
 const SAVE_THROTTLE_MS = 5000;
 let pendingSaveTimeoutId = null;
 let lastSavedAt = Date.now();
@@ -455,11 +353,7 @@ function isDocumentHidden() {
 }
 
 function shouldAnimateCat() {
-  return state.activeMode === MODES.CAT && !shouldReduceMotion() && !isDocumentHidden();
-}
-
-function shouldAnimateFamily() {
-  return state.activeMode === MODES.FAMILY && !shouldReduceMotion() && !isDocumentHidden();
+  return !shouldReduceMotion() && !isDocumentHidden();
 }
 
 function applyMotionPreferenceClass() {
@@ -475,23 +369,11 @@ function clearCatWander() {
   }
 }
 
-function clearFamilyWander() {
-  if (familyWanderTimeoutId) {
-    clearTimeout(familyWanderTimeoutId);
-    familyWanderTimeoutId = null;
-  }
-}
-
 function refreshMotionSystems() {
   applyMotionPreferenceClass();
   if (shouldReduceMotion() || isDocumentHidden()) {
     clearCatWander();
-    clearFamilyWander();
-    if (state.activeMode === MODES.CAT) {
-      wanderCat(true);
-    } else if (state.activeMode === MODES.FAMILY) {
-      wanderFamilyMembers(true);
-    }
+    wanderCat(true);
     if (typeof catSpriteController?.pause === "function") {
       catSpriteController.pause();
     }
@@ -500,13 +382,7 @@ function refreshMotionSystems() {
   if (typeof catSpriteController?.resume === "function") {
     catSpriteController.resume();
   }
-  if (state.activeMode === MODES.CAT) {
-    startCatWander();
-    clearFamilyWander();
-  } else {
-    startFamilyWander();
-    clearCatWander();
-  }
+  startCatWander();
 }
 
 function attachMotionPreferenceListener() {
@@ -734,15 +610,13 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     setSkin(currentSkinIndex, { preserveName: true });
     if (catNameInput) {
       catNameInput.value = state.name;
+      catNameInput.placeholder = (catSkins[currentSkinIndex]?.name || "Merengue").toUpperCase();
+      catNameInput.readOnly = false;
       catNameInput.addEventListener("change", () => {
-        if (!isCatMode()) {
-          catNameInput.value = getName(state.family);
-          return;
-        }
         const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
         state.name = catNameInput.value.trim() || fallbackName;
         scheduleStateSave();
-        pushLog(`Ahora se llama ${state.name}.`, "✨", state);
+        pushLog(`Ahora se llama ${state.name}.`, "✨");
         updateUI();
       });
     }
@@ -753,24 +627,12 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
     if (identityAvatar) {
       identityAvatar.addEventListener("click", () => {
-        if (!isCatMode()) return;
         cycleCatSkin();
       });
     }
 
-    modeButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const targetMode = button.dataset.mode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
-        setActiveMode(targetMode);
-      });
-    });
-
     if (state.history.length === 0) {
-      pushLog(`Comienza una nueva aventura con ${getName(state)}.`, "🚀", state);
-    }
-
-    if (state.family.history.length === 0) {
-      pushLog(`${getName(state.family)} abre las puertas del salón.`, "🏡", state.family);
+      pushLog(`Comienza una nueva aventura con ${getName()}.`, "🚀");
     }
 
     if (cat) {
@@ -780,76 +642,12 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       setMotion(cat.dataset.motion || "idle");
     }
 
-    applyActiveMode(getActiveMode());
+    renderLog();
     updateUI();
     startDayModeWatcher();
     refreshMotionSystems();
     attachMotionPreferenceListener();
   }
-
-    function setActiveMode(mode) {
-      const normalized = mode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
-      if (state.activeMode === normalized) {
-        return;
-      }
-      state.activeMode = normalized;
-      applyActiveMode(normalized);
-      refreshMotionSystems();
-      scheduleStateSave();
-    }
-
-    function applyActiveMode(mode = getActiveMode()) {
-      state.activeMode = mode;
-      if (sceneContainer) {
-        sceneContainer.dataset.active = mode;
-      }
-      if (document.body) {
-        document.body.dataset.view = mode;
-      }
-      if (catScene) {
-        catScene.setAttribute("aria-hidden", mode === MODES.FAMILY ? "true" : "false");
-      }
-      if (familyScene) {
-        familyScene.setAttribute("aria-hidden", mode === MODES.FAMILY ? "false" : "true");
-      }
-      modeButtons.forEach((button) => {
-        const isActive = button.dataset.mode === mode;
-        button.classList.toggle("is-active", isActive);
-        button.setAttribute("aria-selected", isActive ? "true" : "false");
-        button.tabIndex = isActive ? 0 : -1;
-      });
-      if (catNameInput) {
-        if (mode === MODES.CAT) {
-          catNameInput.readOnly = false;
-          catNameInput.value = state.name || "";
-          const skin = catSkins[currentSkinIndex] ?? catSkins[0];
-          catNameInput.placeholder = (skin?.name || "LUKIS").toUpperCase();
-        } else {
-          catNameInput.readOnly = true;
-          const familyName = getName(state.family);
-          catNameInput.value = familyName;
-          catNameInput.placeholder = familyName.toUpperCase();
-        }
-      }
-      if (identityAvatar) {
-        if (mode === MODES.CAT) {
-          const skin = catSkins[currentSkinIndex];
-          identityAvatar.disabled = false;
-          identityAvatar.textContent = skin?.emoji || "🐈";
-          identityAvatar.setAttribute("aria-label", `Cambiar estilo del gato (actual: ${skin?.name || "Pixel"})`);
-          identityAvatar.setAttribute("title", `${skin?.name || "Gatito"} · Toca para cambiar de estilo`);
-          identityAvatar.classList.remove("is-static");
-        } else {
-          identityAvatar.disabled = true;
-          identityAvatar.textContent = "🐇";
-          identityAvatar.setAttribute("aria-label", "Familia Sylvanian en el salón");
-          identityAvatar.setAttribute("title", "Familia Sylvanian");
-          identityAvatar.classList.add("is-static");
-        }
-      }
-      renderLog(getProfile(mode));
-      updateUI();
-    }
 
     function loadState() {
       try {
@@ -898,10 +696,6 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         const copy = {
           ...state,
           history: (state.history || []).slice(-25),
-          family: {
-            ...state.family,
-            history: (state.family?.history || []).slice(-25),
-          },
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
         lastSavedAt = Date.now();
@@ -961,48 +755,43 @@ function stopTickLoop() {
 }
 
 function tick() {
-      tickProfile(state, degradeRates);
-      tickProfile(state.family, familyDegradeRates);
-      updateUI();
-      scheduleStateSave();
-    }
+  tickProfile(state, degradeRates);
+  updateUI();
+  scheduleStateSave();
+}
 
-    function tickProfile(profile, rates) {
-      if (!profile) return;
-      const now = Date.now();
-      const lastTick = Number(profile.lastTick) || now;
-      const delta = (now - lastTick) / 1000;
-      profile.lastTick = now;
+function tickProfile(profile, rates) {
+  if (!profile) return;
+  const now = Date.now();
+  const lastTick = Number(profile.lastTick) || now;
+  const delta = (now - lastTick) / 1000;
+  profile.lastTick = now;
 
-      Object.entries(rates).forEach(([stat, rate]) => {
-        modifyStat(stat, rate * delta, profile);
-      });
+  Object.entries(rates).forEach(([stat, rate]) => {
+    modifyStat(stat, rate * delta, profile);
+  });
 
-      if ((profile.hunger ?? 0) < 30) {
-        modifyStat("fun", -1.2 * delta, profile);
-      }
-      if ((profile.energy ?? 0) < 25) {
-        modifyStat("fun", -0.9 * delta, profile);
-      }
-      if ((profile.fun ?? 0) < 25) {
-        modifyStat("energy", -0.7 * delta, profile);
-      }
+  if ((profile.hunger ?? 0) < 30) {
+    modifyStat("fun", -1.2 * delta, profile);
+  }
+  if ((profile.energy ?? 0) < 25) {
+    modifyStat("fun", -0.9 * delta, profile);
+  }
+  if ((profile.fun ?? 0) < 25) {
+    modifyStat("energy", -0.7 * delta, profile);
+  }
 
-      return delta;
-    }
+  return delta;
+}
 
-    function modifyStat(stat, amount, profile = getProfile()) {
+    function modifyStat(stat, amount, profile = state) {
       if (!profile) return;
       const current = Number(profile[stat] ?? 0);
       profile[stat] = clamp(current + amount, MIN_STAT, MAX_STAT);
     }
 
     function handleAction(actionKey) {
-      if (isFamilyMode()) {
-        handleFamilyAction(actionKey);
-      } else {
-        handleCatAction(actionKey);
-      }
+      handleCatAction(actionKey);
     }
 
     function handleCatAction(actionKey) {
@@ -1018,12 +807,12 @@ function tick() {
       playActionSound(actionKey);
       gainXp(action.xp, state);
       const narration = action.text();
-      recordLog({ emoji: action.emoji, message: narration, timestamp: Date.now() }, state);
+      recordLog({ emoji: action.emoji, message: narration, timestamp: Date.now() });
 
       if (!state.accessoriesUnlocked && state.level >= 3) {
         state.accessoriesUnlocked = true;
         toggleAccessory(true);
-        pushLog(`${getName(state)} desbloquea su primer accesorio exclusivo.`, "🌟", state);
+        pushLog(`${getName()} desbloquea su primer accesorio exclusivo.`, "🌟");
       }
 
       setCatActivity(actionKey);
@@ -1033,91 +822,6 @@ function tick() {
       updateUI();
       scheduleStateSave();
       wanderCat(true);
-    }
-
-    function handleFamilyAction(actionKey) {
-      const action = familyActions[actionKey];
-      if (!action) return;
-
-      let effects = action.effects;
-      if (typeof effects === "function") {
-        effects = effects();
-      }
-
-      Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value, state.family));
-      playActionSound(actionKey);
-      gainXp(action.xp, state.family);
-      const narration = action.text();
-      recordLog({ emoji: action.emoji, message: narration, timestamp: Date.now() }, state.family);
-      setFamilyActivity(actionKey);
-      showToast(action.emoji, narration);
-      updateUI();
-      scheduleStateSave();
-    }
-
-    function setFamilyActivity(activityKey) {
-      if (!familyScene) return;
-      if (familyActivityTimeout) {
-        clearTimeout(familyActivityTimeout);
-        familyActivityTimeout = null;
-      }
-      const activeKey = activityKey === "feed" || activityKey === "play" || activityKey === "nap" ? activityKey : "idle";
-      familyScene.dataset.activity = activeKey;
-      if (activeKey === "idle") {
-        return;
-      }
-      const duration = activeKey === "nap" ? 5200 : 2600;
-      familyActivityTimeout = setTimeout(() => {
-        familyScene.dataset.activity = "idle";
-        familyActivityTimeout = null;
-      }, duration);
-      startFamilyWander();
-    }
-
-    function startFamilyWander() {
-      if (!familyScene || familyMembers.length === 0) return;
-      clearFamilyWander();
-      if (!familyScene.dataset.activity) {
-        familyScene.dataset.activity = "idle";
-      }
-      wanderFamilyMembers(true);
-      if (!shouldAnimateFamily()) {
-        return;
-      }
-      const schedule = () => {
-        familyWanderTimeoutId = window.setTimeout(() => {
-          if (!shouldAnimateFamily()) {
-            clearFamilyWander();
-            return;
-          }
-          wanderFamilyMembers();
-          schedule();
-        }, WANDER_DELAY);
-      };
-      schedule();
-    }
-
-    function wanderFamilyMembers(force = false) {
-      if (!familyScene || familyMembers.length === 0) return;
-      if (!force && !shouldAnimateFamily()) {
-        return;
-      }
-      const sceneWidth = familyScene.clientWidth || 1;
-      const maxHorizontal = sceneWidth * 0.18;
-      familyMembers.forEach((member, index) => {
-        const previous = familyMotion.get(member) || { x: 0, y: 0 };
-        let newX = (Math.random() * 2 - 1) * maxHorizontal;
-        if (!force && Math.abs(newX - previous.x) < sceneWidth * 0.06) {
-          newX = Math.sign(newX || (index % 2 === 0 ? 1 : -1)) * Math.min(maxHorizontal, Math.abs(newX) + sceneWidth * 0.1);
-        }
-        const verticalRange = 16 + index * 4;
-        const newY = -Math.random() * verticalRange;
-        familyMotion.set(member, { x: newX, y: newY });
-        member.style.setProperty("--x", `${Math.round(newX)}px`);
-        member.style.setProperty("--y", `${Math.round(newY)}px`);
-        const pulse = 1 + Math.random() * 0.04;
-        member.style.setProperty("--scale", pulse.toFixed(3));
-      });
     }
 
   function setCatActivity(activityKey) {
@@ -1148,7 +852,7 @@ function tick() {
       }, duration);
     }
 
-    function gainXp(amount, profile = getProfile()) {
+    function gainXp(amount, profile = state) {
       if (!profile || Number.isNaN(amount)) return;
       const currentLevel = Math.max(1, Math.floor(Number(profile.level) || 1));
       profile.level = currentLevel;
@@ -1157,8 +861,8 @@ function tick() {
       if (profile.xp >= levelThreshold) {
         profile.xp -= levelThreshold;
         profile.level = currentLevel + 1;
-        const name = getName(profile);
-        pushLog(`${name} sube al nivel ${profile.level}.`, "🏅", profile);
+        const name = getName();
+        pushLog(`${name} sube al nivel ${profile.level}.`, "🏅");
         showToast("🏅", `${name} alcanza el nivel ${profile.level}.`);
       }
       if (profile === state) {
@@ -1166,7 +870,7 @@ function tick() {
       }
     }
 
-    function getMood(profile = getProfile()) {
+    function getMood(profile = state) {
       const hunger = Number(profile?.hunger ?? 0);
       const energy = Number(profile?.energy ?? 0);
       const fun = Number(profile?.fun ?? 0);
@@ -1179,40 +883,32 @@ function tick() {
     }
 
     function updateUI() {
-      const mode = getActiveMode();
-      const profile = getProfile(mode);
-      updateStat("hunger", hungerBar, hungerValue, profile.hunger ?? 0);
-      updateStat("energy", energyBar, energyValue, profile.energy ?? 0);
-      updateStat("fun", funBar, funValue, profile.fun ?? 0);
-      updateXP(profile);
+      updateStat("hunger", hungerBar, hungerValue, state.hunger ?? 0);
+      updateStat("energy", energyBar, energyValue, state.energy ?? 0);
+      updateStat("fun", funBar, funValue, state.fun ?? 0);
+      updateXP(state);
 
-      const mood = getMood(profile);
-      if (lastMoodLabelByMode[mode] !== mood.label) {
+      const mood = getMood(state);
+      if (lastMoodLabel !== mood.label) {
         moodLabel.textContent = mood.label;
-        lastMoodLabelByMode[mode] = mood.label;
+        lastMoodLabel = mood.label;
       }
-      if (mode === MODES.CAT) {
-        if (cat && cat.dataset.mood !== mood.key) {
-          cat.dataset.mood = mood.key;
-        }
-        updateCatFace(mood.key);
-      } else if (familyScene) {
-        if (familyScene.dataset.mood !== mood.key) {
-          familyScene.dataset.mood = mood.key;
-        }
+      if (cat && cat.dataset.mood !== mood.key) {
+        cat.dataset.mood = mood.key;
       }
-      if (lastMoodKey[mode] && lastMoodKey[mode] !== mood.key) {
+      if (lastMoodKey && lastMoodKey !== mood.key) {
         playMoodSound(mood.key);
       }
-      lastMoodKey[mode] = mood.key;
+      lastMoodKey = mood.key;
+      updateCatFace(mood.key);
 
-      const levelValue = String(Math.max(1, Math.floor(Number(profile.level) || 1)));
+      const levelValue = String(Math.max(1, Math.floor(Number(state.level) || 1)));
       if (lastLevelDisplayed !== levelValue) {
         levelLabel.textContent = levelValue;
         lastLevelDisplayed = levelValue;
       }
 
-      const nextTitle = `${getName(profile)} · Nivel ${levelValue} | Catagotchi`;
+      const nextTitle = `${getName()} · Nivel ${levelValue} | Catagotchi`;
       if (lastTitleRendered !== nextTitle) {
         document.title = nextTitle;
         lastTitleRendered = nextTitle;
@@ -1254,7 +950,7 @@ function tick() {
       }
     }
 
-    function updateXP(profile = getProfile()) {
+    function updateXP(profile = state) {
       if (!xpBar) return;
       const levelValue = Math.max(1, Math.floor(Number(profile.level) || 1));
       const levelThreshold = levelValue * 120;
@@ -1345,10 +1041,10 @@ function tick() {
         return element;
       }
 
-      function renderLog(profile = getProfile()) {
+      function renderLog() {
         if (!log) return;
         log.innerHTML = "";
-        const history = Array.isArray(profile?.history) ? profile.history : [];
+        const history = Array.isArray(state.history) ? state.history : [];
         history
           .slice()
           .reverse()
@@ -1357,28 +1053,27 @@ function tick() {
           });
       }
 
-      function recordLog(entry, profile = getProfile()) {
-        if (!profile) return;
+      function recordLog(entry) {
         const normalized = {
           emoji: entry?.emoji || "✨",
           message: entry?.message || "",
           timestamp: entry?.timestamp || Date.now(),
         };
-      if (!Array.isArray(profile.history)) {
-        profile.history = [];
-      }
-      profile.history.push(normalized);
-      profile.history = profile.history.slice(-40);
-      if (profile === getProfile() && log) {
-        log.prepend(createLogElement(normalized));
-        while (log.children.length > 40) {
-          log.removeChild(log.lastElementChild);
+        if (!Array.isArray(state.history)) {
+          state.history = [];
+        }
+        state.history.push(normalized);
+        state.history = state.history.slice(-40);
+        if (log) {
+          log.prepend(createLogElement(normalized));
+          while (log.children.length > 40) {
+            log.removeChild(log.lastElementChild);
+          }
         }
       }
-    }
 
-      function pushLog(message, emoji = "✨", profile = getProfile()) {
-        recordLog({ emoji, message, timestamp: Date.now() }, profile);
+      function pushLog(message, emoji = "✨") {
+        recordLog({ emoji, message, timestamp: Date.now() });
         scheduleStateSave();
       }
 
@@ -1586,57 +1281,57 @@ function tick() {
     };
 
     const metrics = {
-      groundY: base.height * 0.86,
+      groundY: base.height * 0.9,
       body: {
         cx: base.width * 0.58,
-        cy: base.height * 0.64,
-        rx: base.width * 0.28,
-        ry: base.height * 0.24,
+        cy: base.height * 0.72,
+        rx: base.width * 0.26,
+        ry: base.height * 0.22,
       },
       head: {
         cx: base.width * 0.34,
-        cy: base.height * 0.42,
-        r: base.height * 0.26,
+        cy: base.height * 0.4,
+        r: base.height * 0.34,
       },
       ear: {
-        width: base.width * 0.2,
-        height: base.height * 0.26,
+        width: base.width * 0.26,
+        height: base.height * 0.32,
       },
       tail: {
-        length: base.width * 0.42,
-        baseX: base.width * 0.76,
+        length: base.width * 0.52,
+        baseX: base.width * 0.8,
       },
       leg: {
-        width: base.width * 0.12,
+        width: base.width * 0.13,
         height: base.height * 0.3,
       },
     };
 
     const legPositions = {
-      backFar: { x: metrics.body.cx + metrics.body.rx * 0.2, y: metrics.groundY },
-      backNear: { x: metrics.body.cx + metrics.body.rx * 0.5, y: metrics.groundY },
-      frontFar: { x: metrics.body.cx - metrics.body.rx * 0.05, y: metrics.groundY },
-      frontNear: { x: metrics.body.cx - metrics.body.rx * 0.35, y: metrics.groundY },
+      backFar: { x: metrics.body.cx + metrics.body.rx * 0.18, y: metrics.groundY },
+      backNear: { x: metrics.body.cx + metrics.body.rx * 0.46, y: metrics.groundY },
+      frontFar: { x: metrics.body.cx - metrics.body.rx * 0.02, y: metrics.groundY },
+      frontNear: { x: metrics.body.cx - metrics.body.rx * 0.36, y: metrics.groundY },
     };
 
     const palette = {
-      furMain: "#2b2f3c",
-      furSecondary: "#1b202b",
-      furAccent: "#3a4154",
-      belly: "#f5f7fb",
-      earInner: "#f7b4c3",
-      cheek: "#f7c2d4",
-      paw: "#ffffff",
-      nose: "#f3a9bb",
-      pupil: "#11141f",
-      tailTip: "#f1f4fb",
-      iris: "#7fd1f1",
-      patternMask: "#f5f7fb",
-      patternDetail: "#dbe3f6",
-      outline: "#10131b",
+      furMain: "#fbd6e8",
+      furSecondary: "#f6adc9",
+      furAccent: "#ffeef7",
+      belly: "#fff8fb",
+      earInner: "#ffb8d6",
+      cheek: "#ff9ac4",
+      paw: "#fff1f8",
+      nose: "#ff86b6",
+      pupil: "#2d1428",
+      tailTip: "#ffe9f4",
+      iris: "#8ff0ff",
+      patternMask: "#ffe2f2",
+      patternDetail: "#ff9bcf",
+      outline: "#602041",
     };
 
-    let styleKey = "tuxedo";
+    let styleKey = "sakura";
 
     const state = {
       mood: "feliz",
@@ -2010,7 +1705,7 @@ function tick() {
       bellyGrad.addColorStop(0, shiftColor(palette.belly, 0.12));
       bellyGrad.addColorStop(1, shiftColor(palette.belly, -0.12));
       ctx.fillStyle = bellyGrad;
-      ctx.globalAlpha = styleKey === "tuxedo" ? 0.96 : 0.9;
+      ctx.globalAlpha = styleKey === "sakura" ? 0.96 : 0.88;
       ctx.fill();
       ctx.globalAlpha = 1;
       ctx.restore();
@@ -2143,7 +1838,7 @@ function tick() {
       bellyGrad.addColorStop(0, shiftColor(palette.belly, 0.12));
       bellyGrad.addColorStop(1, shiftColor(palette.belly, -0.15));
       ctx.fillStyle = bellyGrad;
-      ctx.globalAlpha = styleKey === "tuxedo" ? 1 : 0.92;
+      ctx.globalAlpha = styleKey === "sakura" ? 0.98 : 0.9;
       ctx.fill();
       ctx.globalAlpha = 1;
 
@@ -2160,45 +1855,195 @@ function tick() {
       drawChestTuft();
     }
 
-    function drawBodyPattern(cx, cy) {
-      if (styleKey === "tuxedo") {
+    function drawSparkles(originX, originY) {
+      const sparkleColor = shiftColor(palette.iris || "#ffffff", 0.25);
+      const accent = shiftColor(palette.cheek || sparkleColor, 0.1);
+      const points = [
+        { x: originX, y: originY, size: base.width * 0.022 },
+        { x: originX + base.width * 0.08, y: originY + base.height * 0.04, size: base.width * 0.018 },
+        { x: originX - base.width * 0.06, y: originY + base.height * 0.02, size: base.width * 0.014 },
+        { x: originX + base.width * 0.04, y: originY - base.height * 0.04, size: base.width * 0.015 },
+      ];
+      points.forEach((sparkle, index) => {
         ctx.save();
-        ctx.translate(cx - metrics.body.rx * 0.05, cy + metrics.body.ry * 0.08);
+        ctx.translate(sparkle.x, sparkle.y);
+        ctx.rotate(((index % 2 === 0 ? 12 : -18) * Math.PI) / 180);
         ctx.beginPath();
-        ctx.moveTo(-metrics.body.rx * 0.25, -metrics.body.ry * 0.3);
-        ctx.quadraticCurveTo(0, metrics.body.ry * 0.55, metrics.body.rx * 0.32, -metrics.body.ry * 0.25);
-        ctx.quadraticCurveTo(metrics.body.rx * 0.1, metrics.body.ry * 0.2, -metrics.body.rx * 0.25, -metrics.body.ry * 0.3);
+        ctx.moveTo(0, -sparkle.size);
+        ctx.lineTo(sparkle.size * 0.4, 0);
+        ctx.lineTo(0, sparkle.size);
+        ctx.lineTo(-sparkle.size * 0.4, 0);
         ctx.closePath();
-        const maskColor = palette.patternMask || palette.belly;
-        const grad = ctx.createLinearGradient(0, -metrics.body.ry * 0.5, 0, metrics.body.ry * 0.6);
-        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        const grad = ctx.createRadialGradient(0, 0, sparkle.size * 0.1, 0, 0, sparkle.size);
+        grad.addColorStop(0, accent);
+        grad.addColorStop(0.6, sparkleColor);
+        grad.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.8;
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function drawBodyPattern(cx, cy) {
+      ctx.save();
+      if (styleKey === "sakura") {
+        const maskColor = palette.patternMask || shiftColor(palette.belly, 0.12);
+        ctx.beginPath();
+        ctx.ellipse(cx - metrics.body.rx * 0.14, cy - metrics.body.ry * 0.08, metrics.body.rx * 0.62, metrics.body.ry * 0.56, 0, 0, Math.PI * 2);
+        const grad = ctx.createRadialGradient(
+          cx - metrics.body.rx * 0.28,
+          cy - metrics.body.ry * 0.2,
+          metrics.body.rx * 0.14,
+          cx,
+          cy,
+          metrics.body.rx * 0.72
+        );
+        grad.addColorStop(0, shiftColor(maskColor, 0.22));
         grad.addColorStop(1, shiftColor(maskColor, -0.08));
         ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.9;
         ctx.fill();
-        ctx.restore();
-      } else if (styleKey === "silver") {
-        const stripeColor = palette.patternDetail || shiftColor(palette.furSecondary, -0.1);
-        ctx.save();
-        ctx.strokeStyle = stripeColor;
-        ctx.lineWidth = base.width * 0.012;
-        ctx.lineCap = "round";
-        for (let i = 0; i < 3; i += 1) {
-          const y = cy - metrics.body.ry * 0.32 + i * metrics.body.ry * 0.28;
+        ctx.globalAlpha = 1;
+
+        const petalColor = palette.patternDetail || shiftColor(palette.furAccent || palette.furMain, -0.02);
+        const petals = [
+          { x: cx - metrics.body.rx * 0.22, y: cy - metrics.body.ry * 0.34, size: metrics.body.ry * 0.52, rotation: -0.4 },
+          { x: cx + metrics.body.rx * 0.12, y: cy - metrics.body.ry * 0.26, size: metrics.body.ry * 0.45, rotation: 0.3 },
+          { x: cx - metrics.body.rx * 0.02, y: cy - metrics.body.ry * 0.02, size: metrics.body.ry * 0.5, rotation: 0.12 },
+        ];
+        petals.forEach((petal, index) => {
+          ctx.save();
+          ctx.translate(petal.x, petal.y);
+          ctx.rotate(petal.rotation);
+          const radius = petal.size;
           ctx.beginPath();
-          ctx.moveTo(cx + metrics.body.rx * 0.15, y);
-          ctx.quadraticCurveTo(cx + metrics.body.rx * 0.55, y - metrics.body.ry * 0.08, cx + metrics.body.rx * 0.35, y + metrics.body.ry * 0.24);
-          ctx.stroke();
-        }
-        ctx.restore();
-      } else if (styleKey === "siamese") {
-        ctx.save();
-        ctx.translate(cx + metrics.body.rx * 0.2, cy + metrics.body.ry * 0.2);
+          ctx.moveTo(0, -radius);
+          ctx.quadraticCurveTo(radius * 0.58, -radius * 0.36, radius * 0.82, 0);
+          ctx.quadraticCurveTo(radius * 0.44, radius * 0.48, 0, radius * 0.74);
+          ctx.quadraticCurveTo(-radius * 0.44, radius * 0.48, -radius * 0.82, 0);
+          ctx.quadraticCurveTo(-radius * 0.58, -radius * 0.36, 0, -radius);
+          ctx.closePath();
+          const petalGrad = ctx.createRadialGradient(0, -radius * 0.3, radius * 0.12, 0, 0, radius);
+          petalGrad.addColorStop(0, shiftColor(petalColor, 0.18 + index * 0.02));
+          petalGrad.addColorStop(1, shiftColor(petalColor, -0.1));
+          ctx.fillStyle = petalGrad;
+          ctx.globalAlpha = 0.85;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        });
+
+        drawSparkles(cx - metrics.body.rx * 0.32, cy - metrics.body.ry * 0.28);
+      } else if (styleKey === "galaxia") {
+        const trailColor = palette.patternDetail || shiftColor(palette.furSecondary, -0.1);
+        ctx.strokeStyle = trailColor;
+        ctx.lineWidth = base.width * 0.015;
+        ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.ellipse(0, 0, metrics.body.rx * 0.55, metrics.body.ry * 0.45, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+        ctx.moveTo(cx - metrics.body.rx * 0.42, cy - metrics.body.ry * 0.18);
+        ctx.bezierCurveTo(
+          cx - metrics.body.rx * 0.1,
+          cy - metrics.body.ry * 0.58,
+          cx + metrics.body.rx * 0.55,
+          cy - metrics.body.ry * 0.22,
+          cx + metrics.body.rx * 0.46,
+          cy + metrics.body.ry * 0.24
+        );
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(cx - metrics.body.rx * 0.36, cy + metrics.body.ry * 0.02);
+        ctx.quadraticCurveTo(
+          cx + metrics.body.rx * 0.2,
+          cy + metrics.body.ry * 0.18,
+          cx + metrics.body.rx * 0.44,
+          cy - metrics.body.ry * 0.14
+        );
+        const ribbonGrad = ctx.createLinearGradient(cx - metrics.body.rx * 0.36, cy, cx + metrics.body.rx * 0.5, cy);
+        ribbonGrad.addColorStop(0, "rgba(255, 255, 255, 0.18)");
+        ribbonGrad.addColorStop(0.4, shiftColor(trailColor, 0.18));
+        ribbonGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.strokeStyle = ribbonGrad;
+        ctx.stroke();
+
+        const stars = 6;
+        for (let i = 0; i < stars; i += 1) {
+          const angle = (Math.PI * 2 * i) / stars;
+          const radius = metrics.body.rx * 0.3;
+          const px = cx + Math.cos(angle) * radius * 0.72;
+          const py = cy + Math.sin(angle) * metrics.body.ry * 0.42;
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(((i % 2 === 0 ? 1 : -1) * 24 * Math.PI) / 180);
+          const size = base.width * 0.026 * (0.7 + 0.3 * Math.sin(angle * 2));
+          ctx.beginPath();
+          for (let j = 0; j < 5; j += 1) {
+            const theta = (Math.PI * 2 * j) / 5;
+            const r = j % 2 === 0 ? size : size * 0.42;
+            ctx.lineTo(Math.cos(theta) * r, Math.sin(theta) * r);
+          }
+          ctx.closePath();
+          const starGrad = ctx.createRadialGradient(0, 0, size * 0.1, 0, 0, size);
+          starGrad.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+          starGrad.addColorStop(0.45, shiftColor(palette.iris || trailColor, 0.22));
+          starGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+          ctx.fillStyle = starGrad;
+          ctx.fill();
+          ctx.restore();
+        }
+      } else if (styleKey === "crema") {
+        const drizzle = palette.patternDetail || shiftColor(palette.furAccent || palette.furMain, -0.12);
+        ctx.beginPath();
+        ctx.moveTo(cx - metrics.body.rx * 0.48, cy - metrics.body.ry * 0.1);
+        ctx.bezierCurveTo(
+          cx - metrics.body.rx * 0.24,
+          cy - metrics.body.ry * 0.54,
+          cx + metrics.body.rx * 0.42,
+          cy - metrics.body.ry * 0.36,
+          cx + metrics.body.rx * 0.44,
+          cy + metrics.body.ry * 0.02
+        );
+        ctx.bezierCurveTo(
+          cx + metrics.body.rx * 0.2,
+          cy + metrics.body.ry * 0.42,
+          cx - metrics.body.rx * 0.18,
+          cy + metrics.body.ry * 0.32,
+          cx - metrics.body.rx * 0.4,
+          cy + metrics.body.ry * 0.18
+        );
+        ctx.closePath();
+        const drizzleGrad = ctx.createLinearGradient(cx - metrics.body.rx * 0.5, cy, cx + metrics.body.rx * 0.5, cy + metrics.body.ry * 0.4);
+        drizzleGrad.addColorStop(0, shiftColor(drizzle, 0.22));
+        drizzleGrad.addColorStop(1, shiftColor(drizzle, -0.12));
+        ctx.fillStyle = drizzleGrad;
+        ctx.globalAlpha = 0.82;
         ctx.fill();
-        ctx.restore();
+        ctx.globalAlpha = 1;
+
+        const drops = [
+          { x: cx - metrics.body.rx * 0.18, y: cy + metrics.body.ry * 0.34, scale: 1 },
+          { x: cx + metrics.body.rx * 0.08, y: cy + metrics.body.ry * 0.26, scale: 0.86 },
+          { x: cx + metrics.body.rx * 0.28, y: cy + metrics.body.ry * 0.12, scale: 0.72 },
+        ];
+        const dripColor = shiftColor(palette.patternMask || drizzle, -0.05);
+        drops.forEach((drop) => {
+          ctx.save();
+          ctx.translate(drop.x, drop.y);
+          ctx.scale(drop.scale, drop.scale);
+          ctx.beginPath();
+          ctx.moveTo(0, -metrics.body.ry * 0.12);
+          ctx.quadraticCurveTo(metrics.body.rx * 0.08, 0, 0, metrics.body.ry * 0.18);
+          ctx.quadraticCurveTo(-metrics.body.rx * 0.08, 0, 0, -metrics.body.ry * 0.12);
+          const dropGrad = ctx.createLinearGradient(0, -metrics.body.ry * 0.12, 0, metrics.body.ry * 0.18);
+          dropGrad.addColorStop(0, shiftColor(dripColor, 0.18));
+          dropGrad.addColorStop(1, shiftColor(dripColor, -0.14));
+          ctx.fillStyle = dropGrad;
+          ctx.fill();
+          ctx.restore();
+        });
       }
+      ctx.restore();
     }
 
     function drawShoulderShade() {
@@ -2294,7 +2139,7 @@ function tick() {
       );
       tuftGrad.addColorStop(0, shiftColor(bellyColor, 0.18));
       tuftGrad.addColorStop(1, shiftColor(bellyColor, -0.08));
-      ctx.globalAlpha = styleKey === "tuxedo" ? 0.92 : 0.78;
+      ctx.globalAlpha = styleKey === "sakura" ? 0.92 : 0.82;
       ctx.fillStyle = tuftGrad;
       ctx.fill();
       ctx.globalAlpha = 1;
@@ -2422,7 +2267,7 @@ function tick() {
       ctx.quadraticCurveTo(earWidth * 0.48, earHeight * 0.74, earWidth * 0.08, earHeight * 1.0);
       ctx.quadraticCurveTo(-baseInset * 0.1, earHeight * 0.92, -baseInset, earHeight);
       ctx.closePath();
-      const earColor = styleKey === "siamese" ? palette.patternMask || palette.furAccent : palette.furSecondary;
+      const earColor = styleKey === "crema" ? palette.patternMask || palette.furAccent : palette.furSecondary;
       const earGrad = ctx.createLinearGradient(-baseInset * 0.6, earHeight, earWidth * 0.7, -earHeight * 0.05);
       earGrad.addColorStop(0, shiftColor(earColor, 0.22));
       earGrad.addColorStop(0.55, shiftColor(earColor, 0.02));
@@ -2484,7 +2329,7 @@ function tick() {
       ctx.quadraticCurveTo(earWidth * 0.22, earHeight * 0.42, earWidth * 0.7, 0);
       ctx.quadraticCurveTo(earWidth * 0.36, earHeight * 0.58, 0, earHeight * 0.96);
       ctx.closePath();
-      const earColor = styleKey === "siamese" ? palette.patternMask || palette.furAccent : palette.furSecondary;
+      const earColor = styleKey === "crema" ? palette.patternMask || palette.furAccent : palette.furSecondary;
       const earGrad = ctx.createLinearGradient(earWidth * 0.1, earHeight, earWidth * 0.78, earHeight * 0.12);
       earGrad.addColorStop(0, shiftColor(earColor, 0.14));
       earGrad.addColorStop(1, shiftColor(earColor, -0.16));
@@ -2518,39 +2363,47 @@ function tick() {
 
     function drawFaceMask(radius) {
       let muzzleColor = palette.belly;
-      if (styleKey === "tuxedo") {
+      if (styleKey === "sakura") {
+        const maskColor = palette.patternMask || shiftColor(palette.belly, 0.12);
         ctx.beginPath();
-        ctx.ellipse(-radius * 0.05, radius * 0.28, radius * 0.62, radius * 0.5, 0, 0, Math.PI * 2);
-        const maskColor = palette.patternMask || palette.belly;
-        const grad = ctx.createLinearGradient(0, radius * 0.05, 0, radius * 0.6);
-        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        ctx.moveTo(-radius * 0.36, radius * 0.12);
+        ctx.quadraticCurveTo(-radius * 0.32, -radius * 0.26, radius * 0.3, -radius * 0.28);
+        ctx.quadraticCurveTo(radius * 0.48, radius * 0.16, 0, radius * 0.46);
+        ctx.quadraticCurveTo(-radius * 0.48, radius * 0.16, -radius * 0.36, radius * 0.12);
+        ctx.closePath();
+        const grad = ctx.createRadialGradient(0, radius * 0.1, radius * 0.14, 0, radius * 0.32, radius * 0.48);
+        grad.addColorStop(0, shiftColor(maskColor, 0.2));
         grad.addColorStop(1, shiftColor(maskColor, -0.08));
         ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.92;
         ctx.fill();
+        ctx.globalAlpha = 1;
         muzzleColor = maskColor;
-      } else if (styleKey === "siamese") {
-        const maskColor = palette.patternMask || palette.furAccent;
+      } else if (styleKey === "galaxia") {
+        const haloColor = palette.patternMask || shiftColor(palette.furAccent || palette.furMain, 0.16);
+        const halo = ctx.createRadialGradient(0, -radius * 0.12, radius * 0.18, 0, 0, radius * 0.86);
+        halo.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+        halo.addColorStop(0.5, shiftColor(haloColor, 0.14));
+        halo.addColorStop(1, "rgba(255, 255, 255, 0)");
         ctx.beginPath();
-        ctx.ellipse(-radius * 0.02, radius * 0.06, radius * 0.82, radius * 0.74, 0, 0, Math.PI * 2);
-        const grad = ctx.createLinearGradient(0, -radius * 0.6, 0, radius * 0.6);
+        ctx.arc(0, -radius * 0.04, radius * 0.88, 0, Math.PI * 2);
+        ctx.fillStyle = halo;
+        ctx.fill();
+        muzzleColor = shiftColor(palette.belly, 0.02);
+      } else if (styleKey === "crema") {
+        const maskColor = palette.patternMask || shiftColor(palette.furAccent || palette.furMain, -0.06);
+        ctx.beginPath();
+        ctx.ellipse(-radius * 0.02, radius * 0.08, radius * 0.8, radius * 0.64, 0, 0, Math.PI * 2);
+        const grad = ctx.createLinearGradient(0, -radius * 0.52, 0, radius * 0.6);
         grad.addColorStop(0, shiftColor(maskColor, 0.12));
         grad.addColorStop(1, shiftColor(maskColor, -0.14));
         ctx.fillStyle = grad;
         ctx.fill();
         muzzleColor = shiftColor(palette.belly, -0.02);
-      } else if (styleKey === "silver") {
-        const detail = palette.patternDetail || shiftColor(palette.furSecondary, -0.08);
-        ctx.strokeStyle = detail;
-        ctx.lineWidth = radius * 0.16;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.3, -radius * 0.45);
-        ctx.quadraticCurveTo(0, -radius * 0.65, radius * 0.3, -radius * 0.45);
-        ctx.stroke();
       }
 
       if (muzzleColor) {
-        drawMuzzleDetail(radius, muzzleColor, { overlay: styleKey === "siamese" });
+        drawMuzzleDetail(radius, muzzleColor, { overlay: styleKey === "crema" });
       }
     }
 
@@ -2598,14 +2451,19 @@ function tick() {
       ctx.save();
       ctx.translate(x, y);
       ctx.beginPath();
-      ctx.ellipse(0, 0, metrics.head.r * 0.24, metrics.head.r * 0.16, 0, 0, Math.PI * 2);
-      const cheekGrad = ctx.createRadialGradient(0, 0, metrics.head.r * 0.05, 0, 0, metrics.head.r * 0.24);
-      cheekGrad.addColorStop(0, shiftColor(palette.cheek, 0.1));
-      cheekGrad.addColorStop(1, shiftColor(palette.cheek, -0.12));
+      ctx.ellipse(0, 0, metrics.head.r * 0.28, metrics.head.r * 0.18, 0, 0, Math.PI * 2);
+      const cheekGrad = ctx.createRadialGradient(0, -metrics.head.r * 0.04, metrics.head.r * 0.06, 0, 0, metrics.head.r * 0.28);
+      cheekGrad.addColorStop(0, shiftColor(palette.cheek, 0.14));
+      cheekGrad.addColorStop(1, shiftColor(palette.cheek, -0.1));
       ctx.fillStyle = cheekGrad;
-      ctx.globalAlpha = 0.82;
+      ctx.globalAlpha = styleKey === "galaxia" ? 0.76 : 0.86;
       ctx.fill();
       ctx.globalAlpha = 1;
+
+      ctx.beginPath();
+      ctx.ellipse(-metrics.head.r * 0.08, -metrics.head.r * 0.04, metrics.head.r * 0.08, metrics.head.r * 0.06, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+      ctx.fill();
       ctx.restore();
     }
 
@@ -2613,13 +2471,13 @@ function tick() {
       ctx.save();
       ctx.translate(offsetX, offsetY);
       ctx.rotate((tilt * Math.PI) / 180);
-      const width = metrics.head.r * 0.48;
-      const height = type === "wide" ? metrics.head.r * 0.34 : metrics.head.r * 0.28;
+      const width = metrics.head.r * 0.56;
+      const height = type === "wide" ? metrics.head.r * 0.4 : metrics.head.r * 0.32;
 
       if (type === "sleep" || type === "blink") {
         ctx.beginPath();
-        ctx.moveTo(-width * 0.4, 0);
-        ctx.quadraticCurveTo(0, metrics.head.r * 0.18, width * 0.4, 0);
+        ctx.moveTo(-width * 0.42, 0);
+        ctx.quadraticCurveTo(0, metrics.head.r * 0.2, width * 0.42, 0);
         ctx.strokeStyle = shiftColor(palette.furSecondary, -0.2);
         ctx.lineWidth = metrics.head.r * 0.12;
         ctx.lineCap = "round";
@@ -2629,30 +2487,36 @@ function tick() {
       }
 
       ctx.beginPath();
-      ctx.ellipse(0, 0, width * 0.5, height * 0.5, 0, 0, Math.PI * 2);
-      const eyeWhite = shiftColor(palette.belly || "#f5f7fb", 0.15);
-      ctx.fillStyle = eyeWhite;
+      ctx.ellipse(0, 0, width * 0.52, height * 0.52, 0, 0, Math.PI * 2);
+      const whiteGrad = ctx.createRadialGradient(0, -height * 0.2, width * 0.12, 0, 0, Math.max(width, height) * 0.52);
+      whiteGrad.addColorStop(0, shiftColor(palette.belly || "#f5f7fb", 0.2));
+      whiteGrad.addColorStop(1, shiftColor(palette.belly || "#f5f7fb", -0.05));
+      ctx.fillStyle = whiteGrad;
       ctx.fill();
+
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+      ctx.lineWidth = Math.max(1, metrics.head.r * 0.02);
+      ctx.stroke();
 
       let topClip = 0;
       let bottomClip = 0;
       if (type === "happy") {
-        topClip = height * 0.25;
+        topClip = height * 0.26;
       } else if (type === "soft") {
-        topClip = height * 0.18;
+        topClip = height * 0.2;
       } else if (type === "relaxed") {
-        topClip = height * 0.12;
+        topClip = height * 0.14;
       } else if (type === "narrow") {
-        topClip = height * 0.35;
+        topClip = height * 0.36;
       } else if (type === "droop") {
-        bottomClip = height * 0.25;
+        bottomClip = height * 0.28;
       }
 
       if (topClip > 0) {
         ctx.beginPath();
         ctx.rect(-width, -height, width * 2, topClip);
         ctx.fillStyle = palette.furMain;
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = 0.92;
         ctx.fill();
         ctx.globalAlpha = 1;
       }
@@ -2660,30 +2524,38 @@ function tick() {
         ctx.beginPath();
         ctx.rect(-width, height * 0.5 - bottomClip, width * 2, bottomClip + height * 0.4);
         ctx.fillStyle = palette.furSecondary;
-        ctx.globalAlpha = 0.85;
+        ctx.globalAlpha = 0.88;
         ctx.fill();
         ctx.globalAlpha = 1;
       }
 
-      const irisScale = type === "wide" ? 1.1 : type === "narrow" ? 0.82 : 0.95;
-      const irisWidth = width * 0.3 * irisScale;
-      const irisHeight = height * 0.55 * irisScale;
+      const irisScale = type === "wide" ? 1.08 : type === "narrow" ? 0.8 : 0.95;
+      const irisWidth = width * 0.32 * irisScale;
+      const irisHeight = height * 0.58 * irisScale;
       ctx.beginPath();
       ctx.ellipse(0, 0, irisWidth, irisHeight, 0, 0, Math.PI * 2);
-      const irisColor = palette.iris || shiftColor(palette.furAccent || palette.furMain, 0.28);
-      ctx.fillStyle = irisColor;
+      const irisColor = palette.iris || shiftColor(palette.furAccent || palette.furMain, 0.3);
+      const irisGrad = ctx.createRadialGradient(0, -irisHeight * 0.4, irisWidth * 0.2, 0, 0, irisWidth);
+      irisGrad.addColorStop(0, shiftColor(irisColor, 0.22));
+      irisGrad.addColorStop(1, shiftColor(irisColor, -0.1));
+      ctx.fillStyle = irisGrad;
       ctx.fill();
 
-      const pupilWidth = irisWidth * 0.55;
-      const pupilHeight = irisHeight * (type === "wide" ? 0.58 : 0.72);
+      const pupilWidth = irisWidth * 0.5;
+      const pupilHeight = irisHeight * (type === "wide" ? 0.56 : 0.7);
       ctx.beginPath();
       ctx.ellipse(0, 0, pupilWidth, pupilHeight, 0, 0, Math.PI * 2);
       ctx.fillStyle = palette.pupil || "#111";
       ctx.fill();
 
       ctx.beginPath();
-      ctx.ellipse(-irisWidth * 0.35, -irisHeight * 0.35, irisWidth * 0.28, irisHeight * 0.28, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+      ctx.ellipse(-irisWidth * 0.32, -irisHeight * 0.34, irisWidth * 0.28, irisHeight * 0.28, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(irisWidth * 0.2, irisHeight * 0.22, irisWidth * 0.16, irisHeight * 0.2, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
       ctx.fill();
 
       ctx.restore();
@@ -2795,40 +2667,47 @@ function tick() {
     }
 
     function drawSleepingFaceMask(radius) {
-      if (styleKey === "siamese") {
+      if (styleKey === "crema") {
         const maskColor = palette.patternMask || palette.furAccent;
         ctx.beginPath();
-        ctx.ellipse(0, 0, radius * 0.86, radius * 0.76, 0, 0, Math.PI * 2);
-        const grad = ctx.createLinearGradient(0, -radius * 0.6, 0, radius * 0.6);
-        grad.addColorStop(0, shiftColor(maskColor, 0.12));
+        ctx.ellipse(0, 0, radius * 0.84, radius * 0.74, 0, 0, Math.PI * 2);
+        const grad = ctx.createLinearGradient(0, -radius * 0.58, 0, radius * 0.6);
+        grad.addColorStop(0, shiftColor(maskColor, 0.14));
         grad.addColorStop(1, shiftColor(maskColor, -0.14));
         ctx.fillStyle = grad;
         ctx.fill();
 
         ctx.beginPath();
-        ctx.ellipse(0, radius * 0.3, radius * 0.45, radius * 0.32, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, radius * 0.3, radius * 0.42, radius * 0.3, 0, 0, Math.PI * 2);
         const muzzleColor = shiftColor(palette.belly, -0.02);
-        const muzzleGrad = ctx.createLinearGradient(0, radius * 0.18, 0, radius * 0.52);
-        muzzleGrad.addColorStop(0, shiftColor(muzzleColor, 0.1));
-        muzzleGrad.addColorStop(1, shiftColor(muzzleColor, -0.1));
+        const muzzleGrad = ctx.createLinearGradient(0, radius * 0.16, 0, radius * 0.48);
+        muzzleGrad.addColorStop(0, shiftColor(muzzleColor, 0.08));
+        muzzleGrad.addColorStop(1, shiftColor(muzzleColor, -0.12));
         ctx.fillStyle = muzzleGrad;
         ctx.fill();
-      } else if (styleKey === "tuxedo") {
+      } else if (styleKey === "sakura") {
         const maskColor = palette.patternMask || palette.belly;
         ctx.beginPath();
-        ctx.ellipse(-radius * 0.05, radius * 0.25, radius * 0.58, radius * 0.46, 0, 0, Math.PI * 2);
-        ctx.fillStyle = maskColor;
-        ctx.globalAlpha = 0.96;
+        ctx.moveTo(-radius * 0.34, radius * 0.16);
+        ctx.quadraticCurveTo(-radius * 0.28, -radius * 0.28, radius * 0.26, -radius * 0.26);
+        ctx.quadraticCurveTo(radius * 0.42, radius * 0.12, 0, radius * 0.44);
+        ctx.quadraticCurveTo(-radius * 0.42, radius * 0.12, -radius * 0.34, radius * 0.16);
+        ctx.closePath();
+        const grad = ctx.createRadialGradient(0, radius * 0.12, radius * 0.12, 0, radius * 0.32, radius * 0.46);
+        grad.addColorStop(0, shiftColor(maskColor, 0.18));
+        grad.addColorStop(1, shiftColor(maskColor, -0.06));
+        ctx.fillStyle = grad;
+        ctx.globalAlpha = 0.9;
         ctx.fill();
         ctx.globalAlpha = 1;
-      } else if (styleKey === "silver") {
+      } else if (styleKey === "galaxia") {
         const detail = palette.patternDetail || shiftColor(palette.furSecondary, -0.08);
         ctx.strokeStyle = detail;
-        ctx.lineWidth = radius * 0.14;
+        ctx.lineWidth = radius * 0.12;
         ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(-radius * 0.32, -radius * 0.36);
-        ctx.quadraticCurveTo(0, -radius * 0.5, radius * 0.32, -radius * 0.36);
+        ctx.moveTo(-radius * 0.28, -radius * 0.36);
+        ctx.quadraticCurveTo(0, -radius * 0.5, radius * 0.28, -radius * 0.36);
         ctx.stroke();
       }
     }
@@ -3002,7 +2881,6 @@ window.addEventListener("visibilitychange", () => {
   }
   const now = Date.now();
   state.lastTick = Number(state.lastTick) || now;
-  state.family.lastTick = Number(state.family.lastTick) || now;
   tick();
   refreshDayMode({ announce: true });
   refreshMotionSystems();
