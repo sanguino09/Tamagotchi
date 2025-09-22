@@ -43,22 +43,108 @@
               aria-live="polite"
             >
               <span id="dayEmoji">🌞</span>
-              <span id="dayLabel">Parque soleado</span>
+              <span id="dayLabel" class="sr-only">Modo día</span>
             </div>
           </div>
-          <div class="scene" id="catScene">
-            <div class="scene-floor"></div>
-            <div class="cat-wanderer" id="catWanderer">
-              <div class="cat-shadow"></div>
-              <div class="cat" id="cat" data-mood="feliz" data-activity="idle" data-motion="idle">
-                <div class="cat-sprite" id="catSprite" role="img" aria-label="Gato virtual ilustrado">
-                  <canvas id="catSpriteCanvas" width="220" height="180" aria-hidden="true"></canvas>
-                  <div class="cat-accessory" id="accessory" aria-hidden="true"></div>
+          <nav class="mode-toggle" role="tablist" aria-label="Mundos disponibles">
+            <button
+              class="mode-toggle-button is-active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              data-mode="cat"
+              aria-controls="catScene"
+            >
+              Gatitos
+            </button>
+            <button
+              class="mode-toggle-button"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              data-mode="family"
+              aria-controls="familyScene"
+            >
+              Sylvanians
+            </button>
+          </nav>
+          <div class="scene" id="virtualScene" data-active="cat">
+            <div class="stage stage-cat" id="catScene" aria-hidden="false">
+              <div class="scene-floor"></div>
+              <div class="cat-wanderer" id="catWanderer">
+                <div class="cat-shadow"></div>
+                <div class="cat" id="cat" data-mood="feliz" data-activity="idle" data-motion="idle">
+                  <div class="cat-sprite" id="catSprite" role="img" aria-label="Gato virtual ilustrado">
+                    <canvas id="catSpriteCanvas" width="220" height="180" aria-hidden="true"></canvas>
+                    <div class="cat-accessory" id="accessory" aria-hidden="true"></div>
+                  </div>
+                  <div class="activity-props" id="activityProps" aria-hidden="true">
+                    <div class="pixel-prop" id="propBowl"></div>
+                    <div class="pixel-prop" id="propYarn"></div>
+                    <div class="pixel-prop" id="propSleep">Z</div>
+                  </div>
                 </div>
-                <div class="activity-props" id="activityProps" aria-hidden="true">
-                  <div class="pixel-prop" id="propBowl"></div>
-                  <div class="pixel-prop" id="propYarn"></div>
-                  <div class="pixel-prop" id="propSleep">Z</div>
+              </div>
+            </div>
+            <div class="stage stage-family" id="familyScene" aria-hidden="true">
+              <div class="living-room">
+                <div class="living-room-wall"></div>
+                <div class="living-room-floor"></div>
+                <div class="family-props" id="familyProps" aria-hidden="true">
+                  <div class="family-prop" data-prop="snack"></div>
+                  <div class="family-prop" data-prop="play"></div>
+                  <div class="family-prop" data-prop="nap">Zz</div>
+                </div>
+                <div class="family-member" data-member="mama">
+                  <div class="sylvanian" aria-hidden="true">
+                    <div class="sylvanian-ears"></div>
+                    <div class="sylvanian-head">
+                      <span class="eye eye-left"></span>
+                      <span class="eye eye-right"></span>
+                      <span class="nose"></span>
+                      <span class="blush blush-left"></span>
+                      <span class="blush blush-right"></span>
+                    </div>
+                    <div class="sylvanian-body">
+                      <span class="outfit"></span>
+                      <span class="paws"></span>
+                    </div>
+                  </div>
+                  <span class="member-label">Mamá Arce</span>
+                </div>
+                <div class="family-member" data-member="papa">
+                  <div class="sylvanian" aria-hidden="true">
+                    <div class="sylvanian-ears"></div>
+                    <div class="sylvanian-head">
+                      <span class="eye eye-left"></span>
+                      <span class="eye eye-right"></span>
+                      <span class="nose"></span>
+                      <span class="blush blush-left"></span>
+                      <span class="blush blush-right"></span>
+                    </div>
+                    <div class="sylvanian-body">
+                      <span class="outfit"></span>
+                      <span class="paws"></span>
+                    </div>
+                  </div>
+                  <span class="member-label">Papá Arce</span>
+                </div>
+                <div class="family-member" data-member="peque">
+                  <div class="sylvanian" aria-hidden="true">
+                    <div class="sylvanian-ears"></div>
+                    <div class="sylvanian-head">
+                      <span class="eye eye-left"></span>
+                      <span class="eye eye-right"></span>
+                      <span class="nose"></span>
+                      <span class="blush blush-left"></span>
+                      <span class="blush blush-right"></span>
+                    </div>
+                    <div class="sylvanian-body">
+                      <span class="outfit"></span>
+                      <span class="paws"></span>
+                    </div>
+                  </div>
+                  <span class="member-label">Peque Arce</span>
                 </div>
               </div>
             </div>
