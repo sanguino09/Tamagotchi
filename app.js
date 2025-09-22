@@ -12,6 +12,10 @@ const identityAvatar = document.getElementById("identityAvatar");
 const catSpriteCanvas = document.getElementById("catSpriteCanvas");
 const catAccessoryOverlay = document.getElementById("accessory");
 const catSpriteController = createCatSpriteController(catSpriteCanvas);
+const sceneContainer = document.getElementById("virtualScene");
+const familyScene = document.getElementById("familyScene");
+const familyMembers = familyScene ? Array.from(familyScene.querySelectorAll(".family-member")) : [];
+const modeButtons = document.querySelectorAll(".mode-toggle-button");
 const hungerBar = document.getElementById("hungerBar");
 const hungerValue = document.getElementById("hungerValue");
 const energyBar = document.getElementById("energyBar");
@@ -26,8 +30,10 @@ const toastMessage = document.getElementById("toastMessage");
 const log = document.getElementById("log");
 const logEntryTemplate = document.getElementById("logEntryTemplate");
 
+const MODES = { CAT: "cat", FAMILY: "family" };
+
 let currentSkinIndex = 0;
-let lastMoodKey = null;
+const lastMoodKey = { cat: null, family: null };
 
 const catSkins = [
   {
@@ -109,6 +115,77 @@ const defaultProgressBySkin = catSkins.reduce((acc, skin) => {
   return acc;
 }, {});
 
+function createDefaultFamilyState() {
+  return {
+    name: "Familia Arce",
+    hunger: 78,
+    energy: 82,
+    fun: 84,
+    xp: 0,
+    level: 1,
+    lastTick: Date.now(),
+    history: [],
+  };
+}
+
+function sanitizeHistory(entries = []) {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter((entry) => entry && typeof entry.message === "string")
+    .map((entry) => ({
+      emoji: entry.emoji || "✨",
+      message: String(entry.message),
+      timestamp: Number(entry.timestamp) || Date.now(),
+    }))
+    .slice(-40);
+}
+
+function ensureFamilyStructure(targetState = state) {
+  const baseFamily = createDefaultFamilyState();
+  const storedFamily = targetState?.family && typeof targetState.family === "object" ? targetState.family : {};
+  targetState.family = { ...baseFamily, ...storedFamily };
+  targetState.family.history = sanitizeHistory(storedFamily.history || baseFamily.history);
+  targetState.family.lastTick = Number(storedFamily.lastTick) || Date.now();
+  targetState.family.level = Math.max(1, Math.floor(Number(storedFamily.level ?? baseFamily.level) || 1));
+  targetState.family.xp = Math.max(0, Number(storedFamily.xp ?? baseFamily.xp) || 0);
+  if (typeof targetState.family.name !== "string" || targetState.family.name.trim() === "") {
+    targetState.family.name = baseFamily.name;
+  } else {
+    targetState.family.name = targetState.family.name.trim().slice(0, 24);
+  }
+  targetState.activeMode = targetState.activeMode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
+  targetState.history = sanitizeHistory(targetState.history);
+  targetState.lastTick = Number(targetState.lastTick) || Date.now();
+}
+
+function getActiveMode() {
+  return state.activeMode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
+}
+
+function getProfile(mode = getActiveMode()) {
+  return mode === MODES.FAMILY ? state.family : state;
+}
+
+function isCatMode(mode = getActiveMode()) {
+  return mode === MODES.CAT;
+}
+
+function isFamilyMode(mode = getActiveMode()) {
+  return mode === MODES.FAMILY;
+}
+
+function getName(profile = getProfile()) {
+  if (profile === state.family) {
+    return profile.name || createDefaultFamilyState().name;
+  }
+  const fallbackSkin = catSkins[currentSkinIndex] ?? catSkins[0];
+  const candidate = profile && profile !== state ? profile.name : state.name;
+  if (typeof candidate === "string" && candidate.trim() !== "") {
+    return candidate.trim();
+  }
+  return fallbackSkin?.name || "Pixel";
+}
+
 const defaultState = {
   name: catSkins[0].name,
   hunger: 80,
@@ -122,9 +199,13 @@ const defaultState = {
   dayMode: "day",
   skin: catSkins[0].id,
   progressBySkin: structuredClone(defaultProgressBySkin),
+  activeMode: MODES.CAT,
+  family: createDefaultFamilyState(),
 };
 
 const state = loadState();
+
+ensureFamilyStructure(state);
 
 state.dayMode = getAutomaticDayMode();
 
@@ -144,7 +225,7 @@ if (!state.name || state.name === "Pixel") {
 
 loadSkinProgress(state.skin);
 
-const actions = {
+const catActions = {
   feed: {
     emoji: "🍣",
     text: () => `${getName()} disfruta del mejor salmón nigiri.`,
@@ -162,6 +243,27 @@ const actions = {
     text: () => `${getName()} ronronea mientras duerme la siesta.`,
     effects: { energy: +32, hunger: -8, fun: -4 },
     xp: 10,
+  },
+};
+
+const familyActions = {
+  feed: {
+    emoji: "🍰",
+    text: () => `${getName(state.family)} comparte una merienda de frutas del bosque.`,
+    effects: { hunger: +18, fun: +8, energy: +4 },
+    xp: 10,
+  },
+  play: {
+    emoji: "🧸",
+    text: () => `${getName(state.family)} levanta un castillo de cojines y risas.`,
+    effects: { fun: +24, energy: -10, hunger: -6 },
+    xp: 14,
+  },
+  nap: {
+    emoji: "🛋️",
+    text: () => `${getName(state.family)} descansa arropada en el sofá del salón.`,
+    effects: { energy: +28, hunger: -6, fun: -4 },
+    xp: 9,
   },
 };
 
@@ -281,6 +383,11 @@ const baseDegradeRates = {
 };
 
 let degradeRates = { ...baseDegradeRates };
+const familyDegradeRates = {
+  hunger: -2.1,
+  energy: -1.7,
+  fun: -2.4,
+};
 const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
 let dayModeIntervalId;
 const tickInterval = 2500;
@@ -289,6 +396,9 @@ let activityTimeout;
 let motionTimeout;
 const WALK_MOTION_DURATION = 2200;
 const catMotion = { x: 0, y: 0 };
+let familyActivityTimeout;
+let familyWanderIntervalId;
+const familyMotion = new Map();
 
 initialize();
 setInterval(tick, tickInterval);
@@ -397,7 +507,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
     updateUI();
     if (announce) {
-      pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺");
+      pushLog(`${skin.name} estrena un nuevo pelaje.`, "😺", state);
       showToast("😺", `Ahora cuidas a ${skin.name}.`);
     } else {
       saveState();
@@ -408,7 +518,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     if (!catSpriteController) return;
     const activity = cat?.dataset?.activity || "idle";
     const motionState = cat?.dataset?.motion || "idle";
-    const moodState = moodKey || cat?.dataset?.mood || getMood().key;
+    const moodState = moodKey || cat?.dataset?.mood || getMood(state).key;
     catSpriteController.setState({ mood: moodState, activity, motion: motionState });
   }
 
@@ -443,38 +553,125 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
   function initialize() {
     setSkin(currentSkinIndex, { preserveName: true });
-    catNameInput.value = state.name;
-    catNameInput.addEventListener("change", () => {
-      const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
-      state.name = catNameInput.value.trim() || fallbackName;
-      saveState();
-      pushLog(`Ahora se llama ${state.name}.`, "✨");
-    });
+    if (catNameInput) {
+      catNameInput.value = state.name;
+      catNameInput.addEventListener("change", () => {
+        if (!isCatMode()) {
+          catNameInput.value = getName(state.family);
+          return;
+        }
+        const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
+        state.name = catNameInput.value.trim() || fallbackName;
+        saveState();
+        pushLog(`Ahora se llama ${state.name}.`, "✨", state);
+        updateUI();
+      });
+    }
 
     document.querySelectorAll(".device-button").forEach((btn) => {
       btn.addEventListener("click", () => handleAction(btn.dataset.action));
     });
 
     if (identityAvatar) {
-      identityAvatar.addEventListener("click", cycleCatSkin);
+      identityAvatar.addEventListener("click", () => {
+        if (!isCatMode()) return;
+        cycleCatSkin();
+      });
     }
 
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const targetMode = button.dataset.mode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
+        setActiveMode(targetMode);
+      });
+    });
+
     if (state.history.length === 0) {
-      pushLog(`Comienza una nueva aventura con ${state.name}.`, "🚀");
-    } else {
-        state.history.forEach((entry) => addLogEntry(entry));
-      }
+      pushLog(`Comienza una nueva aventura con ${getName(state)}.`, "🚀", state);
+    }
 
-      if (cat) {
-        if (!cat.dataset.activity) {
-          cat.dataset.activity = "idle";
+    if (state.family.history.length === 0) {
+      pushLog(`${getName(state.family)} abre las puertas del salón.`, "🏡", state.family);
+    }
+
+    if (cat) {
+      if (!cat.dataset.activity) {
+        cat.dataset.activity = "idle";
+      }
+      setMotion(cat.dataset.motion || "idle");
+    }
+
+    applyActiveMode(getActiveMode());
+    updateUI();
+    startDayModeWatcher();
+    startCatWander();
+    startFamilyWander();
+  }
+
+    function setActiveMode(mode) {
+      const normalized = mode === MODES.FAMILY ? MODES.FAMILY : MODES.CAT;
+      if (state.activeMode === normalized) {
+        return;
+      }
+      state.activeMode = normalized;
+      applyActiveMode(normalized);
+      saveState();
+    }
+
+    function applyActiveMode(mode = getActiveMode()) {
+      state.activeMode = mode;
+      if (sceneContainer) {
+        sceneContainer.dataset.active = mode;
+      }
+      if (document.body) {
+        document.body.dataset.view = mode;
+      }
+      if (catScene) {
+        catScene.setAttribute("aria-hidden", mode === MODES.FAMILY ? "true" : "false");
+      }
+      if (familyScene) {
+        familyScene.setAttribute("aria-hidden", mode === MODES.FAMILY ? "false" : "true");
+      }
+      modeButtons.forEach((button) => {
+        const isActive = button.dataset.mode === mode;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-selected", isActive ? "true" : "false");
+        button.tabIndex = isActive ? 0 : -1;
+      });
+      if (catNameInput) {
+        if (mode === MODES.CAT) {
+          catNameInput.readOnly = false;
+          catNameInput.value = state.name || "";
+          const skin = catSkins[currentSkinIndex] ?? catSkins[0];
+          catNameInput.placeholder = (skin?.name || "LUKIS").toUpperCase();
+        } else {
+          catNameInput.readOnly = true;
+          const familyName = getName(state.family);
+          catNameInput.value = familyName;
+          catNameInput.placeholder = familyName.toUpperCase();
         }
-        setMotion(cat.dataset.motion || "idle");
       }
-
+      if (identityAvatar) {
+        if (mode === MODES.CAT) {
+          const skin = catSkins[currentSkinIndex];
+          identityAvatar.disabled = false;
+          identityAvatar.textContent = skin?.emoji || "🐈";
+          identityAvatar.setAttribute("aria-label", `Cambiar estilo del gato (actual: ${skin?.name || "Pixel"})`);
+          identityAvatar.setAttribute("title", `${skin?.name || "Gatito"} · Toca para cambiar de estilo`);
+          identityAvatar.classList.remove("is-static");
+        } else {
+          identityAvatar.disabled = true;
+          identityAvatar.textContent = "🐇";
+          identityAvatar.setAttribute("aria-label", "Familia Sylvanian en el salón");
+          identityAvatar.setAttribute("title", "Familia Sylvanian");
+          identityAvatar.classList.add("is-static");
+        }
+      }
+      if (mode === MODES.FAMILY) {
+        wanderFamilyMembers(true);
+      }
+      renderLog(getProfile(mode));
       updateUI();
-      startDayModeWatcher();
-      startCatWander();
     }
 
     function loadState() {
@@ -521,7 +718,14 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     function saveState() {
       try {
         persistSkinProgress();
-        const copy = { ...state, history: state.history.slice(-25) };
+        const copy = {
+          ...state,
+          history: (state.history || []).slice(-25),
+          family: {
+            ...state.family,
+            history: (state.family?.history || []).slice(-25),
+          },
+        };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
       } catch (error) {
         console.error("Error guardando estado", error);
@@ -529,34 +733,52 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
 
     function tick() {
-      const now = Date.now();
-      const delta = (now - state.lastTick) / 1000;
-      state.lastTick = now;
-
-      Object.entries(degradeRates).forEach(([stat, rate]) => {
-        modifyStat(stat, rate * delta);
-      });
-
-      if (state.hunger < 30) {
-        modifyStat("fun", -1.4 * delta);
-      }
-      if (state.energy < 25) {
-        modifyStat("fun", -1 * delta);
-      }
-      if (state.fun < 25) {
-        modifyStat("energy", -0.8 * delta);
-      }
-
+      tickProfile(state, degradeRates);
+      tickProfile(state.family, familyDegradeRates);
       updateUI();
       saveState();
     }
 
-    function modifyStat(stat, amount) {
-      state[stat] = clamp(state[stat] + amount, MIN_STAT, MAX_STAT);
+    function tickProfile(profile, rates) {
+      if (!profile) return;
+      const now = Date.now();
+      const lastTick = Number(profile.lastTick) || now;
+      const delta = (now - lastTick) / 1000;
+      profile.lastTick = now;
+
+      Object.entries(rates).forEach(([stat, rate]) => {
+        modifyStat(stat, rate * delta, profile);
+      });
+
+      if ((profile.hunger ?? 0) < 30) {
+        modifyStat("fun", -1.2 * delta, profile);
+      }
+      if ((profile.energy ?? 0) < 25) {
+        modifyStat("fun", -0.9 * delta, profile);
+      }
+      if ((profile.fun ?? 0) < 25) {
+        modifyStat("energy", -0.7 * delta, profile);
+      }
+
+      return delta;
+    }
+
+    function modifyStat(stat, amount, profile = getProfile()) {
+      if (!profile) return;
+      const current = Number(profile[stat] ?? 0);
+      profile[stat] = clamp(current + amount, MIN_STAT, MAX_STAT);
     }
 
     function handleAction(actionKey) {
-      const action = actions[actionKey];
+      if (isFamilyMode()) {
+        handleFamilyAction(actionKey);
+      } else {
+        handleCatAction(actionKey);
+      }
+    }
+
+    function handleCatAction(actionKey) {
+      const action = catActions[actionKey];
       if (!action) return;
 
       let effects = action.effects;
@@ -564,25 +786,96 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         effects = effects();
       }
 
-      Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value));
+      Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value, state));
       playActionSound(actionKey);
-      gainXp(action.xp);
+      gainXp(action.xp, state);
       const narration = action.text();
-      addLogEntry({ emoji: action.emoji, message: narration, timestamp: Date.now() });
+      recordLog({ emoji: action.emoji, message: narration, timestamp: Date.now() }, state);
 
       if (!state.accessoriesUnlocked && state.level >= 3) {
         state.accessoriesUnlocked = true;
         toggleAccessory(true);
-        pushLog(`${getName()} desbloquea su primer accesorio exclusivo.`, "🌟");
+        pushLog(`${getName(state)} desbloquea su primer accesorio exclusivo.`, "🌟", state);
       }
 
       setCatActivity(actionKey);
-      const mood = getMood();
+      const mood = getMood(state);
       cat.dataset.mood = mood.key;
       showToast(action.emoji, narration);
       updateUI();
       saveState();
       wanderCat(true);
+    }
+
+    function handleFamilyAction(actionKey) {
+      const action = familyActions[actionKey];
+      if (!action) return;
+
+      let effects = action.effects;
+      if (typeof effects === "function") {
+        effects = effects();
+      }
+
+      Object.entries(effects).forEach(([stat, value]) => modifyStat(stat, value, state.family));
+      playActionSound(actionKey);
+      gainXp(action.xp, state.family);
+      const narration = action.text();
+      recordLog({ emoji: action.emoji, message: narration, timestamp: Date.now() }, state.family);
+      setFamilyActivity(actionKey);
+      showToast(action.emoji, narration);
+      updateUI();
+      saveState();
+    }
+
+    function setFamilyActivity(activityKey) {
+      if (!familyScene) return;
+      if (familyActivityTimeout) {
+        clearTimeout(familyActivityTimeout);
+        familyActivityTimeout = null;
+      }
+      const activeKey = activityKey === "feed" || activityKey === "play" || activityKey === "nap" ? activityKey : "idle";
+      familyScene.dataset.activity = activeKey;
+      if (activeKey === "idle") {
+        return;
+      }
+      const duration = activeKey === "nap" ? 5200 : 2600;
+      familyActivityTimeout = setTimeout(() => {
+        familyScene.dataset.activity = "idle";
+        familyActivityTimeout = null;
+      }, duration);
+      wanderFamilyMembers(true);
+    }
+
+    function startFamilyWander() {
+      if (!familyScene || familyMembers.length === 0) return;
+      if (familyWanderIntervalId) {
+        clearInterval(familyWanderIntervalId);
+      }
+      if (!familyScene.dataset.activity) {
+        familyScene.dataset.activity = "idle";
+      }
+      wanderFamilyMembers(true);
+      familyWanderIntervalId = setInterval(() => wanderFamilyMembers(), 4200);
+    }
+
+    function wanderFamilyMembers(force = false) {
+      if (!familyScene || familyMembers.length === 0) return;
+      const sceneWidth = familyScene.clientWidth || 1;
+      const maxHorizontal = sceneWidth * 0.18;
+      familyMembers.forEach((member, index) => {
+        const previous = familyMotion.get(member) || { x: 0, y: 0 };
+        let newX = (Math.random() * 2 - 1) * maxHorizontal;
+        if (!force && Math.abs(newX - previous.x) < sceneWidth * 0.06) {
+          newX = Math.sign(newX || (index % 2 === 0 ? 1 : -1)) * Math.min(maxHorizontal, Math.abs(newX) + sceneWidth * 0.1);
+        }
+        const verticalRange = 16 + index * 4;
+        const newY = -Math.random() * verticalRange;
+        familyMotion.set(member, { x: newX, y: newY });
+        member.style.setProperty("--x", `${Math.round(newX)}px`);
+        member.style.setProperty("--y", `${Math.round(newY)}px`);
+        const pulse = 1 + Math.random() * 0.04;
+        member.style.setProperty("--scale", pulse.toFixed(3));
+      });
     }
 
   function setCatActivity(activityKey) {
@@ -596,10 +889,10 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     const nextActivity = isAnimatedAction ? activityKey : "idle";
     cat.dataset.activity = nextActivity;
     setMotion("idle");
-    syncSpriteState({ moodKey: getMood().key });
+    syncSpriteState({ moodKey: getMood(state).key });
 
     if (!isAnimatedAction) {
-      updateCatFace(getMood().key);
+      updateCatFace(getMood(state).key);
       return;
     }
 
@@ -608,25 +901,34 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
         cat.dataset.activity = "idle";
         activityTimeout = null;
         setMotion("idle");
-        syncSpriteState({ moodKey: getMood().key });
-        updateCatFace(getMood().key);
+        syncSpriteState({ moodKey: getMood(state).key });
+        updateCatFace(getMood(state).key);
       }, duration);
     }
 
-    function gainXp(amount) {
-      state.xp = Math.max(0, state.xp + amount);
-      const levelThreshold = state.level * 120;
-      if (state.xp >= levelThreshold) {
-        state.xp -= levelThreshold;
-        state.level += 1;
-        pushLog(`${getName()} sube al nivel ${state.level}.`, "🏅");
-        showToast("🏅", `${getName()} alcanza el nivel ${state.level}.`);
+    function gainXp(amount, profile = getProfile()) {
+      if (!profile || Number.isNaN(amount)) return;
+      const currentLevel = Math.max(1, Math.floor(Number(profile.level) || 1));
+      profile.level = currentLevel;
+      profile.xp = Math.max(0, Number(profile.xp) || 0) + amount;
+      const levelThreshold = currentLevel * 120;
+      if (profile.xp >= levelThreshold) {
+        profile.xp -= levelThreshold;
+        profile.level = currentLevel + 1;
+        const name = getName(profile);
+        pushLog(`${name} sube al nivel ${profile.level}.`, "🏅", profile);
+        showToast("🏅", `${name} alcanza el nivel ${profile.level}.`);
       }
-      persistSkinProgress();
+      if (profile === state) {
+        persistSkinProgress();
+      }
     }
 
-    function getMood() {
-      const avg = (state.hunger + state.energy + state.fun) / 3;
+    function getMood(profile = getProfile()) {
+      const hunger = Number(profile?.hunger ?? 0);
+      const energy = Number(profile?.energy ?? 0);
+      const fun = Number(profile?.fun ?? 0);
+      const avg = (hunger + energy + fun) / 3;
       if (avg > 80) return { key: "feliz", label: "✨ Feliz" };
       if (avg > 60) return { key: "contento", label: "😺 Contento" };
       if (avg > 40) return { key: "neutro", label: "😐 Pensativo" };
@@ -635,21 +937,27 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     }
 
     function updateUI() {
-      updateStat(hungerBar, hungerValue, state.hunger);
-      updateStat(energyBar, energyValue, state.energy);
-      updateStat(funBar, funValue, state.fun);
-      updateXP();
+      const mode = getActiveMode();
+      const profile = getProfile(mode);
+      updateStat(hungerBar, hungerValue, profile.hunger ?? 0);
+      updateStat(energyBar, energyValue, profile.energy ?? 0);
+      updateStat(funBar, funValue, profile.fun ?? 0);
+      updateXP(profile);
 
-      const mood = getMood();
+      const mood = getMood(profile);
       moodLabel.textContent = mood.label;
-      cat.dataset.mood = mood.key;
-      updateCatFace(mood.key);
-      if (lastMoodKey && lastMoodKey !== mood.key) {
+      if (mode === MODES.CAT) {
+        cat.dataset.mood = mood.key;
+        updateCatFace(mood.key);
+      } else if (familyScene) {
+        familyScene.dataset.mood = mood.key;
+      }
+      if (lastMoodKey[mode] && lastMoodKey[mode] !== mood.key) {
         playMoodSound(mood.key);
       }
-      lastMoodKey = mood.key;
-      levelLabel.textContent = state.level;
-      document.title = `${getName()} · Nivel ${state.level} | Catagotchi`;
+      lastMoodKey[mode] = mood.key;
+      levelLabel.textContent = profile.level;
+      document.title = `${getName(profile)} · Nivel ${profile.level} | Catagotchi`;
     }
 
     function updateStat(bar, valueLabel, statValue) {
@@ -665,9 +973,9 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       }
     }
 
-    function updateXP() {
-      const levelThreshold = state.level * 120;
-      const xpPercent = Math.min(100, (state.xp / levelThreshold) * 100);
+    function updateXP(profile = getProfile()) {
+      const levelThreshold = Math.max(1, profile.level) * 120;
+      const xpPercent = Math.min(100, (Number(profile.xp) / levelThreshold) * 100);
       xpBar.style.setProperty("--value", `${xpPercent}%`);
       xpBar.style.width = `${xpPercent}%`;
     }
@@ -716,22 +1024,55 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       }
     }
 
-      function addLogEntry(entry) {
-        const element = logEntryTemplate.content.cloneNode(true);
-        const timeElement = element.querySelector(".log-time");
-        const textElement = element.querySelector(".log-text");
+      function createLogElement(entry) {
+        const templateRoot = logEntryTemplate?.content?.firstElementChild;
+        const element = templateRoot ? templateRoot.cloneNode(true) : document.createElement("article");
+        element.classList.add("log-entry");
+        const timeElement = element.querySelector(".log-time") || element.appendChild(document.createElement("div"));
+        const textElement = element.querySelector(".log-text") || element.appendChild(document.createElement("div"));
         const date = new Date(entry.timestamp || Date.now());
         const time = date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-        timeElement.textContent = `${entry.emoji} ${time}`;
-        textElement.textContent = entry.message;
-        log.prepend(element);
-        state.history.push(entry);
-        state.history = state.history.slice(-40);
+        timeElement.textContent = `${entry.emoji || "✨"} ${time}`;
+        timeElement.classList.add("log-time");
+        textElement.textContent = entry.message || "";
+        textElement.classList.add("log-text");
+        return element;
       }
 
-      function pushLog(message, emoji = "✨") {
-        const entry = { emoji, message, timestamp: Date.now() };
-        addLogEntry(entry);
+      function renderLog(profile = getProfile()) {
+        if (!log) return;
+        log.innerHTML = "";
+        const history = Array.isArray(profile?.history) ? profile.history : [];
+        history
+          .slice()
+          .reverse()
+          .forEach((entry) => {
+            log.appendChild(createLogElement(entry));
+          });
+      }
+
+      function recordLog(entry, profile = getProfile()) {
+        if (!profile) return;
+        const normalized = {
+          emoji: entry?.emoji || "✨",
+          message: entry?.message || "",
+          timestamp: entry?.timestamp || Date.now(),
+        };
+      if (!Array.isArray(profile.history)) {
+        profile.history = [];
+      }
+      profile.history.push(normalized);
+      profile.history = profile.history.slice(-40);
+      if (profile === getProfile() && log) {
+        log.prepend(createLogElement(normalized));
+        while (log.children.length > 40) {
+          log.removeChild(log.lastElementChild);
+        }
+      }
+    }
+
+      function pushLog(message, emoji = "✨", profile = getProfile()) {
+        recordLog({ emoji, message, timestamp: Date.now() }, profile);
         saveState();
       }
 
@@ -2219,7 +2560,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
             "radial-gradient(circle at top, #ffe3f1 0%, #ffb7d5 36%, #ff86c6 70%, #f564a5 100%)"
           );
           dayEmoji.textContent = "🌞";
-          dayLabel.textContent = "Parque soleado";
+          dayLabel.textContent = "Modo día";
           degradeRates = { ...baseDegradeRates };
         } else {
             document.documentElement.style.setProperty(
@@ -2227,14 +2568,9 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
               "radial-gradient(circle at top, #2b1b68 0%, #1d0f51 42%, #10063a 75%, #040019 100%)"
             );
             dayEmoji.textContent = "🌙";
-            dayLabel.textContent = "Noche estrellada";
+            dayLabel.textContent = "Modo noche";
             degradeRates = { ...baseDegradeRates, energy: -1.4 };
           }
-        }
-
-        function getName() {
-          const fallbackSkin = catSkins[currentSkinIndex] ?? catSkins[0];
-          return state.name || fallbackSkin?.name || "Pixel";
         }
 
         function startCatWander() {
@@ -2276,6 +2612,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
 
         window.addEventListener("visibilitychange", () => {
           state.lastTick = Date.now();
+          state.family.lastTick = Date.now();
           if (document.visibilityState === "visible") {
             refreshDayMode({ announce: true });
           }
