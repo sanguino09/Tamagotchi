@@ -1,4 +1,4 @@
-const CACHE_NAME = 'catagotchi-v2';
+const CACHE_NAME = 'catagotchi-v3';
 const OFFLINE_URL = './index.html';
 const ASSETS = [
   './',
@@ -67,5 +67,29 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => caches.match(OFFLINE_URL));
     })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification && event.notification.data && event.notification.data.url) || './';
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ('focus' in client) {
+            client.focus();
+            if (targetUrl && client.url !== targetUrl && 'navigate' in client) {
+              client.navigate(targetUrl);
+            }
+            return;
+          }
+        }
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(targetUrl);
+        }
+        return undefined;
+      })
   );
 });

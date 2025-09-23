@@ -26,14 +26,19 @@ const toastMessage = document.getElementById("toastMessage");
 const log = document.getElementById("log");
 const logEntryTemplate = document.getElementById("logEntryTemplate");
 const installButton = document.getElementById("installButton");
+const notificationsButton = document.getElementById("notificationsButton");
 
 const motionPreference =
   typeof window !== "undefined" && typeof window.matchMedia === "function"
     ? window.matchMedia("(prefers-reduced-motion: reduce)")
     : null;
 
+const REMINDER_DELAY_MS = 1000 * 60 * 90;
+const MIN_REMINDER_DELAY_MS = 1000 * 30;
+
 let deferredInstallPrompt = null;
 let hasWarnedStructuredCloneFallback = false;
+let reminderTimeoutId = null;
 
 function deepClone(value) {
   if (typeof structuredClone === "function") {
@@ -166,6 +171,8 @@ const defaultState = {
   xp: 0,
   level: 1,
   lastTick: Date.now(),
+  lastInteraction: Date.now(),
+  remindersEnabled: false,
   history: [],
   accessoriesUnlocked: false,
   dayMode: "day",
@@ -176,6 +183,13 @@ const defaultState = {
 const state = loadState();
 
 state.dayMode = getAutomaticDayMode();
+
+if (!Number.isFinite(state.lastInteraction)) {
+  state.lastInteraction = Date.now();
+}
+if (typeof state.remindersEnabled !== "boolean") {
+  state.remindersEnabled = false;
+}
 
 if (!state.skin || !catSkins.some((skin) => skin.id === state.skin)) {
   state.skin = catSkins[0].id;
@@ -442,7 +456,228 @@ function setupInstallPromptHandlers() {
       installButton.disabled = false;
     }
     showToast("📲", "Catagotchi está en tu pantalla de inicio.");
+    refreshNotificationAvailability();
   });
+}
+
+function canUseNotifications() {
+  return typeof window !== "undefined" && typeof Notification === "function";
+}
+
+function isStandaloneExperience() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  if (typeof window.matchMedia === "function") {
+    try {
+      if (window.matchMedia("(display-mode: standalone)")?.matches) {
+        return true;
+      }
+      if (window.matchMedia("(display-mode: window-controls-overlay)")?.matches) {
+        return true;
+      }
+    } catch (error) {
+      // Ignorado: algunos navegadores lanzan al consultar display-mode.
+    }
+  }
+  if (typeof window.navigator !== "undefined" && window.navigator.standalone) {
+    return true;
+  }
+  return false;
+}
+
+function refreshNotificationAvailability() {
+  if (!notificationsButton) {
+    return;
+  }
+  const supported = canUseNotifications();
+  const permission = supported ? Notification.permission : "denied";
+  const installed = isStandaloneExperience();
+  const shouldShow = supported && permission !== "denied" && (installed || permission === "granted");
+  if (!shouldShow) {
+    notificationsButton.hidden = true;
+    notificationsButton.disabled = true;
+    notificationsButton.dataset.state = "off";
+    notificationsButton.setAttribute("aria-pressed", "false");
+    if (state.remindersEnabled) {
+      state.remindersEnabled = false;
+      cancelReminder();
+      scheduleStateSave();
+    }
+    return;
+  }
+
+  notificationsButton.hidden = false;
+  notificationsButton.disabled = false;
+  const active = Boolean(state.remindersEnabled && permission === "granted");
+  notificationsButton.dataset.state = active ? "on" : "off";
+  notificationsButton.setAttribute("aria-pressed", active ? "true" : "false");
+  notificationsButton.textContent = active ? "🔕 Pausar aviso" : "🔔 Recordatorio";
+  notificationsButton.setAttribute(
+    "aria-label",
+    active ? "Desactivar recordatorios" : "Activar recordatorios"
+  );
+  notificationsButton.title = active
+    ? "Pausa los avisos de mimos"
+    : "Activa un recordatorio para que no se te olvide jugar";
+
+  if (active) {
+    scheduleReminder();
+  } else {
+    cancelReminder();
+  }
+}
+
+async function enableReminders() {
+  if (!canUseNotifications()) {
+    showToast("ℹ️", "Tu navegador no admite notificaciones en este dispositivo.");
+    return;
+  }
+  let permission = Notification.permission;
+  if (permission === "default") {
+    try {
+      permission = await Notification.requestPermission();
+    } catch (error) {
+      console.error("No se pudo solicitar permiso de notificaciones", error);
+      permission = Notification.permission;
+    }
+  }
+  if (permission !== "granted") {
+    state.remindersEnabled = false;
+    showToast("ℹ️", "Activa las notificaciones desde los ajustes del navegador.");
+    refreshNotificationAvailability();
+    scheduleStateSave();
+    return;
+  }
+  state.remindersEnabled = true;
+  state.lastInteraction = Date.now();
+  showToast("🔔", `${getName()} te avisará cuando necesite mimos.`);
+  scheduleReminder({ reset: true });
+  refreshNotificationAvailability();
+  scheduleStateSave();
+}
+
+function disableReminders({ silent = false } = {}) {
+  if (!state.remindersEnabled) {
+    return;
+  }
+  state.remindersEnabled = false;
+  cancelReminder();
+  if (!silent) {
+    showToast("🔕", "Recordatorios en pausa.");
+  }
+  refreshNotificationAvailability();
+  scheduleStateSave();
+}
+
+function canSendReminder() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.setTimeout === "function" &&
+    state.remindersEnabled &&
+    canUseNotifications() &&
+    Notification.permission === "granted"
+  );
+}
+
+function cancelReminder() {
+  if (reminderTimeoutId !== null) {
+    clearTimeout(reminderTimeoutId);
+    reminderTimeoutId = null;
+  }
+}
+
+function scheduleReminder({ reset = false } = {}) {
+  cancelReminder();
+  if (!canSendReminder()) {
+    return;
+  }
+  const now = Date.now();
+  if (reset) {
+    state.lastInteraction = now;
+  }
+  const lastInteraction = Number(state.lastInteraction) || now;
+  const elapsed = now - lastInteraction;
+  const delay = Math.max(MIN_REMINDER_DELAY_MS, REMINDER_DELAY_MS - elapsed);
+  reminderTimeoutId = window.setTimeout(() => {
+    reminderTimeoutId = null;
+    triggerReminderNotification();
+  }, delay);
+}
+
+async function triggerReminderNotification() {
+  if (!canSendReminder()) {
+    return;
+  }
+  const name = getName();
+  const title = `¡${name} te echa de menos!`;
+  const body = `${name} quiere que vuelvas a jugar un ratito.`;
+  const options = {
+    body,
+    icon: "icons/icon-192.svg",
+    badge: "icons/icon-192.svg",
+    tag: "catagotchi-recordatorio",
+    renotify: true,
+    data: { url: typeof window !== "undefined" ? window.location.href : "./" },
+  };
+  try {
+    if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+      const registration = await navigator.serviceWorker.ready;
+      if (registration?.showNotification) {
+        await registration.showNotification(title, options);
+      } else if (typeof Notification === "function") {
+        new Notification(title, options);
+      }
+    } else if (typeof Notification === "function") {
+      new Notification(title, options);
+    }
+  } catch (error) {
+    console.error("No se pudo mostrar el recordatorio", error);
+  } finally {
+    state.lastInteraction = Date.now();
+    scheduleStateSave();
+    scheduleReminder();
+  }
+}
+
+function markInteractionForReminder() {
+  state.lastInteraction = Date.now();
+  if (state.remindersEnabled) {
+    scheduleReminder({ reset: true });
+  }
+}
+
+function setupNotificationReminders() {
+  if (!notificationsButton) {
+    return;
+  }
+  notificationsButton.addEventListener("click", async () => {
+    if (state.remindersEnabled) {
+      disableReminders();
+    } else {
+      await enableReminders();
+    }
+  });
+
+  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    const queries = ["(display-mode: standalone)", "(display-mode: window-controls-overlay)"];
+    queries.forEach((query) => {
+      const media = window.matchMedia(query);
+      if (!media) return;
+      const listener = () => refreshNotificationAvailability();
+      if (typeof media.addEventListener === "function") {
+        media.addEventListener("change", listener);
+      } else if (typeof media.addListener === "function") {
+        media.addListener(listener);
+      }
+    });
+  }
+
+  refreshNotificationAvailability();
+
+  if (canSendReminder()) {
+    scheduleReminder();
+  }
 }
 
 function registerServiceWorker() {
@@ -615,6 +850,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
       catNameInput.addEventListener("change", () => {
         const fallbackName = catSkins[currentSkinIndex]?.name ?? catSkins[0].name;
         state.name = catNameInput.value.trim() || fallbackName;
+        markInteractionForReminder();
         scheduleStateSave();
         pushLog(`Ahora se llama ${state.name}.`, "✨");
         updateUI();
@@ -628,6 +864,7 @@ function persistSkinProgress(skinId = getCurrentSkinId()) {
     if (identityAvatar) {
       identityAvatar.addEventListener("click", () => {
         cycleCatSkin();
+        markInteractionForReminder();
       });
     }
 
@@ -820,6 +1057,7 @@ function tickProfile(profile, rates) {
       cat.dataset.mood = mood.key;
       showToast(action.emoji, narration);
       updateUI();
+      markInteractionForReminder();
       scheduleStateSave();
       wanderCat(true);
     }
@@ -1733,8 +1971,8 @@ function tickProfile(profile, rates) {
       const headGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
       headGrad.addColorStop(0, shiftColor(palette.furSecondary, 0.16));
       headGrad.addColorStop(1, shiftColor(palette.furMain, -0.14));
-      drawSleepingEar(radius * 0.16, -radius * 1.02, true);
-      drawSleepingEar(-radius * 0.78, -radius * 0.92, false);
+      drawSleepingEar(radius * 0.1, -radius * 1.22, true);
+      drawSleepingEar(-radius * 0.82, -radius * 1.12, false);
 
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -2321,13 +2559,13 @@ function tickProfile(profile, rates) {
       if (mirrored) {
         ctx.scale(-1, 1);
       }
-      ctx.rotate(-0.2);
-      const earWidth = metrics.ear.width * 0.9;
-      const earHeight = metrics.ear.height * 0.8;
+      ctx.rotate(-0.12);
+      const earWidth = metrics.ear.width * 0.92;
+      const earHeight = metrics.ear.height * 1.05;
       ctx.beginPath();
-      ctx.moveTo(0, earHeight * 0.96);
-      ctx.quadraticCurveTo(earWidth * 0.22, earHeight * 0.42, earWidth * 0.7, 0);
-      ctx.quadraticCurveTo(earWidth * 0.36, earHeight * 0.58, 0, earHeight * 0.96);
+      ctx.moveTo(0, earHeight * 0.98);
+      ctx.quadraticCurveTo(earWidth * 0.2, earHeight * 0.38, earWidth * 0.66, -earHeight * 0.08);
+      ctx.quadraticCurveTo(earWidth * 0.32, earHeight * 0.54, 0, earHeight * 0.98);
       ctx.closePath();
       const earColor = styleKey === "crema" ? palette.patternMask || palette.furAccent : palette.furSecondary;
       const earGrad = ctx.createLinearGradient(earWidth * 0.1, earHeight, earWidth * 0.78, earHeight * 0.12);
@@ -2338,9 +2576,9 @@ function tickProfile(profile, rates) {
 
       if (palette.earInner) {
         ctx.beginPath();
-        ctx.moveTo(earWidth * 0.16, earHeight * 0.86);
-        ctx.quadraticCurveTo(earWidth * 0.42, earHeight * 0.4, earWidth * 0.58, earHeight * 0.74);
-        ctx.quadraticCurveTo(earWidth * 0.32, earHeight * 0.64, earWidth * 0.16, earHeight * 0.92);
+        ctx.moveTo(earWidth * 0.14, earHeight * 0.88);
+        ctx.quadraticCurveTo(earWidth * 0.4, earHeight * 0.32, earWidth * 0.56, earHeight * 0.68);
+        ctx.quadraticCurveTo(earWidth * 0.3, earHeight * 0.6, earWidth * 0.14, earHeight * 0.94);
         ctx.closePath();
         const innerGrad = ctx.createLinearGradient(earWidth * 0.12, earHeight * 0.95, earWidth * 0.6, earHeight * 0.25);
         innerGrad.addColorStop(0, shiftColor(palette.earInner, -0.04));
@@ -2352,8 +2590,8 @@ function tickProfile(profile, rates) {
       }
 
       ctx.beginPath();
-      ctx.moveTo(earWidth * 0.18, earHeight * 0.76);
-      ctx.quadraticCurveTo(earWidth * 0.4, earHeight * 0.3, earWidth * 0.6, earHeight * 0.52);
+      ctx.moveTo(earWidth * 0.16, earHeight * 0.74);
+      ctx.quadraticCurveTo(earWidth * 0.38, earHeight * 0.26, earWidth * 0.58, earHeight * 0.48);
       ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
       ctx.lineWidth = Math.max(1, earWidth * 0.06);
       ctx.lineCap = "round";
@@ -2885,6 +3123,9 @@ window.addEventListener("visibilitychange", () => {
   refreshDayMode({ announce: true });
   refreshMotionSystems();
   startTickLoop();
+  refreshNotificationAvailability();
+  markInteractionForReminder();
+  scheduleStateSave();
 });
 
 window.addEventListener("beforeunload", () => {
@@ -2894,3 +3135,4 @@ window.addEventListener("beforeunload", () => {
 
         setupInstallPromptHandlers();
         registerServiceWorker();
+        setupNotificationReminders();
