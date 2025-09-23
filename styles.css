@@ -262,6 +262,16 @@
         box-shadow: 0 2px 0 rgba(255, 118, 197, 0.28);
       }
 
+      #notificationsButton[data-state="on"] {
+        background: linear-gradient(180deg, rgba(255, 214, 238, 0.95), rgba(255, 173, 219, 0.92));
+        box-shadow: 0 5px 0 rgba(214, 78, 159, 0.32);
+        color: var(--text-primary);
+      }
+
+      #notificationsButton[data-state="on"]:active {
+        box-shadow: 0 2px 0 rgba(214, 78, 159, 0.32);
+      }
+
       .scene {
         position: relative;
         height: clamp(260px, 48vw, 320px);
@@ -417,15 +427,19 @@
       }
 
       #propBowl {
-        width: 34%;
+        width: 36%;
         aspect-ratio: 5 / 3.2;
-        background: linear-gradient(180deg, #ffe9d4 0%, #f8c18b 52%, #e1843d 100%);
-        border-radius: 48% 48% 58% 58% / 70% 70% 44% 44%;
+        background:
+          radial-gradient(circle at 50% 118%, rgba(223, 118, 52, 0.42) 0 46%, rgba(223, 118, 52, 0) 70%),
+          linear-gradient(180deg, #fff2e5 0%, #f8c18b 52%, #de7c31 100%);
+        border-radius: 50% 50% 62% 62% / 76% 76% 46% 46%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
         box-shadow:
-          inset 0 -12px 18px rgba(125, 52, 12, 0.24),
-          inset 0 8px 12px rgba(255, 255, 255, 0.62),
-          0 14px 20px rgba(140, 62, 16, 0.22);
-        transform: translate(-50%, 22%) scale(0.94);
+          inset 0 -14px 20px rgba(125, 52, 12, 0.28),
+          inset 0 10px 18px rgba(255, 255, 255, 0.62),
+          0 16px 26px rgba(140, 62, 16, 0.28),
+          0 26px 0 -12px rgba(106, 46, 16, 0.32);
+        transform: translate(-50%, 20%) scale(0.96);
         overflow: visible;
       }
 
@@ -435,57 +449,67 @@
         inset: 6% 10% auto;
         height: 36%;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.08));
-        box-shadow: 0 6px 10px rgba(255, 255, 255, 0.45);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.12)),
+          radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+        box-shadow: 0 8px 12px rgba(255, 255, 255, 0.38);
       }
 
       #propBowl::after {
         content: "";
         position: absolute;
-        inset: 30% 18% 16%;
-        border-radius: 60% 60% 52% 52% / 68% 68% 42% 42%;
+        inset: 28% 14% 16%;
+        border-radius: 62% 62% 48% 48% / 72% 72% 46% 46%;
         background:
-          radial-gradient(circle at 22% 42%, rgba(255, 234, 204, 0.95) 0 46%, transparent 47%),
-          radial-gradient(circle at 78% 38%, rgba(255, 234, 204, 0.95) 0 46%, transparent 47%),
-          radial-gradient(circle at 50% 50%, rgba(250, 143, 94, 0.85) 0 30%, transparent 32%),
-          radial-gradient(circle at 52% 64%, rgba(255, 187, 125, 0.85) 0 42%, transparent 44%),
-          repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.16) 0 4px, rgba(255, 255, 255, 0) 4px 8px);
-        box-shadow: inset 0 -8px 12px rgba(145, 72, 24, 0.24);
+          radial-gradient(circle at 18% 36%, rgba(255, 234, 204, 0.98) 0 32%, transparent 36%),
+          radial-gradient(circle at 46% 68%, rgba(255, 197, 140, 0.94) 0 28%, transparent 32%),
+          radial-gradient(circle at 74% 42%, rgba(255, 208, 152, 0.92) 0 36%, transparent 40%),
+          radial-gradient(circle at 78% 68%, rgba(237, 125, 66, 0.88) 0 28%, transparent 32%),
+          conic-gradient(from 120deg, rgba(255, 255, 255, 0.35) 0deg 60deg, rgba(255, 255, 255, 0) 60deg 240deg, rgba(255, 255,
+255, 0.35) 240deg 360deg),
+          repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 4px, rgba(255, 255, 255, 0) 4px 8px);
+        box-shadow:
+          inset 0 -10px 16px rgba(145, 72, 24, 0.3),
+          inset 0 8px 14px rgba(255, 255, 255, 0.26);
       }
 
       #propYarn {
         background:
-          radial-gradient(circle at 30% 28%, rgba(255, 246, 254, 0.85) 0 36%, rgba(255, 246, 254, 0) 68%),
-          conic-gradient(from 140deg, #f672b5 0 70deg, #c94f94 70deg 140deg, #ff8ac8 140deg 210deg, #bf4a86 210deg 360deg);
+          radial-gradient(circle at 34% 28%, rgba(255, 246, 254, 0.85) 0 38%, rgba(255, 246, 254, 0) 60%),
+          radial-gradient(circle at 70% 74%, rgba(255, 190, 232, 0.32) 0 32%, rgba(255, 190, 232, 0) 72%),
+          conic-gradient(from 120deg, #f672b5 0 70deg, #c94f94 70deg 140deg, #ff8ac8 140deg 210deg, #bf4a86 210deg 360deg);
         border-radius: 50%;
         box-shadow:
-          inset -8px 8px 0 rgba(90, 22, 70, 0.18),
+          inset -10px 10px 0 rgba(90, 22, 70, 0.18),
           inset 0 0 0 3px rgba(255, 255, 255, 0.22),
-          0 14px 18px rgba(106, 32, 84, 0.2);
-        transform: translate(-60%, 6%) rotate(-16deg) scale(0.92);
+          0 16px 24px rgba(106, 32, 84, 0.24);
+        transform: translate(-58%, 8%) rotate(-12deg) scale(0.94);
       }
 
       #propYarn::before {
         content: "";
         position: absolute;
-        width: 82%;
-        height: 26%;
-        left: 76%;
-        top: 62%;
+        width: 92%;
+        height: 28%;
+        left: 74%;
+        top: 64%;
         border-radius: 999px;
-        background: linear-gradient(90deg, rgba(255, 207, 238, 0.82), rgba(214, 103, 170, 0.65));
-        transform: rotate(18deg);
-        box-shadow: 0 6px 10px rgba(78, 20, 53, 0.22);
+        background:
+          radial-gradient(circle at 12% 40%, rgba(255, 255, 255, 0.65) 0 28%, rgba(255, 255, 255, 0) 60%),
+          linear-gradient(90deg, rgba(255, 207, 238, 0.85), rgba(214, 103, 170, 0.55));
+        transform: rotate(24deg);
+        box-shadow: 0 6px 12px rgba(78, 20, 53, 0.28);
       }
 
       #propYarn::after {
         content: "";
         position: absolute;
-        inset: 18% 20% 20% 18%;
+        inset: 16% 18% 18% 16%;
         border-radius: 50%;
         background:
-          conic-gradient(from 100deg, rgba(255, 255, 255, 0.38) 0deg 44deg, rgba(255, 255, 255, 0) 44deg 120deg, rgba(255, 255, 255, 0.3) 120deg 160deg, rgba(255, 255, 255, 0) 160deg 360deg),
-          repeating-conic-gradient(from 0deg, rgba(255, 178, 215, 0.55) 0deg 12deg, rgba(255, 178, 215, 0) 12deg 24deg);
+          radial-gradient(circle at 26% 34%, rgba(255, 255, 255, 0.32) 0 22%, rgba(255, 255, 255, 0) 36%),
+          conic-gradient(from 110deg, rgba(255, 255, 255, 0.3) 0deg 42deg, rgba(255, 255, 255, 0) 42deg 120deg, rgba(255, 255, 255, 0.24) 120deg 160deg, rgba(255, 255, 255, 0) 160deg 360deg),
+          repeating-conic-gradient(from -10deg, rgba(255, 178, 215, 0.55) 0deg 12deg, rgba(255, 178, 215, 0) 12deg 24deg);
         opacity: 0.9;
       }
 
@@ -516,7 +540,7 @@
       @keyframes bowlBounce {
         0%,
         100% {
-          transform: translate(-50%, 22%) scale(0.94);
+          transform: translate(-50%, 20%) scale(0.96);
         }
         50% {
           transform: translate(-50%, 12%) scale(1.04);
@@ -526,10 +550,10 @@
       @keyframes yarnBounce {
         0%,
         100% {
-          transform: translate(-60%, 6%) rotate(-16deg) scale(0.92);
+          transform: translate(-58%, 8%) rotate(-12deg) scale(0.94);
         }
         50% {
-          transform: translate(-62%, -6%) rotate(8deg) scale(1.02);
+          transform: translate(-62%, -4%) rotate(10deg) scale(1.05);
         }
       }
 
