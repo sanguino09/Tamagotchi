@@ -7,7 +7,6 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -24,7 +23,6 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { Heart, Battery, Coffee, Play, Moon, Sun } = lucide;
 
         const CatTamagotchi = () => {
           const [gameState, setGameState] = useState({
@@ -348,7 +346,9 @@
                     </span>
                   </div>
                   <div className="flex justify-center items-center space-x-2">
-                    {isNightTime ? <Moon size={16} className="text-indigo-600" /> : <Sun size={16} className="text-yellow-500" />}
+                    <span className="text-base" role="img" aria-hidden="true">
+                      {isNightTime ? '🌙' : '☀️'}
+                    </span>
                     <span className="text-xs text-gray-500">
                       {isNightTime ? 'Hora de dormir' : 'Día activo'}
                     </span>
@@ -357,7 +357,7 @@
 
                 <div className="px-6 pb-6 space-y-3">
                   <div className="flex items-center space-x-3">
-                    <Heart className="text-red-500" size={20} />
+                    <span className="text-red-500 text-xl" role="img" aria-hidden="true">❤️</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-sm mb-1">
                         <span className="font-medium">Felicidad</span>
@@ -373,7 +373,7 @@
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <Battery className="text-green-500" size={20} />
+                    <span className="text-green-500 text-xl" role="img" aria-hidden="true">🔋</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-sm mb-1">
                         <span className="font-medium">Energía</span>
@@ -389,7 +389,7 @@
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <Coffee className="text-yellow-600" size={20} />
+                    <span className="text-yellow-600 text-xl" role="img" aria-hidden="true">🍗</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-sm mb-1">
                         <span className="font-medium">Hambre</span>
@@ -414,7 +414,7 @@
                     disabled={isAnimating}
                     className="flex flex-col items-center space-y-2 px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
                   >
-                    <Coffee size={20} />
+                    <span className="text-2xl" role="img" aria-hidden="true">🍲</span>
                     <span className="text-xs font-medium">Comer</span>
                   </button>
 
@@ -423,7 +423,7 @@
                     disabled={isAnimating}
                     className="flex flex-col items-center space-y-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
                   >
-                    <Play size={20} />
+                    <span className="text-2xl" role="img" aria-hidden="true">🧶</span>
                     <span className="text-xs font-medium">Jugar</span>
                   </button>
 
@@ -432,7 +432,7 @@
                     disabled={isAnimating}
                     className="flex flex-col items-center space-y-2 px-4 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
                   >
-                    <Moon size={20} />
+                    <span className="text-2xl" role="img" aria-hidden="true">🌙</span>
                     <span className="text-xs font-medium">Dormir</span>
                   </button>
                 </div>
