@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐱 Tamagotchi de los Gatos</title>
+    <meta name="theme-color" content="#ff85c5">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -145,7 +149,24 @@
           const [isAnimating, setIsAnimating] = useState(false);
           const [currentAction, setCurrentAction] = useState('');
           const [isNightTime, setIsNightTime] = useState(false);
+          const [canInstall, setCanInstall] = useState(false);
+          const [installStatus, setInstallStatus] = useState('');
+          const [isStandalone, setIsStandalone] = useState(false);
+          const [isIosDevice, setIsIosDevice] = useState(false);
           const soundControllerRef = useRef(typeof window !== 'undefined' ? createSoundController() : null);
+          const installPromptRef = useRef(null);
+          const installStatusTimeoutRef = useRef(null);
+
+          const showInstallStatus = useCallback((message) => {
+            setInstallStatus(message);
+            if (installStatusTimeoutRef.current) {
+              clearTimeout(installStatusTimeoutRef.current);
+            }
+            installStatusTimeoutRef.current = setTimeout(() => {
+              setInstallStatus('');
+              installStatusTimeoutRef.current = null;
+            }, 6000);
+          }, []);
 
           const playActionSound = useCallback((actionKey) => {
             const controller = soundControllerRef.current;
@@ -154,6 +175,27 @@
           }, []);
 
           useEffect(() => {
+            if (typeof window === 'undefined') {
+              return undefined;
+            }
+            setIsIosDevice(/iphone|ipad|ipod/i.test(window.navigator.userAgent || ''));
+            return () => {
+              if (installStatusTimeoutRef.current) {
+                clearTimeout(installStatusTimeoutRef.current);
+              }
+            };
+          }, []);
+
+          useEffect(() => {
+            if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+              navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+            }
+          }, []);
+
+          useEffect(() => {
+            if (typeof window === 'undefined') {
+              return undefined;
+            }
             const updateTimeOfDay = () => {
               const hour = new Date().getHours();
               setIsNightTime(hour < 6 || hour >= 20);
@@ -161,6 +203,64 @@
             updateTimeOfDay();
             const timeInterval = setInterval(updateTimeOfDay, 60000);
             return () => clearInterval(timeInterval);
+          }, []);
+
+          useEffect(() => {
+            if (typeof window === 'undefined') {
+              return undefined;
+            }
+            const handleBeforeInstallPrompt = (event) => {
+              event.preventDefault();
+              installPromptRef.current = event;
+              setCanInstall(true);
+            };
+
+            const handleAppInstalled = () => {
+              installPromptRef.current = null;
+              setCanInstall(false);
+              setIsStandalone(true);
+              showInstallStatus('Catagotchi está en tu pantalla de inicio 🐾');
+            };
+
+            window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.addEventListener('appinstalled', handleAppInstalled);
+
+            return () => {
+              window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+              window.removeEventListener('appinstalled', handleAppInstalled);
+            };
+          }, [showInstallStatus]);
+
+          useEffect(() => {
+            if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+              return undefined;
+            }
+            const mediaQuery = window.matchMedia('(display-mode: standalone)');
+
+            const updateStandalone = () => {
+              const navigatorStandalone =
+                typeof window.navigator !== 'undefined' && 'standalone' in window.navigator
+                  ? window.navigator.standalone
+                  : false;
+              const standalone = mediaQuery.matches || Boolean(navigatorStandalone);
+              setIsStandalone(standalone);
+            };
+
+            updateStandalone();
+
+            if (typeof mediaQuery.addEventListener === 'function') {
+              mediaQuery.addEventListener('change', updateStandalone);
+            } else if (typeof mediaQuery.addListener === 'function') {
+              mediaQuery.addListener(updateStandalone);
+            }
+
+            return () => {
+              if (typeof mediaQuery.removeEventListener === 'function') {
+                mediaQuery.removeEventListener('change', updateStandalone);
+              } else if (typeof mediaQuery.removeListener === 'function') {
+                mediaQuery.removeListener(updateStandalone);
+              }
+            };
           }, []);
 
           useEffect(() => {
@@ -269,6 +369,34 @@
               setCurrentAction('');
             }, 2500);
           };
+
+          const handleInstallClick = useCallback(async () => {
+            if (installPromptRef.current) {
+              try {
+                installPromptRef.current.prompt();
+                const choice = await installPromptRef.current.userChoice;
+                if (choice?.outcome === 'accepted') {
+                  showInstallStatus('¡Listo! Busca Catagotchi en tu pantalla de inicio.');
+                } else {
+                  showInstallStatus('Puedes añadir Catagotchi más tarde desde el menú de tu navegador.');
+                }
+              } catch (error) {
+                showInstallStatus('No se pudo completar la instalación. Inténtalo de nuevo más tarde.');
+              } finally {
+                installPromptRef.current = null;
+                setCanInstall(false);
+              }
+              return;
+            }
+
+            if (isIosDevice) {
+              showInstallStatus('Pulsa el botón Compartir y elige "Añadir a pantalla de inicio".');
+            } else {
+              showInstallStatus('Busca "Añadir a pantalla de inicio" en el menú de tu navegador.');
+            }
+          }, [isIosDevice, showInstallStatus]);
+
+          const shouldShowInstallButton = !isStandalone && (canInstall || isIosDevice);
 
           const getStatColor = (value) => {
             if (value > 70) return 'bg-green-500';
@@ -538,6 +666,31 @@
                     <span className="text-xs font-medium">Dormir</span>
                   </button>
                 </div>
+
+                {installStatus && (
+                  <div className="px-6 pb-4">
+                    <div className="bg-pink-50 border border-pink-200 text-pink-700 text-sm rounded-2xl px-4 py-3 text-center">
+                      {installStatus}
+                    </div>
+                  </div>
+                )}
+
+                {shouldShowInstallButton && (
+                  <div className="px-6 pb-6">
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-2xl transition-all duration-300"
+                    >
+                      <span className="text-xl" role="img" aria-hidden="true">📲</span>
+                      <span className="text-sm font-semibold">Guardar en pantalla de inicio</span>
+                    </button>
+                    {isIosDevice && !canInstall && (
+                      <p className="mt-3 text-xs text-center text-gray-600">
+                        En iPhone o iPad abre el menú de compartir y toca «Añadir a pantalla de inicio».
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {currentAction && (
                   <div className="px-6 pb-6">
