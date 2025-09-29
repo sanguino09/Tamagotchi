@@ -22,7 +22,86 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        const SOUND_LIBRARY = {
+          meow: {
+            files: ['meow-1.mp3', 'meow_QO6VsE6.mp3', 'the-end-meow-by-nekocat-just-3-second-1.mp3'],
+            volume: 0.6
+          },
+          purr: {
+            files: ['cat-purr.mp3', 'little-puff-purr.mp3', 'little-puff-purr-brr.mp3'],
+            volume: 0.45
+          }
+        };
+
+        const ACTION_SOUNDS = {
+          feed: ['meow', 'purr'],
+          play: ['meow'],
+          sleep: ['purr']
+        };
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+        const createSoundController = () => {
+          if (typeof Audio === 'undefined') {
+            return null;
+          }
+
+          const pools = Object.entries(SOUND_LIBRARY).reduce((acc, [key, definition]) => {
+            const { files = [], volume = 0.5 } = definition || {};
+            const entries = files.filter(Boolean).map(src => {
+              const element = new Audio(src);
+              element.preload = 'auto';
+              element.volume = volume;
+              return { src, instances: [element], volume };
+            });
+            if (entries.length > 0) {
+              acc[key] = entries;
+            }
+            return acc;
+          }, {});
+
+          const getInstance = (entry) => {
+            if (!entry) return null;
+            const available = entry.instances.find(audio => audio.paused);
+            if (available) {
+              return available;
+            }
+            const clone = entry.instances[0]?.cloneNode(true) || new Audio(entry.src);
+            clone.volume = entry.volume;
+            clone.preload = 'auto';
+            entry.instances.push(clone);
+            return clone;
+          };
+
+          const playEffect = (effectKey) => {
+            const entries = pools[effectKey];
+            if (!entries || entries.length === 0) return;
+            const entry = entries[Math.floor(Math.random() * entries.length)];
+            const audio = getInstance(entry);
+            if (!audio) return;
+            audio.currentTime = 0;
+            const playback = audio.play();
+            if (playback && typeof playback.catch === 'function') {
+              playback.catch(() => {});
+            }
+          };
+
+          const playForAction = (actionKey) => {
+            const effects = ACTION_SOUNDS[actionKey];
+            if (Array.isArray(effects) && effects.length > 0) {
+              effects.forEach(effect => playEffect(effect));
+            } else {
+              playEffect(actionKey);
+            }
+          };
+
+          return {
+            playEffect,
+            playForAction
+          };
+        };
 
         const CatTamagotchi = () => {
           const [gameState, setGameState] = useState({
@@ -39,27 +118,40 @@
               type: 'tuxedo',
               position: { x: 25, y: 60 },
               direction: 1,
-              actionState: 'idle'
+              actionState: 'idle',
+              tilt: 0,
+              bobOffset: 0
             },
             {
               name: 'Arwen',
               type: 'gris',
               position: { x: 50, y: 70 },
               direction: -1,
-              actionState: 'idle'
+              actionState: 'idle',
+              tilt: 0,
+              bobOffset: 0
             },
             {
               name: 'Iria',
               type: 'siamese',
               position: { x: 75, y: 65 },
               direction: 1,
-              actionState: 'idle'
+              actionState: 'idle',
+              tilt: 0,
+              bobOffset: 0
             }
           ]);
 
           const [isAnimating, setIsAnimating] = useState(false);
           const [currentAction, setCurrentAction] = useState('');
           const [isNightTime, setIsNightTime] = useState(false);
+          const soundControllerRef = useRef(typeof window !== 'undefined' ? createSoundController() : null);
+
+          const playActionSound = useCallback((actionKey) => {
+            const controller = soundControllerRef.current;
+            if (!controller) return;
+            controller.playForAction(actionKey);
+          }, []);
 
           useEffect(() => {
             const updateTimeOfDay = () => {
@@ -74,28 +166,33 @@
           useEffect(() => {
             const moveInterval = setInterval(() => {
               if (gameState.mood === 'tired' || isAnimating) return;
-              setCats(prevCats => 
+              setCats(prevCats =>
                 prevCats.map(cat => {
-                  let newX = cat.position.x + (cat.direction * (Math.random() * 2 + 0.5));
+                  let newX = cat.position.x + (cat.direction * (Math.random() * 3 + 1.5));
                   let newDirection = cat.direction;
-                  if (newX <= 15) {
-                    newX = 15;
+                  if (newX <= 12) {
+                    newX = 12;
                     newDirection = 1;
-                  } else if (newX >= 85) {
-                    newX = 85;
+                  } else if (newX >= 88) {
+                    newX = 88;
                     newDirection = -1;
                   }
-                  if (Math.random() < 0.15) {
+                  if (Math.random() < 0.25) {
                     newDirection *= -1;
                   }
+                  const newY = clamp(cat.position.y + (Math.random() - 0.5) * 3, 55, 78);
+                  const tilt = clamp((Math.random() - 0.5) * 12, -8, 8);
+                  const bobOffset = clamp((Math.random() - 0.5) * 8, -4, 4);
                   return {
                     ...cat,
-                    position: { ...cat.position, x: newX },
-                    direction: newDirection
+                    position: { x: newX, y: newY },
+                    direction: newDirection,
+                    tilt,
+                    bobOffset
                   };
                 })
               );
-            }, 3000);
+            }, 2000);
             return () => clearInterval(moveInterval);
           }, [gameState.mood, isAnimating]);
 
@@ -127,7 +224,8 @@
             if (isAnimating) return;
             setIsAnimating(true);
             setCurrentAction(action);
-            setCats(prevCats => 
+            playActionSound(action);
+            setCats(prevCats =>
               prevCats.map(cat => ({
                 ...cat,
                 actionState: action
@@ -190,7 +288,11 @@
           };
 
           const getCatDisplay = (cat) => {
-            const direction = cat.direction > 0 ? '' : 'scale-x-[-1]';
+            const transformParts = ['translate(-50%, -50%)'];
+            if (cat.direction < 0) transformParts.push('scaleX(-1)');
+            if (cat.bobOffset) transformParts.push(`translateY(${cat.bobOffset}px)`);
+            if (cat.tilt) transformParts.push(`rotate(${cat.tilt}deg)`);
+            const transform = transformParts.join(' ');
             let extraElements = null;
             const avgStats = (gameState.happiness + gameState.energy + gameState.hunger) / 3;
 
@@ -280,8 +382,8 @@
 
             return (
               <div
-                className={`absolute transition-all duration-1000 ${direction}`}
-                style={{ left: `${cat.position.x}%`, top: `${cat.position.y}%`, transform: `translate(-50%, -50%) ${direction}` }}
+                className="absolute transition-all duration-1000"
+                style={{ left: `${cat.position.x}%`, top: `${cat.position.y}%`, transform }}
               >
                 <CatBody type={cat.type} />
                 {extraElements}
