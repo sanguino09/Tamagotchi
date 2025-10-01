@@ -124,7 +124,8 @@
               direction: 1,
               actionState: 'idle',
               tilt: 0,
-              bobOffset: 0
+              bobOffset: 0,
+              eyeColor: 'bg-amber-300'
             },
             {
               name: 'Arwen',
@@ -133,7 +134,8 @@
               direction: -1,
               actionState: 'idle',
               tilt: 0,
-              bobOffset: 0
+              bobOffset: 0,
+              eyeColor: 'bg-slate-200'
             },
             {
               name: 'Iria',
@@ -142,7 +144,8 @@
               direction: 1,
               actionState: 'idle',
               tilt: 0,
-              bobOffset: 0
+              bobOffset: 0,
+              eyeColor: 'bg-blue-500'
             }
           ]);
 
@@ -268,7 +271,8 @@
               if (gameState.mood === 'tired' || isAnimating) return;
               setCats(prevCats =>
                 prevCats.map(cat => {
-                  let newX = cat.position.x + (cat.direction * (Math.random() * 3 + 1.5));
+                  const step = Math.random() * 4 + 2;
+                  let newX = cat.position.x + cat.direction * step;
                   let newDirection = cat.direction;
                   if (newX <= 12) {
                     newX = 12;
@@ -280,7 +284,7 @@
                   if (Math.random() < 0.25) {
                     newDirection *= -1;
                   }
-                  const newY = clamp(cat.position.y + (Math.random() - 0.5) * 3, 55, 78);
+                  const newY = clamp(cat.position.y + (Math.random() - 0.5) * 4, 55, 78);
                   const tilt = clamp((Math.random() - 0.5) * 12, -8, 8);
                   const bobOffset = clamp((Math.random() - 0.5) * 8, -4, 4);
                   return {
@@ -292,7 +296,7 @@
                   };
                 })
               );
-            }, 2000);
+            }, 1400);
             return () => clearInterval(moveInterval);
           }, [gameState.mood, isAnimating]);
 
@@ -461,7 +465,7 @@
                 break;
             }
 
-            const CatBody = ({ type }) => {
+            const CatBody = ({ type, eyeColorClass }) => {
               const colors = {
                 tuxedo: { body: 'bg-gray-900', chest: 'bg-white', ears: 'bg-gray-900' },
                 gris: { body: 'bg-gray-400', chest: 'bg-white', ears: 'bg-gray-400' },
@@ -469,6 +473,9 @@
               }[type];
 
               const isSleeping = cat.actionState === 'sleep';
+              const resolvedEyeClass =
+                eyeColorClass ||
+                (type === 'siamese' ? 'bg-blue-500' : type === 'gris' ? 'bg-blue-400' : 'bg-green-400');
 
               return (
                 <div className="relative w-16 h-16">
@@ -496,8 +503,8 @@
                     </>
                   ) : (
                     <>
-                      <div className={`absolute top-4 left-4 w-2 h-2 ${type === 'siamese' ? 'bg-blue-500' : type === 'gris' ? 'bg-blue-400' : 'bg-green-400'} rounded-full`}></div>
-                      <div className={`absolute top-4 right-4 w-2 h-2 ${type === 'siamese' ? 'bg-blue-500' : type === 'gris' ? 'bg-blue-400' : 'bg-green-400'} rounded-full`}></div>
+                      <div className={`absolute top-4 left-4 w-2 h-2 ${resolvedEyeClass} rounded-full`}></div>
+                      <div className={`absolute top-4 right-4 w-2 h-2 ${resolvedEyeClass} rounded-full`}></div>
                     </>
                   )}
                   <div className="absolute top-5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-pink-400 rounded-full"></div>
@@ -513,7 +520,7 @@
                 className="absolute transition-all duration-1000"
                 style={{ left: `${cat.position.x}%`, top: `${cat.position.y}%`, transform }}
               >
-                <CatBody type={cat.type} />
+                <CatBody type={cat.type} eyeColorClass={cat.eyeColor} />
                 {extraElements}
               </div>
             );
