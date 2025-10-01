@@ -1,39 +1,83 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <defs>
-    <linearGradient id="lukis-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffd9ec" />
-      <stop offset="100%" stop-color="#ff8dc8" />
+    <linearGradient id="sakura-bg-192" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#fff5fb" />
+      <stop offset="100%" stop-color="#ffb4d9" />
     </linearGradient>
-    <linearGradient id="lukis-face" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#222b37" />
-      <stop offset="100%" stop-color="#0f172a" />
+    <radialGradient id="sakura-fur-192" cx="40%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#f6adc9" />
+      <stop offset="100%" stop-color="#fbd6e8" />
+    </radialGradient>
+    <linearGradient id="sakura-ear-192" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f6adc9" />
+      <stop offset="100%" stop-color="#fbd6e8" />
+    </linearGradient>
+    <linearGradient id="sakura-muzzle-192" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffeef7" />
+      <stop offset="100%" stop-color="#ffd9ec" />
     </linearGradient>
   </defs>
-  <rect width="192" height="192" rx="40" fill="url(#lukis-bg)" />
-  <g transform="translate(16 16)">
-    <path d="M48 68 L74 20 L96 80 Q74 68 48 68" fill="#111827" />
-    <path d="M144 68 L118 20 L96 80 Q118 68 144 68" fill="#111827" />
-    <path d="M56 66 L74 32 L90 78 Q70 70 56 66" fill="#f9a8d4" />
-    <path d="M136 66 L118 32 L102 78 Q122 70 136 66" fill="#f9a8d4" />
-    <circle cx="96" cy="112" r="72" fill="url(#lukis-face)" />
-    <path d="M96 58 C70 58 54 80 54 110 C54 144 74 164 96 164 C118 164 138 144 138 110 C138 80 122 58 96 58 Z" fill="#111827" />
-    <path d="M96 148 C72 148 60 128 60 108 C60 88 74 72 96 72 C118 72 132 88 132 108 C132 128 120 148 96 148 Z" fill="#f4f6fb" />
-    <path d="M96 84 C82 84 72 96 72 110 C72 130 86 140 96 140 C106 140 120 130 120 110 C120 96 110 84 96 84 Z" fill="#ffffff" />
-    <ellipse cx="72" cy="110" rx="18" ry="22" fill="#facc15" />
-    <ellipse cx="120" cy="110" rx="18" ry="22" fill="#facc15" />
-    <ellipse cx="72" cy="110" rx="7" ry="9" fill="#111827" />
-    <ellipse cx="120" cy="110" rx="7" ry="9" fill="#111827" />
-    <circle cx="68" cy="104" r="3" fill="#fff9db" />
-    <circle cx="116" cy="104" r="3" fill="#fff9db" />
-    <path d="M92 128 Q96 132 100 128" stroke="#111827" stroke-width="3" stroke-linecap="round" fill="none" />
-    <path d="M96 118 Q90 124 96 126 Q102 124 96 118" fill="#f4a2c4" />
-    <path d="M76 132 Q60 134 48 128" stroke="#e5e7eb" stroke-width="3" stroke-linecap="round" />
-    <path d="M116 132 Q132 134 144 128" stroke="#e5e7eb" stroke-width="3" stroke-linecap="round" />
-    <path d="M84 154 C88 162 104 162 108 154" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
-    <path d="M68 152 C72 170 120 170 124 152" fill="#f4f6fb" />
-    <circle cx="96" cy="102" r="4" fill="#111827" />
-    <path d="M96 112 L96 120" stroke="#111827" stroke-width="2" stroke-linecap="round" />
-    <path d="M86 120 Q96 124 86 128" stroke="#111827" stroke-width="2" stroke-linecap="round" fill="none" />
-    <path d="M106 120 Q96 124 106 128" stroke="#111827" stroke-width="2" stroke-linecap="round" fill="none" />
+  <rect width="192" height="192" rx="36" fill="url(#sakura-bg-192)" />
+  <g transform="translate(96 110) scale(0.52)">
+    <path
+      d="M-138 -54 L-170 -170 L-70 -108 Q-104 -80 -138 -54"
+      fill="url(#sakura-ear-192)"
+      stroke="#602041"
+      stroke-width="20"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M138 -54 L170 -170 L70 -108 Q104 -80 138 -54"
+      fill="url(#sakura-ear-192)"
+      stroke="#602041"
+      stroke-width="20"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M-112 -60 L-142 -152 L-64 -100 Q-90 -82 -112 -60"
+      fill="#ffb8d6"
+      opacity="0.9"
+    />
+    <path
+      d="M112 -60 L142 -152 L64 -100 Q90 -82 112 -60"
+      fill="#ffb8d6"
+      opacity="0.9"
+    />
+    <circle cx="0" cy="0" r="168" fill="url(#sakura-fur-192)" stroke="#602041" stroke-width="22" />
+    <path
+      d="M0 126 C-70 126 -124 70 -124 6 C-124 -50 -80 -110 0 -110 C80 -110 124 -50 124 6 C124 70 70 126 0 126"
+      fill="url(#sakura-muzzle-192)"
+    />
+    <ellipse cx="-72" cy="26" rx="46" ry="34" fill="#ff9ac4" opacity="0.65" />
+    <ellipse cx="72" cy="26" rx="46" ry="34" fill="#ff9ac4" opacity="0.65" />
+    <g transform="translate(-74 -28)">
+      <ellipse cx="0" cy="0" rx="34" ry="46" fill="#ffeef7" stroke="#602041" stroke-width="12" />
+      <ellipse cx="0" cy="0" rx="18" ry="24" fill="#8ff0ff" />
+      <ellipse cx="0" cy="-4" rx="10" ry="14" fill="#2d1428" />
+      <circle cx="-4" cy="-8" r="4" fill="#fff8fb" />
+    </g>
+    <g transform="translate(74 -28)">
+      <ellipse cx="0" cy="0" rx="34" ry="46" fill="#ffeef7" stroke="#602041" stroke-width="12" />
+      <ellipse cx="0" cy="0" rx="18" ry="24" fill="#8ff0ff" />
+      <ellipse cx="0" cy="-4" rx="10" ry="14" fill="#2d1428" />
+      <circle cx="-4" cy="-8" r="4" fill="#fff8fb" />
+    </g>
+    <path
+      d="M-16 26 Q0 14 16 26"
+      fill="#ff86b6"
+      stroke="#602041"
+      stroke-width="10"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path d="M0 30 Q0 48 -8 58" stroke="#602041" stroke-width="10" stroke-linecap="round" fill="none" />
+    <path d="M0 30 Q0 48 8 58" stroke="#602041" stroke-width="10" stroke-linecap="round" fill="none" />
+    <path d="M-34 84 Q0 96 34 84" stroke="#602041" stroke-width="12" stroke-linecap="round" fill="none" />
+    <path d="M-104 58 Q-162 54 -196 36" stroke="#ffeef7" stroke-width="16" stroke-linecap="round" opacity="0.85" />
+    <path d="M104 58 Q162 54 196 36" stroke="#ffeef7" stroke-width="16" stroke-linecap="round" opacity="0.85" />
+    <path d="M-52 64 Q-104 80 -150 74" stroke="#ffd9ec" stroke-width="16" stroke-linecap="round" opacity="0.7" />
+    <path d="M52 64 Q104 80 150 74" stroke="#ffd9ec" stroke-width="16" stroke-linecap="round" opacity="0.7" />
+    <path d="M-150 -18 Q-210 -16 -244 -36" stroke="#f6adc9" stroke-width="20" stroke-linecap="round" opacity="0.55" />
+    <path d="M150 -18 Q210 -16 244 -36" stroke="#f6adc9" stroke-width="20" stroke-linecap="round" opacity="0.55" />
   </g>
 </svg>
