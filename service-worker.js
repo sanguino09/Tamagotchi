@@ -1,4 +1,4 @@
-const CACHE_NAME = 'catagotchi-v3';
+const CACHE_NAME = 'catagotchi-v4';
 const OFFLINE_URL = './index.html';
 const ASSETS = [
   './',
@@ -15,6 +15,99 @@ const ASSETS = [
   './meow_QO6VsE6.mp3',
   './the-end-meow-by-nekocat-just-3-second-1.mp3'
 ];
+
+const REMINDER_DELAY_MS = 1000 * 60 * 90;
+const REMINDER_MIN_DELAY_MS = 1000 * 30;
+const REMINDER_SYNC_TAG = 'catagotchi-reminder';
+const REMINDER_DATA_CACHE = 'catagotchi-reminder-data';
+const REMINDER_DATA_KEY = '__catagotchi-reminder__';
+
+async function readReminderData() {
+  try {
+    const cache = await caches.open(REMINDER_DATA_CACHE);
+    const response = await cache.match(REMINDER_DATA_KEY);
+    if (!response) {
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.warn('No se pudo leer la configuración de recordatorios', error);
+    return null;
+  }
+}
+
+async function writeReminderData(data) {
+  try {
+    const cache = await caches.open(REMINDER_DATA_CACHE);
+    const body = JSON.stringify(data);
+    await cache.put(
+      REMINDER_DATA_KEY,
+      new Response(body, {
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+      })
+    );
+  } catch (error) {
+    console.warn('No se pudo guardar la configuración de recordatorios', error);
+  }
+}
+
+async function updateReminderData(update = {}) {
+  const current = (await readReminderData()) || {};
+  const next = { ...current, ...update };
+  if (update.enabled === true) {
+    next.enabled = true;
+  } else if (update.enabled === false) {
+    next.enabled = false;
+  } else if (typeof next.enabled !== 'boolean') {
+    next.enabled = false;
+  }
+  if (typeof next.name !== 'string' || next.name.trim() === '') {
+    next.name = 'Tu gatito';
+  }
+  if (typeof next.url !== 'string' || next.url.trim() === '') {
+    next.url = './';
+  }
+  if (typeof next.lastInteraction !== 'number' || !Number.isFinite(next.lastInteraction)) {
+    next.lastInteraction = Date.now();
+  }
+  await writeReminderData(next);
+  return next;
+}
+
+async function handlePeriodicReminder() {
+  const data = await readReminderData();
+  if (!data || !data.enabled) {
+    return;
+  }
+  const now = Date.now();
+  const lastInteraction = typeof data.lastInteraction === 'number' ? data.lastInteraction : 0;
+  if (lastInteraction) {
+    const elapsed = now - lastInteraction;
+    if (elapsed < REMINDER_MIN_DELAY_MS) {
+      return;
+    }
+    if (elapsed < REMINDER_DELAY_MS) {
+      return;
+    }
+  }
+  const name = typeof data.name === 'string' && data.name.trim() ? data.name : 'Tu gatito';
+  const title = `¡${name} te echa de menos!`;
+  const body = `${name} quiere que vuelvas a jugar un ratito.`;
+  try {
+    await self.registration.showNotification(title, {
+      body,
+      icon: 'icons/icon-192.svg',
+      badge: 'icons/icon-192.svg',
+      tag: 'catagotchi-recordatorio',
+      renotify: true,
+      data: { url: data.url || './' }
+    });
+    data.lastInteraction = now;
+    await writeReminderData(data);
+  } catch (error) {
+    console.error('No se pudo mostrar el recordatorio en segundo plano', error);
+  }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -68,6 +161,28 @@ self.addEventListener('fetch', (event) => {
         .catch(() => caches.match(OFFLINE_URL));
     })
   );
+});
+
+self.addEventListener('message', (event) => {
+  const { data } = event;
+  if (!data || typeof data !== 'object') {
+    return;
+  }
+  if (data.type === 'REMINDER_UPDATE') {
+    event.waitUntil(updateReminderData(data.payload || {}));
+  }
+});
+
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === REMINDER_SYNC_TAG) {
+    event.waitUntil(handlePeriodicReminder());
+  }
+});
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === REMINDER_SYNC_TAG) {
+    event.waitUntil(handlePeriodicReminder());
+  }
 });
 
 self.addEventListener('notificationclick', (event) => {
