@@ -45,6 +45,34 @@
           sleep: ['purr']
         };
 
+        const REMINDER_DELAY_MS = 1000 * 60 * 90;
+        const REMINDER_MIN_DELAY_MS = 1000 * 30;
+        const REMINDER_SYNC_TAG = 'catagotchi-reminder';
+
+        const sendMessageToServiceWorker = async (message) => {
+          if (typeof navigator === 'undefined' || !navigator.serviceWorker) {
+            return;
+          }
+          try {
+            const registration = await navigator.serviceWorker.ready;
+            const targets = [
+              navigator.serviceWorker.controller,
+              registration?.active,
+              registration?.waiting,
+              registration?.installing
+            ].filter(Boolean);
+            targets.forEach((worker) => {
+              try {
+                worker.postMessage(message);
+              } catch (error) {
+                console.warn('No se pudo enviar el mensaje al service worker', error);
+              }
+            });
+          } catch (error) {
+            console.warn('No se pudo comunicar con el service worker', error);
+          }
+        };
+
         const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
         const createSoundController = () => {
@@ -156,9 +184,15 @@
           const [installStatus, setInstallStatus] = useState('');
           const [isStandalone, setIsStandalone] = useState(false);
           const [isIosDevice, setIsIosDevice] = useState(false);
+          const notificationsSupported = typeof window !== 'undefined' && typeof Notification === 'function';
+          const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+          const [notificationStatus, setNotificationStatus] = useState('');
           const soundControllerRef = useRef(typeof window !== 'undefined' ? createSoundController() : null);
           const installPromptRef = useRef(null);
           const installStatusTimeoutRef = useRef(null);
+          const notificationStatusTimeoutRef = useRef(null);
+          const reminderTimeoutRef = useRef(null);
+          const primaryCatName = cats[0]?.name || 'Tu gatito';
 
           const showInstallStatus = useCallback((message) => {
             setInstallStatus(message);
@@ -170,6 +204,126 @@
               installStatusTimeoutRef.current = null;
             }, 6000);
           }, []);
+
+          const showNotificationStatus = useCallback((message) => {
+            setNotificationStatus(message);
+            if (notificationStatusTimeoutRef.current) {
+              clearTimeout(notificationStatusTimeoutRef.current);
+            }
+            notificationStatusTimeoutRef.current = setTimeout(() => {
+              setNotificationStatus('');
+              notificationStatusTimeoutRef.current = null;
+            }, 6000);
+          }, []);
+
+          const updateBackgroundReminderRegistration = useCallback(
+            async (enabled, lastInteraction) => {
+              if (!notificationsSupported || typeof navigator === 'undefined' || !navigator.serviceWorker) {
+                return;
+              }
+              try {
+                const registration = await navigator.serviceWorker.ready;
+                const supportsPeriodicSync = 'periodicSync' in registration;
+                const permissionGranted = Notification.permission === 'granted';
+                const shouldEnable = Boolean(enabled && permissionGranted);
+
+                if (supportsPeriodicSync) {
+                  try {
+                    const tags = await registration.periodicSync.getTags();
+                    const alreadyRegistered = tags.includes(REMINDER_SYNC_TAG);
+                    if (shouldEnable && !alreadyRegistered) {
+                      await registration.periodicSync.register(REMINDER_SYNC_TAG, { minInterval: REMINDER_DELAY_MS });
+                    } else if (!shouldEnable && alreadyRegistered) {
+                      await registration.periodicSync.unregister(REMINDER_SYNC_TAG);
+                    }
+                  } catch (error) {
+                    console.warn('No se pudo actualizar el registro de recordatorios en segundo plano', error);
+                  }
+                }
+
+                const payload = {
+                  enabled: shouldEnable,
+                  name: primaryCatName,
+                  url: typeof window !== 'undefined' ? window.location.href : './'
+                };
+                if (typeof lastInteraction === 'number' && Number.isFinite(lastInteraction)) {
+                  payload.lastInteraction = lastInteraction;
+                }
+
+                await sendMessageToServiceWorker({ type: 'REMINDER_UPDATE', payload });
+              } catch (error) {
+                console.warn('No se pudo sincronizar la configuración de recordatorios', error);
+              }
+            },
+            [notificationsSupported, primaryCatName]
+          );
+
+          const showReminderNotification = useCallback(async () => {
+            if (!notificationsEnabled || !notificationsSupported || Notification.permission !== 'granted') {
+              return;
+            }
+            const catName = primaryCatName;
+            const title = `¡${catName} te echa de menos!`;
+            const body = `${catName} quiere que vuelvas a jugar un ratito.`;
+            const options = {
+              body,
+              icon: 'icons/icon-192.svg',
+              badge: 'icons/icon-192.svg',
+              tag: 'catagotchi-recordatorio',
+              renotify: true,
+              data: { url: typeof window !== 'undefined' ? window.location.href : './' }
+            };
+            try {
+              if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+                const registration = await navigator.serviceWorker.ready;
+                if (registration?.showNotification) {
+                  await registration.showNotification(title, options);
+                } else {
+                  new Notification(title, options);
+                }
+              } else {
+                new Notification(title, options);
+              }
+            } catch (error) {
+              console.error('No se pudo mostrar el recordatorio', error);
+            } finally {
+              const now = Date.now();
+              setGameState((prev) => ({ ...prev, lastInteraction: now }));
+              updateBackgroundReminderRegistration(true, now);
+            }
+          }, [notificationsEnabled, notificationsSupported, primaryCatName, updateBackgroundReminderRegistration]);
+
+          const handleToggleNotifications = useCallback(async () => {
+            if (!notificationsSupported) {
+              showNotificationStatus('Tu dispositivo no admite notificaciones.');
+              return;
+            }
+            if (notificationsEnabled) {
+              setNotificationsEnabled(false);
+              showNotificationStatus('Recordatorios en pausa.');
+              await updateBackgroundReminderRegistration(false, Date.now());
+              return;
+            }
+            let permission = Notification.permission;
+            if (permission === 'default') {
+              try {
+                permission = await Notification.requestPermission();
+              } catch (error) {
+                permission = Notification.permission;
+              }
+            }
+            if (permission !== 'granted') {
+              setNotificationsEnabled(false);
+              showNotificationStatus('Activa las notificaciones desde los ajustes del navegador.');
+              await updateBackgroundReminderRegistration(false, Date.now());
+              return;
+            }
+            const now = Date.now();
+            setNotificationsEnabled(true);
+            setGameState((prev) => ({ ...prev, lastInteraction: now }));
+            showNotificationStatus(`${primaryCatName} te avisará cuando necesite mimos.`);
+            await updateBackgroundReminderRegistration(true, now);
+          }, [notificationsSupported, notificationsEnabled, showNotificationStatus, updateBackgroundReminderRegistration, primaryCatName]);
 
           const playActionSound = useCallback((actionKey) => {
             const controller = soundControllerRef.current;
@@ -186,6 +340,12 @@
               if (installStatusTimeoutRef.current) {
                 clearTimeout(installStatusTimeoutRef.current);
               }
+              if (notificationStatusTimeoutRef.current) {
+                clearTimeout(notificationStatusTimeoutRef.current);
+              }
+              if (reminderTimeoutRef.current) {
+                clearTimeout(reminderTimeoutRef.current);
+              }
             };
           }, []);
 
@@ -194,6 +354,73 @@
               navigator.serviceWorker.register('./service-worker.js').catch(() => {});
             }
           }, []);
+
+          useEffect(() => {
+            if (!notificationsSupported) {
+              return;
+            }
+            if (notificationsEnabled && Notification.permission !== 'granted') {
+              setNotificationsEnabled(false);
+              updateBackgroundReminderRegistration(false, Date.now());
+            }
+          }, [notificationsEnabled, notificationsSupported, updateBackgroundReminderRegistration]);
+
+          useEffect(() => {
+            if (typeof window === 'undefined' || !notificationsSupported) {
+              return;
+            }
+            try {
+              const stored = window.localStorage.getItem('catagotchi-reminders');
+              if (stored === 'on' && Notification.permission === 'granted') {
+                setNotificationsEnabled(true);
+              }
+            } catch (error) {
+              console.warn('No se pudo restaurar la configuración de recordatorios', error);
+            }
+          }, [notificationsSupported]);
+
+          useEffect(() => {
+            if (typeof window === 'undefined') {
+              return;
+            }
+            try {
+              window.localStorage.setItem('catagotchi-reminders', notificationsEnabled ? 'on' : 'off');
+            } catch (error) {
+              console.warn('No se pudo guardar la configuración de recordatorios', error);
+            }
+          }, [notificationsEnabled]);
+
+          useEffect(() => {
+            if (!notificationsEnabled || !notificationsSupported || Notification.permission !== 'granted') {
+              if (reminderTimeoutRef.current) {
+                clearTimeout(reminderTimeoutRef.current);
+                reminderTimeoutRef.current = null;
+              }
+              return;
+            }
+            const now = Date.now();
+            const lastInteraction = gameState.lastInteraction || now;
+            const elapsed = now - lastInteraction;
+            const delay = Math.max(REMINDER_MIN_DELAY_MS, REMINDER_DELAY_MS - elapsed);
+            if (reminderTimeoutRef.current) {
+              clearTimeout(reminderTimeoutRef.current);
+            }
+            reminderTimeoutRef.current = setTimeout(() => {
+              reminderTimeoutRef.current = null;
+              showReminderNotification();
+            }, delay);
+
+            return () => {
+              if (reminderTimeoutRef.current) {
+                clearTimeout(reminderTimeoutRef.current);
+                reminderTimeoutRef.current = null;
+              }
+            };
+          }, [notificationsEnabled, notificationsSupported, gameState.lastInteraction, showReminderNotification]);
+
+          useEffect(() => {
+            updateBackgroundReminderRegistration(notificationsEnabled, gameState.lastInteraction);
+          }, [notificationsEnabled, gameState.lastInteraction, updateBackgroundReminderRegistration]);
 
           useEffect(() => {
             if (typeof window === 'undefined') {
@@ -673,6 +900,32 @@
                     <span className="text-xs font-medium">Dormir</span>
                   </button>
                 </div>
+
+                {notificationsSupported && (
+                  <div className="px-6 pb-4">
+                    <button
+                      onClick={handleToggleNotifications}
+                      className={`w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl transition-all duration-300 text-white ${
+                        notificationsEnabled ? 'bg-amber-500 hover:bg-amber-600' : 'bg-amber-400 hover:bg-amber-500'
+                      }`}
+                    >
+                      <span className="text-xl" role="img" aria-hidden="true">{notificationsEnabled ? '🔕' : '🔔'}</span>
+                      <span className="text-sm font-semibold">
+                        {notificationsEnabled ? 'Pausar recordatorios' : 'Activar recordatorios'}
+                      </span>
+                    </button>
+                    {!notificationsEnabled && !isStandalone && Notification?.permission !== 'granted' && (
+                      <p className="mt-3 text-xs text-center text-gray-600">
+                        Añade Catagotchi a tu pantalla de inicio para que los recordatorios funcionen mejor.
+                      </p>
+                    )}
+                    {notificationStatus && (
+                      <div className="mt-3 bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-2xl px-4 py-3 text-center">
+                        {notificationStatus}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {installStatus && (
                   <div className="px-6 pb-4">
