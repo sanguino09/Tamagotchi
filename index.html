@@ -6,8 +6,8 @@
     <title>🐱 Tamagotchi de los Gatos</title>
     <meta name="theme-color" content="#ff85c5">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
-    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    <link rel="icon" type="image/png" href="icons/caticon/icon.png">
+    <link rel="apple-touch-icon" href="icons/caticon/icon.png">
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -267,8 +267,8 @@
             const body = `${catName} quiere que vuelvas a jugar un ratito.`;
             const options = {
               body,
-              icon: 'icons/icon-192.svg',
-              badge: 'icons/icon-192.svg',
+              icon: 'icons/caticon/icon.png',
+              badge: 'icons/caticon/icon.png',
               tag: 'catagotchi-recordatorio',
               renotify: true,
               data: { url: typeof window !== 'undefined' ? window.location.href : './' }
