@@ -614,8 +614,8 @@ async function triggerReminderNotification() {
   const body = `${name} quiere que vuelvas a jugar un ratito.`;
   const options = {
     body,
-    icon: "icons/icon-192.svg",
-    badge: "icons/icon-192.svg",
+    icon: "icons/caticon/icon.png",
+    badge: "icons/caticon/icon.png",
     tag: "catagotchi-recordatorio",
     renotify: true,
     data: { url: typeof window !== "undefined" ? window.location.href : "./" },

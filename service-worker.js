@@ -6,8 +6,7 @@ const ASSETS = [
   './styles.css',
   './app.js',
   './manifest.webmanifest',
-  './icons/icon-192.svg',
-  './icons/icon-512.svg',
+  './icons/caticon/icon.png',
   './cat-purr.mp3',
   './little-puff-purr.mp3',
   './little-puff-purr-brr.mp3',
@@ -96,8 +95,8 @@ async function handlePeriodicReminder() {
   try {
     await self.registration.showNotification(title, {
       body,
-      icon: 'icons/icon-192.svg',
-      badge: 'icons/icon-192.svg',
+      icon: 'icons/caticon/icon.png',
+      badge: 'icons/caticon/icon.png',
       tag: 'catagotchi-recordatorio',
       renotify: true,
       data: { url: data.url || './' }
