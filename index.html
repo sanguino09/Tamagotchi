@@ -28,6 +28,612 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
+        const GAME_DEFINITIONS = [
+          {
+            id: 'flappy-lukis',
+            title: 'Flappy Lukis',
+            emoji: '🐾',
+            description: 'Ayuda a Lukis a volar entre las nubes sin chocarse.'
+          },
+          {
+            id: 'laser-chase',
+            title: 'Caza el Láser',
+            emoji: '🔴',
+            description: 'Toca el punto rojo antes de que desaparezca para sumar puntos.'
+          },
+          {
+            id: 'memory-cats',
+            title: 'Memoria Gatuna',
+            emoji: '🧠',
+            description: 'Encuentra las parejas de iconos gatunos en el menor número de turnos.'
+          }
+        ];
+
+        const GameOverlay = ({ title, onClose, children }) => (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                <h2 className="text-lg font-semibold">{title}</h2>
+                <button
+                  onClick={onClose}
+                  className="text-white/90 hover:text-white transition"
+                  aria-label="Cerrar"
+                >
+                  ✖️
+                </button>
+              </div>
+              <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">{children}</div>
+            </div>
+          </div>
+        );
+
+        const GameMenu = ({ onSelect, onClose }) => (
+          <GameOverlay title="Sala de Juegos" onClose={onClose}>
+            <p className="text-sm text-gray-600">
+              Elige un minijuego para que tus gatitos se diviertan y suban su felicidad.
+            </p>
+            <div className="grid grid-cols-1 gap-4">
+              {GAME_DEFINITIONS.map((game) => (
+                <button
+                  key={game.id}
+                  onClick={() => onSelect(game.id)}
+                  className="flex items-start space-x-3 rounded-2xl border border-purple-100 bg-purple-50 hover:bg-purple-100 transition p-4 text-left"
+                >
+                  <span className="text-3xl" aria-hidden="true">{game.emoji}</span>
+                  <div>
+                    <h3 className="text-base font-semibold text-purple-700">{game.title}</h3>
+                    <p className="text-sm text-gray-600">{game.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </GameOverlay>
+        );
+
+        const FlappyLukis = ({ onExit }) => {
+          const GAME_WIDTH = 320;
+          const GAME_HEIGHT = 420;
+          const BIRD_SIZE = 28;
+          const BIRD_X = 60;
+          const OBSTACLE_WIDTH = 60;
+          const GAP_HEIGHT = 130;
+
+          const [bird, setBird] = useState({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
+          const [obstacles, setObstacles] = useState(() => []);
+          const [score, setScore] = useState(0);
+          const [isRunning, setIsRunning] = useState(false);
+          const [isGameOver, setIsGameOver] = useState(false);
+          const loopRef = useRef(null);
+
+          const createObstacle = useCallback((offset = 0) => {
+            const gapTop = Math.random() * (GAME_HEIGHT - GAP_HEIGHT - 120) + 60;
+            return {
+              x: GAME_WIDTH + offset,
+              gapTop,
+              gapBottom: gapTop + GAP_HEIGHT,
+              passed: false
+            };
+          }, []);
+
+          const stopGame = useCallback(() => {
+            setIsRunning(false);
+            setIsGameOver(true);
+          }, []);
+
+          const resetGame = useCallback(() => {
+            setBird({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
+            setObstacles([createObstacle(), createObstacle(GAME_WIDTH / 2 + 140)]);
+            setScore(0);
+            setIsGameOver(false);
+            setIsRunning(true);
+          }, [createObstacle]);
+
+          useEffect(() => {
+            if (!isRunning) {
+              if (loopRef.current) {
+                clearInterval(loopRef.current);
+                loopRef.current = null;
+              }
+              return;
+            }
+
+            loopRef.current = setInterval(() => {
+              setBird((prev) => {
+                const newVelocity = prev.velocity + 0.65;
+                const newY = prev.y + newVelocity;
+                return { y: newY, velocity: newVelocity };
+              });
+
+              setObstacles((prevObstacles) => {
+                let scoreGain = 0;
+                const updated = prevObstacles
+                  .map((obstacle) => {
+                    const newX = obstacle.x - 4;
+                    let passed = obstacle.passed;
+                    if (!passed && newX + OBSTACLE_WIDTH < BIRD_X) {
+                      passed = true;
+                      scoreGain += 1;
+                    }
+                    return { ...obstacle, x: newX, passed };
+                  })
+                  .filter((obstacle) => obstacle.x + OBSTACLE_WIDTH > -10);
+
+                while (updated.length < 3) {
+                  const last = updated[updated.length - 1];
+                  const offset = last ? last.x + 180 : GAME_WIDTH;
+                  updated.push(createObstacle(offset));
+                }
+
+                if (scoreGain > 0) {
+                  setScore((prevScore) => prevScore + scoreGain);
+                }
+
+                return updated;
+              });
+            }, 40);
+
+            return () => {
+              if (loopRef.current) {
+                clearInterval(loopRef.current);
+                loopRef.current = null;
+              }
+            };
+          }, [isRunning, createObstacle]);
+
+          useEffect(() => {
+            if (!isRunning) return;
+
+            const birdTop = bird.y;
+            const birdBottom = bird.y + BIRD_SIZE;
+
+            if (birdBottom >= GAME_HEIGHT || birdTop <= 0) {
+              stopGame();
+              return;
+            }
+
+            for (const obstacle of obstacles) {
+              if (
+                obstacle.x < BIRD_X + BIRD_SIZE &&
+                obstacle.x + OBSTACLE_WIDTH > BIRD_X
+              ) {
+                if (birdTop < obstacle.gapTop || birdBottom > obstacle.gapBottom) {
+                  stopGame();
+                  break;
+                }
+              }
+            }
+          }, [bird, obstacles, isRunning, stopGame]);
+
+          const flap = useCallback(() => {
+            if (!isRunning) return;
+            setBird((prev) => ({ y: prev.y, velocity: -8 }));
+          }, [isRunning]);
+
+          useEffect(() => {
+            const handleKey = (event) => {
+              if (event.code === 'Space') {
+                event.preventDefault();
+                if (isGameOver) {
+                  resetGame();
+                } else {
+                  flap();
+                }
+              }
+            };
+            window.addEventListener('keydown', handleKey);
+            return () => window.removeEventListener('keydown', handleKey);
+          }, [flap, isGameOver, resetGame]);
+
+          useEffect(() => () => {
+            if (loopRef.current) {
+              clearInterval(loopRef.current);
+            }
+          }, []);
+
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span>Puntuación: <span className="font-semibold text-purple-600">{score}</span></span>
+                <button
+                  onClick={onExit}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-200 hover:bg-gray-300 transition"
+                >
+                  Salir
+                </button>
+              </div>
+              <div
+                className="relative mx-auto rounded-3xl overflow-hidden shadow-inner"
+                style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
+              >
+                <div
+                  className="absolute inset-0 bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-100"
+                  onClick={flap}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    flap();
+                  }}
+                >
+                  <div
+                    className="absolute bg-gradient-to-br from-pink-400 to-purple-500 rounded-full shadow-lg flex items-center justify-center text-white"
+                    style={{
+                      left: `${BIRD_X}px`,
+                      top: `${bird.y}px`,
+                      width: `${BIRD_SIZE}px`,
+                      height: `${BIRD_SIZE}px`
+                    }}
+                  >
+                    😺
+                  </div>
+                  {obstacles.map((obstacle, index) => (
+                    <React.Fragment key={index}>
+                      <div
+                        className="absolute bg-emerald-500"
+                        style={{
+                          left: `${obstacle.x}px`,
+                          top: 0,
+                          width: `${OBSTACLE_WIDTH}px`,
+                          height: `${obstacle.gapTop}px`
+                        }}
+                      />
+                      <div
+                        className="absolute bg-emerald-500"
+                        style={{
+                          left: `${obstacle.x}px`,
+                          top: `${obstacle.gapBottom}px`,
+                          width: `${OBSTACLE_WIDTH}px`,
+                          height: `${GAME_HEIGHT - obstacle.gapBottom}px`
+                        }}
+                      />
+                    </React.Fragment>
+                  ))}
+                  {!isRunning && !isGameOver && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 text-center p-6 space-y-2">
+                      <span className="text-4xl">🐾</span>
+                      <p className="text-base font-semibold text-purple-600">Pulsa para comenzar</p>
+                      <p className="text-sm text-gray-600">Toca o presiona la barra espaciadora para que Lukis aletee.</p>
+                      <button
+                        onClick={resetGame}
+                        className="mt-2 px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                      >
+                        ¡Empezar!
+                      </button>
+                    </div>
+                  )}
+                  {isGameOver && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 text-center p-6 space-y-2">
+                      <span className="text-4xl">💥</span>
+                      <p className="text-base font-semibold text-purple-600">¡Ups! Lukis se ha cansado.</p>
+                      <p className="text-sm text-gray-600">Puntuación final: {score}</p>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={resetGame}
+                          className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                        >
+                          Intentar de nuevo
+                        </button>
+                        <button
+                          onClick={onExit}
+                          className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                        >
+                          Salir
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const LaserChase = ({ onExit }) => {
+          const AREA_SIZE = 320;
+          const TARGET_SIZE = 32;
+          const [targetPosition, setTargetPosition] = useState({ x: 0, y: 0 });
+          const [score, setScore] = useState(0);
+          const [timeLeft, setTimeLeft] = useState(30);
+          const [isRunning, setIsRunning] = useState(false);
+          const moveRef = useRef(null);
+          const timerRef = useRef(null);
+
+          const getRandomPosition = useCallback(() => ({
+            x: Math.floor(Math.random() * (AREA_SIZE - TARGET_SIZE)),
+            y: Math.floor(Math.random() * (AREA_SIZE - TARGET_SIZE))
+          }), []);
+
+          const stopGame = useCallback(() => {
+            setIsRunning(false);
+            if (moveRef.current) {
+              clearInterval(moveRef.current);
+              moveRef.current = null;
+            }
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+          }, []);
+
+          const startGame = useCallback(() => {
+            stopGame();
+            setScore(0);
+            setTimeLeft(30);
+            setTargetPosition(getRandomPosition());
+            setIsRunning(true);
+          }, [getRandomPosition, stopGame]);
+
+          useEffect(() => {
+            if (!isRunning) {
+              return;
+            }
+
+            moveRef.current = setInterval(() => {
+              setTargetPosition(getRandomPosition());
+            }, 650);
+
+            timerRef.current = setInterval(() => {
+              setTimeLeft((prev) => {
+                if (prev <= 1) {
+                  clearInterval(timerRef.current);
+                  timerRef.current = null;
+                  setIsRunning(false);
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+
+            return () => {
+              if (moveRef.current) {
+                clearInterval(moveRef.current);
+                moveRef.current = null;
+              }
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+            };
+          }, [isRunning, getRandomPosition]);
+
+          const handleCatch = useCallback(() => {
+            if (!isRunning) return;
+            setScore((prev) => prev + 1);
+            setTargetPosition(getRandomPosition());
+          }, [getRandomPosition, isRunning]);
+
+          useEffect(() => () => {
+            if (moveRef.current) clearInterval(moveRef.current);
+            if (timerRef.current) clearInterval(timerRef.current);
+          }, []);
+
+          const isFinished = !isRunning && timeLeft === 0;
+
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div>
+                  <span className="font-semibold text-pink-500">Puntos:</span> {score}
+                </div>
+                <div>
+                  <span className="font-semibold text-purple-500">Tiempo:</span> {timeLeft}s
+                </div>
+              </div>
+              <div
+                className="relative mx-auto rounded-3xl border-4 border-purple-200 bg-gradient-to-br from-purple-100 via-pink-100 to-amber-100"
+                style={{ width: AREA_SIZE, height: AREA_SIZE }}
+              >
+                {isRunning && (
+                  <div
+                    className="absolute rounded-full bg-gradient-to-br from-pink-500 via-red-500 to-yellow-400 shadow-lg cursor-pointer"
+                    style={{
+                      left: `${targetPosition.x}px`,
+                      top: `${targetPosition.y}px`,
+                      width: `${TARGET_SIZE}px`,
+                      height: `${TARGET_SIZE}px`
+                    }}
+                    onClick={handleCatch}
+                  >
+                    <span className="sr-only">Atrapa el láser</span>
+                  </div>
+                )}
+                {!isRunning && !isFinished && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-3">
+                    <span className="text-4xl">🔴</span>
+                    <p className="text-base font-semibold text-purple-600">Persigue el láser</p>
+                    <p className="text-sm text-gray-600">Toca el punto rojo tantas veces como puedas en 30 segundos.</p>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={startGame}
+                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                      >
+                        ¡Jugar!
+                      </button>
+                      <button
+                        onClick={onExit}
+                        className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                      >
+                        Salir
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {isFinished && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-3">
+                    <span className="text-4xl">🎉</span>
+                    <p className="text-base font-semibold text-purple-600">¡Tiempo!</p>
+                    <p className="text-sm text-gray-600">Atrapes realizados: {score}</p>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={startGame}
+                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                      >
+                        Reintentar
+                      </button>
+                      <button
+                        onClick={onExit}
+                        className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                      >
+                        Salir
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {isRunning && (
+                <div className="text-center">
+                  <button
+                    onClick={stopGame}
+                    className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                  >
+                    Pausar
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        const MemoryCats = ({ onExit }) => {
+          const EMOJIS = ['🐟', '🧶', '🐾', '🐦', '🥛', '🐭'];
+          const shuffleArray = useCallback((array) => {
+            const clone = [...array];
+            for (let i = clone.length - 1; i > 0; i -= 1) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [clone[i], clone[j]] = [clone[j], clone[i]];
+            }
+            return clone;
+          }, []);
+
+          const createDeck = useCallback(() => (
+            shuffleArray(
+              [...EMOJIS, ...EMOJIS].map((emoji, index) => ({
+                id: `${emoji}-${index}`,
+                emoji,
+                matched: false
+              }))
+            )
+          ), [EMOJIS, shuffleArray]);
+
+          const [cards, setCards] = useState(() => createDeck());
+          const [flipped, setFlipped] = useState([]);
+          const [moves, setMoves] = useState(0);
+          const [matchedPairs, setMatchedPairs] = useState(0);
+          const [isChecking, setIsChecking] = useState(false);
+          const checkTimeoutRef = useRef(null);
+
+          const resetGame = useCallback(() => {
+            if (checkTimeoutRef.current) {
+              clearTimeout(checkTimeoutRef.current);
+              checkTimeoutRef.current = null;
+            }
+            setCards(createDeck());
+            setFlipped([]);
+            setMoves(0);
+            setMatchedPairs(0);
+            setIsChecking(false);
+          }, [createDeck]);
+
+          const handleFlip = useCallback((index) => {
+            if (isChecking) return;
+            if (flipped.includes(index)) return;
+            const card = cards[index];
+            if (!card || card.matched) return;
+
+            const newFlipped = [...flipped, index];
+            setFlipped(newFlipped);
+
+            if (newFlipped.length === 2) {
+              setIsChecking(true);
+              checkTimeoutRef.current = setTimeout(() => {
+                const [firstIndex, secondIndex] = newFlipped;
+                setCards((prevCards) => {
+                  const firstCard = prevCards[firstIndex];
+                  const secondCard = prevCards[secondIndex];
+                  if (firstCard && secondCard && firstCard.emoji === secondCard.emoji && firstIndex !== secondIndex) {
+                    setMatchedPairs((prev) => prev + 1);
+                    return prevCards.map((cardItem, idx) =>
+                      idx === firstIndex || idx === secondIndex
+                        ? { ...cardItem, matched: true }
+                        : cardItem
+                    );
+                  }
+                  return prevCards;
+                });
+                setMoves((prev) => prev + 1);
+                setFlipped([]);
+                setIsChecking(false);
+              }, 700);
+            }
+          }, [cards, flipped, isChecking]);
+
+          useEffect(() => () => {
+            if (checkTimeoutRef.current) {
+              clearTimeout(checkTimeoutRef.current);
+            }
+          }, []);
+
+          const allMatched = matchedPairs === EMOJIS.length;
+
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span><span className="font-semibold text-purple-500">Movimientos:</span> {moves}</span>
+                <button
+                  onClick={onExit}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-200 hover:bg-gray-300 transition"
+                >
+                  Salir
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {cards.map((card, index) => {
+                  const isFlipped = flipped.includes(index) || card.matched;
+                  return (
+                    <button
+                      key={card.id}
+                      onClick={() => handleFlip(index)}
+                      className={`h-24 rounded-2xl flex items-center justify-center text-3xl transition transform ${
+                        isFlipped ? 'bg-purple-200 rotate-y-0' : 'bg-purple-500 text-white'
+                      } ${card.matched ? 'opacity-80' : 'hover:scale-105'}`}
+                    >
+                      {isFlipped ? card.emoji : '❓'}
+                    </button>
+                  );
+                })}
+              </div>
+              {allMatched ? (
+                <div className="space-y-3 text-center">
+                  <p className="text-lg font-semibold text-purple-600">¡Perfecto! Encontraste todas las parejas.</p>
+                  <p className="text-sm text-gray-600">¿Quieres jugar otra vez?</p>
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      onClick={resetGame}
+                      className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                    >
+                      Reiniciar
+                    </button>
+                    <button
+                      onClick={onExit}
+                      className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                    >
+                      Salir
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>Encuentra las {EMOJIS.length} parejas gatunas.</span>
+                  <button
+                    onClick={resetGame}
+                    className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium hover:bg-purple-200 transition"
+                  >
+                    Reiniciar
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        };
+
         const SOUND_LIBRARY = {
           meow: {
             files: ['meow-1.mp3', 'meow_QO6VsE6.mp3', 'the-end-meow-by-nekocat-just-3-second-1.mp3'],
@@ -179,6 +785,8 @@
 
           const [isAnimating, setIsAnimating] = useState(false);
           const [currentAction, setCurrentAction] = useState('');
+          const [isGameMenuOpen, setIsGameMenuOpen] = useState(false);
+          const [activeGame, setActiveGame] = useState(null);
           const [isNightTime, setIsNightTime] = useState(false);
           const [canInstall, setCanInstall] = useState(false);
           const [installStatus, setInstallStatus] = useState('');
@@ -193,6 +801,42 @@
           const notificationStatusTimeoutRef = useRef(null);
           const reminderTimeoutRef = useRef(null);
           const primaryCatName = cats[0]?.name || 'Tu gatito';
+
+          const openGameMenu = useCallback(() => {
+            setIsGameMenuOpen(true);
+            setActiveGame(null);
+            setGameState((prev) => ({
+              ...prev,
+              happiness: clamp(prev.happiness + 5, 0, 100),
+              lastInteraction: Date.now()
+            }));
+          }, []);
+
+          const handleCloseMenu = useCallback(() => {
+            setIsGameMenuOpen(false);
+            setActiveGame(null);
+          }, []);
+
+          const handleSelectGame = useCallback((gameId) => {
+            setActiveGame(gameId);
+            setIsGameMenuOpen(false);
+            setGameState((prev) => ({
+              ...prev,
+              happiness: clamp(prev.happiness + 8, 0, 100),
+              energy: clamp(prev.energy - 5, 0, 100),
+              lastInteraction: Date.now()
+            }));
+          }, []);
+
+          const closeGameExperience = useCallback(() => {
+            setActiveGame(null);
+            setIsGameMenuOpen(false);
+            setGameState((prev) => ({
+              ...prev,
+              happiness: clamp(prev.happiness + 3, 0, 100),
+              lastInteraction: Date.now()
+            }));
+          }, []);
 
           const showInstallStatus = useCallback((message) => {
             setInstallStatus(message);
@@ -753,6 +1397,10 @@
             );
           };
 
+          const activeGameDefinition = activeGame
+            ? GAME_DEFINITIONS.find((game) => game.id === activeGame)
+            : null;
+
           return (
             <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-yellow-300 p-4">
               <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
@@ -872,7 +1520,7 @@
                   </div>
                 </div>
 
-                <div className="p-6 bg-gray-50 flex justify-center space-x-4">
+                <div className="p-6 bg-gray-50 flex flex-wrap justify-center gap-4">
                   <button
                     onClick={() => handleAction('feed')}
                     disabled={isAnimating}
@@ -898,6 +1546,16 @@
                   >
                     <span className="text-2xl" role="img" aria-hidden="true">🌙</span>
                     <span className="text-xs font-medium">Dormir</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      playActionSound('play');
+                      openGameMenu();
+                    }}
+                    className="flex flex-col items-center space-y-2 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <span className="text-2xl" role="img" aria-hidden="true">🎮</span>
+                    <span className="text-xs font-medium">Juegos</span>
                   </button>
                 </div>
 
@@ -960,8 +1618,19 @@
                   </div>
                 )}
               </div>
+              {isGameMenuOpen && (
+                <GameMenu onSelect={handleSelectGame} onClose={handleCloseMenu} />
+              )}
+              {activeGame && activeGameDefinition && (
+                <GameOverlay title={activeGameDefinition.title} onClose={closeGameExperience}>
+                  {activeGame === 'flappy-lukis' && <FlappyLukis onExit={closeGameExperience} />}
+                  {activeGame === 'laser-chase' && <LaserChase onExit={closeGameExperience} />}
+                  {activeGame === 'memory-cats' && <MemoryCats onExit={closeGameExperience} />}
+                </GameOverlay>
+              )}
             </div>
-          );
+          </div>
+        );
         };
 
         ReactDOM.createRoot(document.getElementById('root')).render(<CatTamagotchi />);
