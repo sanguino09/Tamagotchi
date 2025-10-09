@@ -2418,7 +2418,7 @@
           }, [isIosDevice, showInstallStatus]);
 
           const showQuickInstallButton = !isStandalone;
-          const shouldShowInstallButton = showQuickInstallButton && (canInstall || isIosDevice);
+          const shouldShowInstallButton = showQuickInstallButton;
 
           const getStatColor = (value) => {
             if (value > 70) return 'bg-green-500';
