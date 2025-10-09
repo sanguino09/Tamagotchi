@@ -43,6 +43,101 @@
           }
         ];
 
+        const STORE_ITEMS = [
+          {
+            id: 'gourmet-salmon',
+            name: 'Salmón Deluxe',
+            emoji: '🍣',
+            type: 'food',
+            price: 45,
+            description: 'Un banquete jugoso que deja a cualquier gato ronroneando.',
+            effect: { hunger: 35, happiness: 12 }
+          },
+          {
+            id: 'catnip-cookies',
+            name: 'Galletas de catnip',
+            emoji: '🍪',
+            type: 'food',
+            price: 32,
+            description: 'Crujientes galletas de hierba gatera para subir el ánimo al instante.',
+            effect: { happiness: 18, energy: 8 }
+          },
+          {
+            id: 'cloud-bed',
+            name: 'Cama nube',
+            emoji: '☁️',
+            type: 'furniture',
+            price: 75,
+            description: 'Una cama suave como el algodón para siestas infinitas.'
+          },
+          {
+            id: 'scratching-tree',
+            name: 'Árbol rascador',
+            emoji: '🌳',
+            type: 'furniture',
+            price: 95,
+            description: 'Ideal para estirar las garras y presumir territorio felino.'
+          },
+          {
+            id: 'rainbow-mobile',
+            name: 'Móvil arcoíris',
+            emoji: '🌈',
+            type: 'furniture',
+            price: 60,
+            description: 'Un adorno colgante que llena la habitación de color.'
+          }
+        ];
+
+        const DECORATION_CONFIG = {
+          'cloud-bed': {
+            emoji: '☁️',
+            className: 'text-5xl drop-shadow-lg',
+            style: { bottom: '58px', left: '18%' }
+          },
+          'scratching-tree': {
+            emoji: '🪵',
+            className: 'text-4xl',
+            style: { bottom: '54px', right: '12%' }
+          },
+          'rainbow-mobile': {
+            emoji: '🌈',
+            className: 'text-4xl',
+            style: { top: '18px', left: '22%' }
+          }
+        };
+
+        const ECONOMY_STORAGE_KEY = 'catagotchi-economy-v1';
+
+        const loadEconomyState = () => {
+          if (typeof window === 'undefined') {
+            return { coins: 120, inventory: {}, decorations: [] };
+          }
+          try {
+            const raw = window.localStorage.getItem(ECONOMY_STORAGE_KEY);
+            if (!raw) {
+              return { coins: 120, inventory: {}, decorations: [] };
+            }
+            const parsed = JSON.parse(raw);
+            return {
+              coins: Number.isFinite(parsed?.coins) ? parsed.coins : 120,
+              inventory: parsed?.inventory && typeof parsed.inventory === 'object' ? parsed.inventory : {},
+              decorations: Array.isArray(parsed?.decorations) ? parsed.decorations : []
+            };
+          } catch (error) {
+            console.warn('No se pudo cargar la economía guardada', error);
+            return { coins: 120, inventory: {}, decorations: [] };
+          }
+        };
+
+        const computeMoodFromStats = (happiness, energy, hunger) => {
+          if (happiness > 70 && energy > 70 && hunger > 70) return 'happy';
+          if (happiness > 50 && energy > 50 && hunger > 50) return 'content';
+          if (hunger < 30) return 'hungry';
+          if (energy < 30) return 'tired';
+          if (happiness < 30) return 'sad';
+          return 'content';
+        };
+
         const GameOverlay = ({ title, onClose, children }) => (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 px-4">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
@@ -301,13 +396,97 @@
           </GameOverlay>
         );
 
-        const FlappyLukis = ({ onExit }) => {
+        const StoreModal = ({ coins, inventory, onBuy, onUse, message }) => (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Usa tus monedas para mimar a los gatitos con delicias y adornos.
+              </p>
+              <div className="flex items-center space-x-1 text-yellow-600 font-semibold">
+                <span aria-hidden="true">🪙</span>
+                <span>{coins}</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {STORE_ITEMS.map((item) => {
+                const owned = inventory?.[item.id] || 0;
+                const canAfford = coins >= item.price;
+                const isFood = item.type === 'food';
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-pink-100 bg-pink-50 px-4 py-3 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between space-x-3">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
+                          <h3 className="text-base font-semibold text-purple-700">{item.name}</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Precio: <span className="font-semibold text-purple-600">{item.price}🪙</span>
+                          {owned > 0 && (
+                            <span className="ml-2 text-green-600 font-semibold">x{owned}</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end space-y-2">
+                        <button
+                          onClick={() => onBuy(item)}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-full transition ${
+                            canAfford
+                              ? 'bg-purple-500 text-white hover:bg-purple-600'
+                              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          }`}
+                          disabled={!canAfford}
+                        >
+                          Comprar
+                        </button>
+                        {isFood && (
+                          <button
+                            onClick={() => onUse(item)}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition ${
+                              owned > 0
+                                ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            }`}
+                            disabled={owned <= 0}
+                          >
+                            Dar ahora
+                          </button>
+                        )}
+                        {!isFood && owned > 0 && (
+                          <span className="text-[11px] text-emerald-600 font-semibold">
+                            Decoración colocada
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {message && (
+              <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+                {message}
+              </div>
+            )}
+            <div className="text-xs text-gray-500">
+              Consejo: juega a los minijuegos para ganar más monedas y desbloquear todo.
+            </div>
+          </div>
+        );
+
+        const FlappyLukis = ({ onExit, onReward }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 420;
           const BIRD_SIZE = 46;
           const BIRD_X = 60;
           const OBSTACLE_WIDTH = 60;
           const GAP_HEIGHT = 130;
+          const GRAVITY = 0.46;
+          const OBSTACLE_SPEED = 3.2;
 
           const [bird, setBird] = useState({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
           const [obstacles, setObstacles] = useState(() => []);
@@ -315,6 +494,8 @@
           const [isRunning, setIsRunning] = useState(false);
           const [isGameOver, setIsGameOver] = useState(false);
           const loopRef = useRef(null);
+          const lastTimestampRef = useRef(null);
+          const rewardGrantedRef = useRef(false);
 
           const createObstacle = useCallback((offset = 0) => {
             const gapTop = Math.random() * (GAME_HEIGHT - GAP_HEIGHT - 120) + 60;
@@ -337,21 +518,30 @@
             setScore(0);
             setIsGameOver(false);
             setIsRunning(true);
+            rewardGrantedRef.current = false;
+            lastTimestampRef.current = null;
           }, [createObstacle]);
 
           useEffect(() => {
             if (!isRunning) {
               if (loopRef.current) {
-                clearInterval(loopRef.current);
+                cancelAnimationFrame(loopRef.current);
                 loopRef.current = null;
               }
+              lastTimestampRef.current = null;
               return;
             }
 
-            loopRef.current = setInterval(() => {
+            const loop = (timestamp) => {
+              if (lastTimestampRef.current == null) {
+                lastTimestampRef.current = timestamp;
+              }
+              const deltaFrames = (timestamp - lastTimestampRef.current) / 16.67;
+              lastTimestampRef.current = timestamp;
+
               setBird((prev) => {
-                const newVelocity = prev.velocity + 0.65;
-                const newY = prev.y + newVelocity;
+                const newVelocity = prev.velocity + GRAVITY * deltaFrames;
+                const newY = prev.y + newVelocity * deltaFrames;
                 return { y: newY, velocity: newVelocity };
               });
 
@@ -359,7 +549,7 @@
                 let scoreGain = 0;
                 const updated = prevObstacles
                   .map((obstacle) => {
-                    const newX = obstacle.x - 4;
+                    const newX = obstacle.x - OBSTACLE_SPEED * deltaFrames;
                     let passed = obstacle.passed;
                     if (!passed && newX + OBSTACLE_WIDTH < BIRD_X) {
                       passed = true;
@@ -367,7 +557,7 @@
                     }
                     return { ...obstacle, x: newX, passed };
                   })
-                  .filter((obstacle) => obstacle.x + OBSTACLE_WIDTH > -10);
+                  .filter((obstacle) => obstacle.x + OBSTACLE_WIDTH > -12);
 
                 while (updated.length < 3) {
                   const last = updated[updated.length - 1];
@@ -381,13 +571,18 @@
 
                 return updated;
               });
-            }, 40);
+
+              loopRef.current = requestAnimationFrame(loop);
+            };
+
+            loopRef.current = requestAnimationFrame(loop);
 
             return () => {
               if (loopRef.current) {
-                clearInterval(loopRef.current);
+                cancelAnimationFrame(loopRef.current);
                 loopRef.current = null;
               }
+              lastTimestampRef.current = null;
             };
           }, [isRunning, createObstacle]);
 
@@ -414,6 +609,13 @@
               }
             }
           }, [bird, obstacles, isRunning, stopGame]);
+
+          useEffect(() => {
+            if (isGameOver && !rewardGrantedRef.current && typeof onReward === 'function') {
+              rewardGrantedRef.current = true;
+              onReward('flappy-lukis', score);
+            }
+          }, [isGameOver, onReward, score]);
 
           const flap = useCallback(() => {
             if (!isRunning) return;
@@ -543,9 +745,9 @@
           );
         };
 
-        const LukisSkyJump = ({ onExit }) => {
+        const LukisSkyJump = ({ onExit, onReward }) => {
           const GAME_WIDTH = 320;
-          const GAME_HEIGHT = 480;
+          const GAME_HEIGHT = 430;
           const PLAYER_SIZE = 44;
           const GRAVITY = 0.55;
           const JUMP_FORCE = 11.5;
@@ -553,11 +755,11 @@
 
           const createInitialPlatforms = useCallback(() => {
             const basePlatforms = [];
-            const step = GAME_HEIGHT / 6;
+            const step = GAME_HEIGHT / 6.5;
             for (let i = 0; i < 6; i += 1) {
-              const width = Math.random() * 50 + 70;
+              const width = Math.random() * 45 + 80;
               const x = Math.random() * (GAME_WIDTH - width);
-              const y = GAME_HEIGHT - i * step - 60;
+              const y = GAME_HEIGHT - i * step - 52;
               basePlatforms.push({ x, y, width });
             }
             basePlatforms.push({
@@ -585,6 +787,7 @@
           const scoreRef = useRef(score);
           const inputsRef = useRef({ left: false, right: false });
           const totalHeightRef = useRef(0);
+          const rewardGrantedRef = useRef(false);
 
           useEffect(() => {
             playerRef.current = player;
@@ -613,6 +816,7 @@
             playerRef.current = initialPlayer;
             setIsGameOver(false);
             setIsRunning(true);
+            rewardGrantedRef.current = false;
           }, [createInitialPlatforms, getInitialPlayer]);
 
           useEffect(() => {
@@ -720,8 +924,8 @@
                 (min, platform) => Math.min(min, platform.y),
                 GAME_HEIGHT
               );
-              const platformY = (Number.isFinite(highestY) ? highestY : GAME_HEIGHT) - (Math.random() * 80 + 60);
-              const width = Math.random() * 50 + 70;
+              const platformY = (Number.isFinite(highestY) ? highestY : GAME_HEIGHT) - (Math.random() * 55 + 55);
+              const width = Math.random() * 45 + 80;
               updatedPlatforms.push({
                 x: Math.random() * (GAME_WIDTH - width),
                 y: platformY,
@@ -763,10 +967,17 @@
             return () => clearInterval(interval);
           }, [isRunning, updateGame]);
 
+          useEffect(() => {
+            if (isGameOver && !rewardGrantedRef.current && typeof onReward === 'function') {
+              rewardGrantedRef.current = true;
+              onReward('lukis-sky-jump', score);
+            }
+          }, [isGameOver, onReward, score]);
+
           const tilt = Math.max(Math.min(player.vy * 1.8, 24), -24);
 
           return (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <span>Altura: <span className="font-semibold text-purple-600">{score}</span></span>
                 <button
@@ -841,7 +1052,7 @@
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-center space-x-4">
+              <div className="flex items-center justify-center space-x-4 w-full">
                 <button
                   type="button"
                   onMouseDown={() => handleControlStart('left')}
@@ -853,7 +1064,7 @@
                   }}
                   onTouchEnd={() => handleControlEnd('left')}
                   onTouchCancel={() => handleControlEnd('left')}
-                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition ${
+                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition shadow ${
                     activeDirection === 'left'
                       ? 'bg-purple-500 text-white border-purple-500'
                       : 'bg-white text-purple-600 border-purple-200 hover:border-purple-400'
@@ -872,7 +1083,7 @@
                   }}
                   onTouchEnd={() => handleControlEnd('right')}
                   onTouchCancel={() => handleControlEnd('right')}
-                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition ${
+                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition shadow ${
                     activeDirection === 'right'
                       ? 'bg-purple-500 text-white border-purple-500'
                       : 'bg-white text-purple-600 border-purple-200 hover:border-purple-400'
@@ -1001,6 +1212,13 @@
             lastInteraction: Date.now()
           });
 
+          const economyInitialRef = useRef(loadEconomyState());
+          const [coins, setCoins] = useState(economyInitialRef.current.coins);
+          const [inventory, setInventory] = useState(economyInitialRef.current.inventory);
+          const [decorations, setDecorations] = useState(economyInitialRef.current.decorations);
+          const [isStoreOpen, setIsStoreOpen] = useState(false);
+          const [storeMessage, setStoreMessage] = useState('');
+
           const [cats, setCats] = useState([
             {
               name: 'Lukis',
@@ -1053,6 +1271,26 @@
           const reminderTimeoutRef = useRef(null);
           const primaryCatName = cats[0]?.name || 'Tu gatito';
 
+          useEffect(() => {
+            if (typeof window === 'undefined') {
+              return;
+            }
+            try {
+              const payload = JSON.stringify({ coins, inventory, decorations });
+              window.localStorage.setItem(ECONOMY_STORAGE_KEY, payload);
+            } catch (error) {
+              console.warn('No se pudo guardar la economía de la tienda', error);
+            }
+          }, [coins, inventory, decorations]);
+
+          useEffect(() => {
+            if (!storeMessage) return undefined;
+            const timeout = setTimeout(() => {
+              setStoreMessage('');
+            }, 3200);
+            return () => clearTimeout(timeout);
+          }, [storeMessage]);
+
           const openGameMenu = useCallback(() => {
             setIsGameMenuOpen(true);
             setActiveGame(null);
@@ -1087,6 +1325,101 @@
               happiness: clamp(prev.happiness + 3, 0, 100),
               lastInteraction: Date.now()
             }));
+          }, []);
+
+          const openStore = useCallback(() => {
+            setIsStoreOpen(true);
+          }, []);
+
+          const closeStore = useCallback(() => {
+            setIsStoreOpen(false);
+          }, []);
+
+          const handlePurchaseItem = useCallback((item) => {
+            if (coins < item.price) {
+              setStoreMessage('Necesitas más monedas para esa compra.');
+              return;
+            }
+            setCoins((prev) => prev - item.price);
+            setInventory((prev) => {
+              const safePrev = prev || {};
+              const owned = safePrev[item.id] || 0;
+              return { ...safePrev, [item.id]: owned + 1 };
+            });
+            if (item.type === 'furniture') {
+              setDecorations((prev) => [...prev, item.id]);
+              setStoreMessage(`${primaryCatName} estrena ${item.name}.`);
+            } else {
+              setStoreMessage(`${primaryCatName} huele ${item.name}. ¡Qué delicia!`);
+            }
+          }, [coins, primaryCatName]);
+
+          const handleUseItem = useCallback((item) => {
+            const owned = inventory?.[item.id] || 0;
+            if (owned <= 0) {
+              setStoreMessage('No te queda ninguna unidad de ese artículo.');
+              return;
+            }
+            setInventory((prev) => {
+              const safePrev = prev || {};
+              const current = safePrev[item.id] || 0;
+              const next = { ...safePrev };
+              const remaining = current - 1;
+              if (remaining <= 0) {
+                delete next[item.id];
+              } else {
+                next[item.id] = remaining;
+              }
+              return next;
+            });
+            setGameState((prev) => {
+              const hunger = clamp(prev.hunger + (item.effect?.hunger || 0), 0, 100);
+              const energy = clamp(prev.energy + (item.effect?.energy || 0), 0, 100);
+              const happiness = clamp(prev.happiness + (item.effect?.happiness || 0), 0, 100);
+              return {
+                ...prev,
+                hunger,
+                energy,
+                happiness,
+                mood: computeMoodFromStats(happiness, energy, hunger),
+                lastInteraction: Date.now()
+              };
+            });
+            setStoreMessage(`${primaryCatName} disfrutó ${item.name}.`);
+          }, [inventory, primaryCatName]);
+
+          const handleGameReward = useCallback((gameId, scoreValue) => {
+            if (!Number.isFinite(scoreValue) || scoreValue <= 0) {
+              return;
+            }
+            let reward = 0;
+            switch (gameId) {
+              case 'flappy-lukis':
+                reward = Math.max(6, Math.round(scoreValue * 2.5));
+                break;
+              case 'lukis-sky-jump':
+                reward = Math.max(6, Math.round(scoreValue * 1.8));
+                break;
+              default:
+                reward = Math.max(4, Math.round(scoreValue));
+            }
+            reward = Math.min(reward, 250);
+            if (reward <= 0) {
+              return;
+            }
+            setCoins((prev) => prev + reward);
+            setGameState((prev) => {
+              const happiness = clamp(prev.happiness + Math.min(12, Math.round(reward / 4)), 0, 100);
+              const mood = computeMoodFromStats(happiness, prev.energy, prev.hunger);
+              return {
+                ...prev,
+                happiness,
+                mood,
+                lastInteraction: Date.now()
+              };
+            });
+            const gameName = gameId === 'flappy-lukis' ? 'Flappy Lukis' : 'Lukis Aventurero';
+            setStoreMessage(`Ganaste ${reward} monedas 🪙 jugando ${gameName}.`);
           }, []);
 
           const showInstallStatus = useCallback((message) => {
@@ -1428,18 +1761,12 @@
                 const newHunger = Math.max(0, prevState.hunger - 5);
                 const newEnergy = Math.max(0, prevState.energy - 5);
                 const newHappiness = Math.max(0, prevState.happiness - 5);
-                let mood = 'content';
-                if (newHappiness > 70 && newEnergy > 70 && newHunger > 70) mood = 'happy';
-                else if (newHappiness > 50 && newEnergy > 50 && newHunger > 50) mood = 'content';
-                else if (newHunger < 30) mood = 'hungry';
-                else if (newEnergy < 30) mood = 'tired';
-                else if (newHappiness < 30) mood = 'sad';
                 return {
                   ...prevState,
                   hunger: newHunger,
                   energy: newEnergy,
                   happiness: newHappiness,
-                  mood
+                  mood: computeMoodFromStats(newHappiness, newEnergy, newHunger)
                 };
               });
             }, 3000);
@@ -1477,12 +1804,7 @@
                   default:
                     break;
                 }
-                if (newState.happiness > 70 && newState.energy > 70 && newState.hunger > 70) newState.mood = 'happy';
-                else if (newState.happiness > 50 && newState.energy > 50 && newState.hunger > 50) newState.mood = 'content';
-                else if (newState.hunger < 30) newState.mood = 'hungry';
-                else if (newState.energy < 30) newState.mood = 'tired';
-                else if (newState.happiness < 30) newState.mood = 'sad';
-                else newState.mood = 'content';
+                newState.mood = computeMoodFromStats(newState.happiness, newState.energy, newState.hunger);
                 return newState;
               });
               setCats(prevCats => 
@@ -1695,6 +2017,25 @@
                   <div className="absolute bottom-12 right-24 w-6 h-3 bg-gray-300 rounded-full border border-gray-400"></div>
                   <div className="absolute bottom-12 left-1/4 w-36 h-10 bg-purple-300 rounded-lg opacity-60"></div>
 
+                  {decorations.map((decorId, index) => {
+                    const config = DECORATION_CONFIG[decorId];
+                    if (!config) return null;
+                    const style = {
+                      position: 'absolute',
+                      ...(typeof config.style === 'function' ? config.style(index) : config.style)
+                    };
+                    return (
+                      <div
+                        key={`${decorId}-${index}`}
+                        className={`pointer-events-none select-none ${config.className || ''}`}
+                        style={style}
+                        aria-hidden="true"
+                      >
+                        {config.emoji}
+                      </div>
+                    );
+                  })}
+
                   {cats.map((cat, index) => (
                     <div key={index}>{getCatDisplay(cat)}</div>
                   ))}
@@ -1774,6 +2115,22 @@
                   </div>
                 </div>
 
+                <div className="px-6 pb-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl" aria-hidden="true">🪙</span>
+                    <div>
+                      <p className="text-sm font-semibold text-yellow-600">{coins} monedas</p>
+                      <p className="text-[11px] text-gray-500">Gana jugando para mimarlos aún más.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={openStore}
+                    className="px-4 py-2 text-xs font-semibold rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition shadow"
+                  >
+                    Abrir tienda
+                  </button>
+                </div>
+
                 <div className="p-6 bg-gray-50 flex flex-wrap justify-center gap-4">
                   <button
                     onClick={() => handleAction('feed')}
@@ -1812,6 +2169,14 @@
                     <span className="text-xs font-medium">Juegos</span>
                   </button>
                 </div>
+
+                {storeMessage && !isStoreOpen && (
+                  <div className="px-6 pb-4">
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700 text-center shadow">
+                      {storeMessage}
+                    </div>
+                  </div>
+                )}
 
                 {notificationsSupported && (
                   <div className="px-6 pb-4">
@@ -1875,10 +2240,25 @@
               {isGameMenuOpen && (
                 <GameMenu onSelect={handleSelectGame} onClose={handleCloseMenu} />
               )}
+              {isStoreOpen && (
+                <GameOverlay title="Tienda Gatuna" onClose={closeStore}>
+                  <StoreModal
+                    coins={coins}
+                    inventory={inventory}
+                    onBuy={handlePurchaseItem}
+                    onUse={handleUseItem}
+                    message={storeMessage}
+                  />
+                </GameOverlay>
+              )}
               {activeGame && activeGameDefinition && (
                 <GameOverlay title={activeGameDefinition.title} onClose={closeGameExperience}>
-                  {activeGame === 'flappy-lukis' && <FlappyLukis onExit={closeGameExperience} />}
-                  {activeGame === 'lukis-sky-jump' && <LukisSkyJump onExit={closeGameExperience} />}
+                  {activeGame === 'flappy-lukis' && (
+                    <FlappyLukis onExit={closeGameExperience} onReward={handleGameReward} />
+                  )}
+                  {activeGame === 'lukis-sky-jump' && (
+                    <LukisSkyJump onExit={closeGameExperience} onReward={handleGameReward} />
+                  )}
                 </GameOverlay>
               )}
           </div>
