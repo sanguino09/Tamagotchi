@@ -220,217 +220,186 @@
           </div>
         );
 
-        const LukisFace = ({ size = 48, className = '', style = {} }) => {
-          const earWidth = size * 0.32;
-          const earHeight = size * 0.42;
-          const innerEarWidth = size * 0.18;
-          const innerEarHeight = size * 0.26;
-          const eyeSize = size * 0.18;
-          const pupilSize = size * 0.08;
-          const whiskerLength = size * 0.32;
+        const LukisOriginalAvatar = ({ size = 64, className = '', style = {} }) => {
+          const unit = size / 16;
+          const tuxedoColor = '#111827';
+          const chestColor = '#ffffff';
+          const eyeColor = '#34d399';
+
           return (
             <div
               className={`relative ${className}`}
               style={{ width: size, height: size, ...style }}
               aria-hidden="true"
             >
-              <div className="absolute inset-0 rounded-full" style={{ background: '#111827' }}></div>
               <div
                 className="absolute"
                 style={{
-                  left: size * 0.18,
-                  bottom: size * 0.08,
-                  width: size * 0.64,
-                  height: size * 0.58,
-                  background: '#ffffff',
-                  borderRadius: '48%'
+                  bottom: 0,
+                  left: unit * 2,
+                  width: unit * 12,
+                  height: unit * 12,
+                  background: tuxedoColor,
+                  borderRadius: '9999px'
                 }}
               ></div>
               <div
                 className="absolute"
                 style={{
-                  left: size * 0.05,
-                  top: size * -0.04,
-                  width: earWidth,
-                  height: earHeight,
-                  background: '#111827',
-                  borderRadius: '45% 45% 10% 10%',
-                  transform: 'rotate(-18deg)'
+                  bottom: unit,
+                  left: unit * 4,
+                  width: unit * 8,
+                  height: unit * 9,
+                  background: chestColor,
+                  borderRadius: '9999px'
                 }}
               ></div>
               <div
                 className="absolute"
                 style={{
-                  right: size * 0.05,
-                  top: size * -0.04,
-                  width: earWidth,
-                  height: earHeight,
-                  background: '#111827',
-                  borderRadius: '45% 45% 10% 10%',
-                  transform: 'rotate(18deg)'
+                  top: 0,
+                  left: unit * 2,
+                  width: unit * 12,
+                  height: unit * 12,
+                  background: tuxedoColor,
+                  borderRadius: '9999px'
                 }}
               ></div>
               <div
                 className="absolute"
                 style={{
-                  left: size * 0.12,
-                  top: size * 0.02,
-                  width: innerEarWidth,
-                  height: innerEarHeight,
-                  background: '#f9a8d4',
-                  borderRadius: '45% 45% 10% 10%',
-                  transform: 'rotate(-18deg)'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  right: size * 0.12,
-                  top: size * 0.02,
-                  width: innerEarWidth,
-                  height: innerEarHeight,
-                  background: '#f9a8d4',
-                  borderRadius: '45% 45% 10% 10%',
-                  transform: 'rotate(18deg)'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  left: size * 0.22,
-                  top: size * 0.38,
-                  width: eyeSize,
-                  height: eyeSize,
-                  background: '#d4f7d8',
-                  borderRadius: '50%'
+                  top: unit,
+                  left: unit * 3,
+                  width: unit * 10,
+                  height: unit * 9
                 }}
               >
-                <div
-                  className="absolute"
-                  style={{
-                    left: '50%',
-                    top: '40%',
-                    width: pupilSize,
-                    height: pupilSize,
-                    background: '#0f172a',
-                    borderRadius: '50%',
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                ></div>
-                <div
-                  className="absolute"
-                  style={{
-                    left: '30%',
-                    top: '25%',
-                    width: pupilSize * 0.4,
-                    height: pupilSize * 0.4,
-                    background: '#f8fafc',
-                    borderRadius: '50%'
-                  }}
-                ></div>
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full drop-shadow"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M50 15 C35 -5 0 0 0 30 C0 55 25 80 50 95 C75 80 100 55 100 30 C100 0 65 -5 50 15 Z"
+                    fill="#ffffff"
+                    transform="rotate(180 50 50)"
+                  />
+                </svg>
               </div>
               <div
                 className="absolute"
                 style={{
-                  right: size * 0.22,
-                  top: size * 0.38,
-                  width: eyeSize,
-                  height: eyeSize,
-                  background: '#d4f7d8',
-                  borderRadius: '50%'
+                  top: -unit,
+                  left: unit * 3,
+                  width: unit * 4,
+                  height: unit * 5,
+                  background: tuxedoColor,
+                  borderRadius: '9999px',
+                  transform: 'rotate(-12deg)'
                 }}
-              >
-                <div
-                  className="absolute"
-                  style={{
-                    left: '50%',
-                    top: '40%',
-                    width: pupilSize,
-                    height: pupilSize,
-                    background: '#0f172a',
-                    borderRadius: '50%',
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                ></div>
-                <div
-                  className="absolute"
-                  style={{
-                    left: '30%',
-                    top: '25%',
-                    width: pupilSize * 0.4,
-                    height: pupilSize * 0.4,
-                    background: '#f8fafc',
-                    borderRadius: '50%'
-                  }}
-                ></div>
-              </div>
+              ></div>
               <div
                 className="absolute"
                 style={{
+                  top: -unit,
+                  right: unit * 3,
+                  width: unit * 4,
+                  height: unit * 5,
+                  background: tuxedoColor,
+                  borderRadius: '9999px',
+                  transform: 'rotate(12deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: 0,
+                  left: unit * 4,
+                  width: unit * 2,
+                  height: unit * 3,
+                  background: '#f9a8d4',
+                  borderRadius: '9999px',
+                  transform: 'rotate(-12deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: 0,
+                  right: unit * 4,
+                  width: unit * 2,
+                  height: unit * 3,
+                  background: '#f9a8d4',
+                  borderRadius: '9999px',
+                  transform: 'rotate(12deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: unit * 4,
+                  left: unit * 4,
+                  width: unit * 2,
+                  height: unit * 2,
+                  background: eyeColor,
+                  borderRadius: '9999px'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: unit * 4,
+                  right: unit * 4,
+                  width: unit * 2,
+                  height: unit * 2,
+                  background: eyeColor,
+                  borderRadius: '9999px'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: unit * 5,
                   left: '50%',
-                  top: size * 0.6,
-                  width: size * 0.18,
-                  height: size * 0.12,
-                  background: '#f472b6',
-                  borderRadius: '45%',
+                  width: unit,
+                  height: unit,
+                  background: '#f9a8d4',
+                  borderRadius: '9999px',
                   transform: 'translateX(-50%)'
                 }}
               ></div>
               <div
                 className="absolute"
                 style={{
-                  left: '50%',
-                  top: size * 0.7,
-                  width: size * 0.24,
-                  height: size * 0.16,
-                  borderBottom: `${size * 0.06}px solid #111827`,
-                  borderLeft: `${size * 0.04}px solid transparent`,
-                  borderRight: `${size * 0.04}px solid transparent`,
-                  transform: 'translateX(-50%) rotate(180deg)'
+                  bottom: unit * 3,
+                  right: -unit,
+                  width: unit * 3,
+                  height: unit * 8,
+                  background: tuxedoColor,
+                  borderRadius: '9999px',
+                  transform: 'rotate(45deg)'
                 }}
               ></div>
               <div
                 className="absolute"
                 style={{
-                  left: size * 0.08,
-                  top: size * 0.62,
-                  width: whiskerLength,
-                  height: size * 0.02,
-                  background: '#111827',
-                  borderRadius: size * 0.02
+                  bottom: 0,
+                  left: unit * 3,
+                  width: unit * 1.5,
+                  height: unit * 4,
+                  background: tuxedoColor,
+                  borderRadius: '9999px'
                 }}
               ></div>
               <div
                 className="absolute"
                 style={{
-                  left: size * 0.08,
-                  top: size * 0.7,
-                  width: whiskerLength,
-                  height: size * 0.02,
-                  background: '#111827',
-                  borderRadius: size * 0.02
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  right: size * 0.08,
-                  top: size * 0.62,
-                  width: whiskerLength,
-                  height: size * 0.02,
-                  background: '#111827',
-                  borderRadius: size * 0.02
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  right: size * 0.08,
-                  top: size * 0.7,
-                  width: whiskerLength,
-                  height: size * 0.02,
-                  background: '#111827',
-                  borderRadius: size * 0.02
+                  bottom: 0,
+                  right: unit * 3,
+                  width: unit * 1.5,
+                  height: unit * 4,
+                  background: tuxedoColor,
+                  borderRadius: '9999px'
                 }}
               ></div>
             </div>
@@ -754,7 +723,7 @@
                           transform: `rotate(${tilt}deg)`
                         }}
                       >
-                        <LukisFace size={BIRD_SIZE} className="drop-shadow-lg" />
+                        <LukisOriginalAvatar size={BIRD_SIZE} className="drop-shadow-lg" />
                       </div>
                     );
                   })()}
@@ -1089,7 +1058,7 @@
                       transform: `rotate(${tilt}deg)`
                     }}
                   >
-                    <LukisFace size={PLAYER_SIZE} className="drop-shadow-lg" />
+                    <LukisOriginalAvatar size={PLAYER_SIZE} className="drop-shadow-lg" />
                   </div>
                   {!isRunning && !isGameOver && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/75 text-center p-6 space-y-3">
@@ -1590,7 +1559,7 @@
                         height: `${scaledPlayerSize}px`
                       }}
                     >
-                      <LukisFace size={scaledPlayerSize} className="drop-shadow-lg" />
+                      <LukisOriginalAvatar size={scaledPlayerSize} className="drop-shadow-lg" />
                     </div>
                     {!isRunning && !isGameOver && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
