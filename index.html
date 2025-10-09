@@ -36,16 +36,10 @@
             description: 'Ayuda a Lukis a volar entre las nubes sin chocarse.'
           },
           {
-            id: 'laser-chase',
-            title: 'Caza el Láser',
-            emoji: '🔴',
-            description: 'Toca el punto rojo antes de que desaparezca para sumar puntos.'
-          },
-          {
-            id: 'memory-cats',
-            title: 'Memoria Gatuna',
-            emoji: '🧠',
-            description: 'Encuentra las parejas de iconos gatunos en el menor número de turnos.'
+            id: 'lukis-sky-jump',
+            title: 'Lukis Aventurero',
+            emoji: '🪜',
+            description: 'Salta plataformas hacia el cielo como en Pou y llega lo más alto posible.'
           }
         ];
 
@@ -66,6 +60,223 @@
             </div>
           </div>
         );
+
+        const LukisFace = ({ size = 48, className = '', style = {} }) => {
+          const earWidth = size * 0.32;
+          const earHeight = size * 0.42;
+          const innerEarWidth = size * 0.18;
+          const innerEarHeight = size * 0.26;
+          const eyeSize = size * 0.18;
+          const pupilSize = size * 0.08;
+          const whiskerLength = size * 0.32;
+          return (
+            <div
+              className={`relative ${className}`}
+              style={{ width: size, height: size, ...style }}
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 rounded-full" style={{ background: '#111827' }}></div>
+              <div
+                className="absolute"
+                style={{
+                  left: size * 0.18,
+                  bottom: size * 0.08,
+                  width: size * 0.64,
+                  height: size * 0.58,
+                  background: '#ffffff',
+                  borderRadius: '48%'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  left: size * 0.05,
+                  top: size * -0.04,
+                  width: earWidth,
+                  height: earHeight,
+                  background: '#111827',
+                  borderRadius: '45% 45% 10% 10%',
+                  transform: 'rotate(-18deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  right: size * 0.05,
+                  top: size * -0.04,
+                  width: earWidth,
+                  height: earHeight,
+                  background: '#111827',
+                  borderRadius: '45% 45% 10% 10%',
+                  transform: 'rotate(18deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  left: size * 0.12,
+                  top: size * 0.02,
+                  width: innerEarWidth,
+                  height: innerEarHeight,
+                  background: '#f9a8d4',
+                  borderRadius: '45% 45% 10% 10%',
+                  transform: 'rotate(-18deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  right: size * 0.12,
+                  top: size * 0.02,
+                  width: innerEarWidth,
+                  height: innerEarHeight,
+                  background: '#f9a8d4',
+                  borderRadius: '45% 45% 10% 10%',
+                  transform: 'rotate(18deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  left: size * 0.22,
+                  top: size * 0.38,
+                  width: eyeSize,
+                  height: eyeSize,
+                  background: '#bef264',
+                  borderRadius: '50%'
+                }}
+              >
+                <div
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '40%',
+                    width: pupilSize,
+                    height: pupilSize,
+                    background: '#0f172a',
+                    borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                ></div>
+                <div
+                  className="absolute"
+                  style={{
+                    left: '30%',
+                    top: '25%',
+                    width: pupilSize * 0.4,
+                    height: pupilSize * 0.4,
+                    background: '#f8fafc',
+                    borderRadius: '50%'
+                  }}
+                ></div>
+              </div>
+              <div
+                className="absolute"
+                style={{
+                  right: size * 0.22,
+                  top: size * 0.38,
+                  width: eyeSize,
+                  height: eyeSize,
+                  background: '#bef264',
+                  borderRadius: '50%'
+                }}
+              >
+                <div
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '40%',
+                    width: pupilSize,
+                    height: pupilSize,
+                    background: '#0f172a',
+                    borderRadius: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                ></div>
+                <div
+                  className="absolute"
+                  style={{
+                    left: '30%',
+                    top: '25%',
+                    width: pupilSize * 0.4,
+                    height: pupilSize * 0.4,
+                    background: '#f8fafc',
+                    borderRadius: '50%'
+                  }}
+                ></div>
+              </div>
+              <div
+                className="absolute"
+                style={{
+                  left: '50%',
+                  top: size * 0.6,
+                  width: size * 0.18,
+                  height: size * 0.12,
+                  background: '#f472b6',
+                  borderRadius: '45%',
+                  transform: 'translateX(-50%)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  left: '50%',
+                  top: size * 0.7,
+                  width: size * 0.24,
+                  height: size * 0.16,
+                  borderBottom: `${size * 0.06}px solid #111827`,
+                  borderLeft: `${size * 0.04}px solid transparent`,
+                  borderRight: `${size * 0.04}px solid transparent`,
+                  transform: 'translateX(-50%) rotate(180deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  left: size * 0.08,
+                  top: size * 0.62,
+                  width: whiskerLength,
+                  height: size * 0.02,
+                  background: '#111827',
+                  borderRadius: size * 0.02
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  left: size * 0.08,
+                  top: size * 0.7,
+                  width: whiskerLength,
+                  height: size * 0.02,
+                  background: '#111827',
+                  borderRadius: size * 0.02
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  right: size * 0.08,
+                  top: size * 0.62,
+                  width: whiskerLength,
+                  height: size * 0.02,
+                  background: '#111827',
+                  borderRadius: size * 0.02
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  right: size * 0.08,
+                  top: size * 0.7,
+                  width: whiskerLength,
+                  height: size * 0.02,
+                  background: '#111827',
+                  borderRadius: size * 0.02
+                }}
+              ></div>
+            </div>
+          );
+        };
 
         const GameMenu = ({ onSelect, onClose }) => (
           <GameOverlay title="Sala de Juegos" onClose={onClose}>
@@ -93,7 +304,7 @@
         const FlappyLukis = ({ onExit }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 420;
-          const BIRD_SIZE = 28;
+          const BIRD_SIZE = 46;
           const BIRD_X = 60;
           const OBSTACLE_WIDTH = 60;
           const GAP_HEIGHT = 130;
@@ -206,7 +417,7 @@
 
           const flap = useCallback(() => {
             if (!isRunning) return;
-            setBird((prev) => ({ y: prev.y, velocity: -8 }));
+            setBird((prev) => ({ y: prev.y, velocity: -9.5 }));
           }, [isRunning]);
 
           useEffect(() => {
@@ -253,21 +464,27 @@
                     flap();
                   }}
                 >
-                  <div
-                    className="absolute bg-gradient-to-br from-pink-400 to-purple-500 rounded-full shadow-lg flex items-center justify-center text-white"
-                    style={{
-                      left: `${BIRD_X}px`,
-                      top: `${bird.y}px`,
-                      width: `${BIRD_SIZE}px`,
-                      height: `${BIRD_SIZE}px`
-                    }}
-                  >
-                    😺
-                  </div>
+                  {(() => {
+                    const tilt = Math.max(Math.min(bird.velocity * 2.8, 35), -35);
+                    return (
+                      <div
+                        className="absolute flex items-center justify-center"
+                        style={{
+                          left: `${BIRD_X}px`,
+                          top: `${bird.y}px`,
+                          width: `${BIRD_SIZE}px`,
+                          height: `${BIRD_SIZE}px`,
+                          transform: `rotate(${tilt}deg)`
+                        }}
+                      >
+                        <LukisFace size={BIRD_SIZE} className="drop-shadow-lg" />
+                      </div>
+                    );
+                  })()}
                   {obstacles.map((obstacle, index) => (
                     <React.Fragment key={index}>
                       <div
-                        className="absolute bg-emerald-500"
+                        className="absolute bg-emerald-500 border-2 border-emerald-300 rounded-b-2xl"
                         style={{
                           left: `${obstacle.x}px`,
                           top: 0,
@@ -276,7 +493,7 @@
                         }}
                       />
                       <div
-                        className="absolute bg-emerald-500"
+                        className="absolute bg-emerald-500 border-2 border-emerald-300 rounded-t-2xl"
                         style={{
                           left: `${obstacle.x}px`,
                           top: `${obstacle.gapBottom}px`,
@@ -326,257 +543,232 @@
           );
         };
 
-        const LaserChase = ({ onExit }) => {
-          const AREA_SIZE = 320;
-          const TARGET_SIZE = 32;
-          const [targetPosition, setTargetPosition] = useState({ x: 0, y: 0 });
-          const [score, setScore] = useState(0);
-          const [timeLeft, setTimeLeft] = useState(30);
-          const [isRunning, setIsRunning] = useState(false);
-          const moveRef = useRef(null);
-          const timerRef = useRef(null);
+        const LukisSkyJump = ({ onExit }) => {
+          const GAME_WIDTH = 320;
+          const GAME_HEIGHT = 480;
+          const PLAYER_SIZE = 44;
+          const GRAVITY = 0.55;
+          const JUMP_FORCE = 11.5;
+          const MOVE_SPEED = 4.2;
 
-          const getRandomPosition = useCallback(() => ({
-            x: Math.floor(Math.random() * (AREA_SIZE - TARGET_SIZE)),
-            y: Math.floor(Math.random() * (AREA_SIZE - TARGET_SIZE))
-          }), []);
-
-          const stopGame = useCallback(() => {
-            setIsRunning(false);
-            if (moveRef.current) {
-              clearInterval(moveRef.current);
-              moveRef.current = null;
+          const createInitialPlatforms = useCallback(() => {
+            const basePlatforms = [];
+            const step = GAME_HEIGHT / 6;
+            for (let i = 0; i < 6; i += 1) {
+              const width = Math.random() * 50 + 70;
+              const x = Math.random() * (GAME_WIDTH - width);
+              const y = GAME_HEIGHT - i * step - 60;
+              basePlatforms.push({ x, y, width });
             }
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-              timerRef.current = null;
-            }
+            basePlatforms.push({
+              x: GAME_WIDTH / 2 - 60,
+              y: GAME_HEIGHT - 20,
+              width: 120
+            });
+            return basePlatforms;
           }, []);
 
-          const startGame = useCallback(() => {
-            stopGame();
+          const getInitialPlayer = useCallback(
+            () => ({ x: GAME_WIDTH / 2 - PLAYER_SIZE / 2, y: GAME_HEIGHT - 140, vy: 0 }),
+            []
+          );
+
+          const [player, setPlayer] = useState(() => getInitialPlayer());
+          const [platforms, setPlatforms] = useState(() => createInitialPlatforms());
+          const [score, setScore] = useState(0);
+          const [isRunning, setIsRunning] = useState(false);
+          const [isGameOver, setIsGameOver] = useState(false);
+          const [activeDirection, setActiveDirection] = useState(null);
+
+          const playerRef = useRef(player);
+          const platformsRef = useRef(platforms);
+          const scoreRef = useRef(score);
+          const inputsRef = useRef({ left: false, right: false });
+          const totalHeightRef = useRef(0);
+
+          useEffect(() => {
+            playerRef.current = player;
+          }, [player]);
+
+          useEffect(() => {
+            platformsRef.current = platforms;
+          }, [platforms]);
+
+          useEffect(() => {
+            scoreRef.current = score;
+          }, [score]);
+
+          const resetGame = useCallback(() => {
+            const initialPlatforms = createInitialPlatforms();
+            const initialPlayer = getInitialPlayer();
+            totalHeightRef.current = 0;
+            scoreRef.current = 0;
+            inputsRef.current.left = false;
+            inputsRef.current.right = false;
+            setActiveDirection(null);
             setScore(0);
-            setTimeLeft(30);
-            setTargetPosition(getRandomPosition());
+            setPlatforms(initialPlatforms);
+            setPlayer(initialPlayer);
+            platformsRef.current = initialPlatforms;
+            playerRef.current = initialPlayer;
+            setIsGameOver(false);
             setIsRunning(true);
-          }, [getRandomPosition, stopGame]);
+          }, [createInitialPlatforms, getInitialPlayer]);
 
           useEffect(() => {
             if (!isRunning) {
+              inputsRef.current.left = false;
+              inputsRef.current.right = false;
+              setActiveDirection(null);
+            }
+          }, [isRunning]);
+
+          const handleControlStart = useCallback((direction) => {
+            inputsRef.current[direction] = true;
+            setActiveDirection(direction);
+          }, []);
+
+          const handleControlEnd = useCallback((direction) => {
+            inputsRef.current[direction] = false;
+            setActiveDirection((prev) => (prev === direction ? null : prev));
+          }, []);
+
+          useEffect(() => {
+            const handleKeyDown = (event) => {
+              if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+                inputsRef.current.left = true;
+                setActiveDirection('left');
+              } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+                inputsRef.current.right = true;
+                setActiveDirection('right');
+              } else if (event.code === 'Space') {
+                if (!isRunning) {
+                  event.preventDefault();
+                  resetGame();
+                }
+              }
+            };
+
+            const handleKeyUp = (event) => {
+              if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+                inputsRef.current.left = false;
+                setActiveDirection((prev) => (prev === 'left' ? null : prev));
+              } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+                inputsRef.current.right = false;
+                setActiveDirection((prev) => (prev === 'right' ? null : prev));
+              }
+            };
+
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            return () => {
+              window.removeEventListener('keydown', handleKeyDown);
+              window.removeEventListener('keyup', handleKeyUp);
+            };
+          }, [isRunning, resetGame]);
+
+          const updateGame = useCallback(() => {
+            const currentPlayer = playerRef.current;
+            const currentPlatforms = platformsRef.current;
+            let newVelocity = currentPlayer.vy + GRAVITY;
+            let newX = currentPlayer.x;
+
+            if (inputsRef.current.left) {
+              newX -= MOVE_SPEED;
+            }
+            if (inputsRef.current.right) {
+              newX += MOVE_SPEED;
+            }
+
+            if (newX < -PLAYER_SIZE / 2) {
+              newX = GAME_WIDTH - PLAYER_SIZE / 2;
+            } else if (newX > GAME_WIDTH - PLAYER_SIZE / 2) {
+              newX = -PLAYER_SIZE / 2;
+            }
+
+            let newY = currentPlayer.y + newVelocity;
+            const prevBottom = currentPlayer.y + PLAYER_SIZE;
+            const nextBottom = newY + PLAYER_SIZE;
+
+            for (const platform of currentPlatforms) {
+              if (
+                prevBottom <= platform.y &&
+                nextBottom >= platform.y &&
+                newX + PLAYER_SIZE > platform.x &&
+                newX < platform.x + platform.width &&
+                newVelocity > 0
+              ) {
+                newVelocity = -JUMP_FORCE;
+                newY = platform.y - PLAYER_SIZE;
+                break;
+              }
+            }
+
+            let verticalShift = 0;
+            const scrollThreshold = GAME_HEIGHT * 0.4;
+            if (newY < scrollThreshold) {
+              verticalShift = scrollThreshold - newY;
+              newY = scrollThreshold;
+            }
+
+            let updatedPlatforms = currentPlatforms
+              .map((platform) => ({ ...platform, y: platform.y + verticalShift }))
+              .filter((platform) => platform.y < GAME_HEIGHT + 40);
+
+            while (updatedPlatforms.length < 8) {
+              const highestY = updatedPlatforms.reduce(
+                (min, platform) => Math.min(min, platform.y),
+                GAME_HEIGHT
+              );
+              const platformY = (Number.isFinite(highestY) ? highestY : GAME_HEIGHT) - (Math.random() * 80 + 60);
+              const width = Math.random() * 50 + 70;
+              updatedPlatforms.push({
+                x: Math.random() * (GAME_WIDTH - width),
+                y: platformY,
+                width
+              });
+            }
+
+            if (verticalShift > 0) {
+              totalHeightRef.current += verticalShift;
+              const computedScore = Math.max(
+                scoreRef.current,
+                Math.floor(totalHeightRef.current / 45)
+              );
+              if (computedScore !== scoreRef.current) {
+                scoreRef.current = computedScore;
+                setScore(computedScore);
+              }
+            }
+
+            if (newY > GAME_HEIGHT) {
+              setIsRunning(false);
+              setIsGameOver(true);
+              inputsRef.current.left = false;
+              inputsRef.current.right = false;
               return;
             }
 
-            moveRef.current = setInterval(() => {
-              setTargetPosition(getRandomPosition());
-            }, 650);
+            const nextPlayer = { x: newX, y: newY, vy: newVelocity };
+            playerRef.current = nextPlayer;
+            platformsRef.current = updatedPlatforms;
 
-            timerRef.current = setInterval(() => {
-              setTimeLeft((prev) => {
-                if (prev <= 1) {
-                  clearInterval(timerRef.current);
-                  timerRef.current = null;
-                  setIsRunning(false);
-                  return 0;
-                }
-                return prev - 1;
-              });
-            }, 1000);
+            setPlayer(nextPlayer);
+            setPlatforms(updatedPlatforms);
+          }, []);
 
-            return () => {
-              if (moveRef.current) {
-                clearInterval(moveRef.current);
-                moveRef.current = null;
-              }
-              if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-              }
-            };
-          }, [isRunning, getRandomPosition]);
-
-          const handleCatch = useCallback(() => {
+          useEffect(() => {
             if (!isRunning) return;
-            setScore((prev) => prev + 1);
-            setTargetPosition(getRandomPosition());
-          }, [getRandomPosition, isRunning]);
+            const interval = setInterval(updateGame, 30);
+            return () => clearInterval(interval);
+          }, [isRunning, updateGame]);
 
-          useEffect(() => () => {
-            if (moveRef.current) clearInterval(moveRef.current);
-            if (timerRef.current) clearInterval(timerRef.current);
-          }, []);
-
-          const isFinished = !isRunning && timeLeft === 0;
+          const tilt = Math.max(Math.min(player.vy * 1.8, 24), -24);
 
           return (
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm text-gray-600">
-                <div>
-                  <span className="font-semibold text-pink-500">Puntos:</span> {score}
-                </div>
-                <div>
-                  <span className="font-semibold text-purple-500">Tiempo:</span> {timeLeft}s
-                </div>
-              </div>
-              <div
-                className="relative mx-auto rounded-3xl border-4 border-purple-200 bg-gradient-to-br from-purple-100 via-pink-100 to-amber-100"
-                style={{ width: AREA_SIZE, height: AREA_SIZE }}
-              >
-                {isRunning && (
-                  <div
-                    className="absolute rounded-full bg-gradient-to-br from-pink-500 via-red-500 to-yellow-400 shadow-lg cursor-pointer"
-                    style={{
-                      left: `${targetPosition.x}px`,
-                      top: `${targetPosition.y}px`,
-                      width: `${TARGET_SIZE}px`,
-                      height: `${TARGET_SIZE}px`
-                    }}
-                    onClick={handleCatch}
-                  >
-                    <span className="sr-only">Atrapa el láser</span>
-                  </div>
-                )}
-                {!isRunning && !isFinished && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-3">
-                    <span className="text-4xl">🔴</span>
-                    <p className="text-base font-semibold text-purple-600">Persigue el láser</p>
-                    <p className="text-sm text-gray-600">Toca el punto rojo tantas veces como puedas en 30 segundos.</p>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={startGame}
-                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
-                      >
-                        ¡Jugar!
-                      </button>
-                      <button
-                        onClick={onExit}
-                        className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
-                      >
-                        Salir
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {isFinished && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 space-y-3">
-                    <span className="text-4xl">🎉</span>
-                    <p className="text-base font-semibold text-purple-600">¡Tiempo!</p>
-                    <p className="text-sm text-gray-600">Atrapes realizados: {score}</p>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={startGame}
-                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
-                      >
-                        Reintentar
-                      </button>
-                      <button
-                        onClick={onExit}
-                        className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
-                      >
-                        Salir
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {isRunning && (
-                <div className="text-center">
-                  <button
-                    onClick={stopGame}
-                    className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
-                  >
-                    Pausar
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        };
-
-        const MemoryCats = ({ onExit }) => {
-          const EMOJIS = ['🐟', '🧶', '🐾', '🐦', '🥛', '🐭'];
-          const shuffleArray = useCallback((array) => {
-            const clone = [...array];
-            for (let i = clone.length - 1; i > 0; i -= 1) {
-              const j = Math.floor(Math.random() * (i + 1));
-              [clone[i], clone[j]] = [clone[j], clone[i]];
-            }
-            return clone;
-          }, []);
-
-          const createDeck = useCallback(() => (
-            shuffleArray(
-              [...EMOJIS, ...EMOJIS].map((emoji, index) => ({
-                id: `${emoji}-${index}`,
-                emoji,
-                matched: false
-              }))
-            )
-          ), [EMOJIS, shuffleArray]);
-
-          const [cards, setCards] = useState(() => createDeck());
-          const [flipped, setFlipped] = useState([]);
-          const [moves, setMoves] = useState(0);
-          const [matchedPairs, setMatchedPairs] = useState(0);
-          const [isChecking, setIsChecking] = useState(false);
-          const checkTimeoutRef = useRef(null);
-
-          const resetGame = useCallback(() => {
-            if (checkTimeoutRef.current) {
-              clearTimeout(checkTimeoutRef.current);
-              checkTimeoutRef.current = null;
-            }
-            setCards(createDeck());
-            setFlipped([]);
-            setMoves(0);
-            setMatchedPairs(0);
-            setIsChecking(false);
-          }, [createDeck]);
-
-          const handleFlip = useCallback((index) => {
-            if (isChecking) return;
-            if (flipped.includes(index)) return;
-            const card = cards[index];
-            if (!card || card.matched) return;
-
-            const newFlipped = [...flipped, index];
-            setFlipped(newFlipped);
-
-            if (newFlipped.length === 2) {
-              setIsChecking(true);
-              checkTimeoutRef.current = setTimeout(() => {
-                const [firstIndex, secondIndex] = newFlipped;
-                setCards((prevCards) => {
-                  const firstCard = prevCards[firstIndex];
-                  const secondCard = prevCards[secondIndex];
-                  if (firstCard && secondCard && firstCard.emoji === secondCard.emoji && firstIndex !== secondIndex) {
-                    setMatchedPairs((prev) => prev + 1);
-                    return prevCards.map((cardItem, idx) =>
-                      idx === firstIndex || idx === secondIndex
-                        ? { ...cardItem, matched: true }
-                        : cardItem
-                    );
-                  }
-                  return prevCards;
-                });
-                setMoves((prev) => prev + 1);
-                setFlipped([]);
-                setIsChecking(false);
-              }, 700);
-            }
-          }, [cards, flipped, isChecking]);
-
-          useEffect(() => () => {
-            if (checkTimeoutRef.current) {
-              clearTimeout(checkTimeoutRef.current);
-            }
-          }, []);
-
-          const allMatched = matchedPairs === EMOJIS.length;
-
-          return (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span><span className="font-semibold text-purple-500">Movimientos:</span> {moves}</span>
+                <span>Altura: <span className="font-semibold text-purple-600">{score}</span></span>
                 <button
                   onClick={onExit}
                   className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-200 hover:bg-gray-300 transition"
@@ -584,52 +776,111 @@
                   Salir
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {cards.map((card, index) => {
-                  const isFlipped = flipped.includes(index) || card.matched;
-                  return (
-                    <button
-                      key={card.id}
-                      onClick={() => handleFlip(index)}
-                      className={`h-24 rounded-2xl flex items-center justify-center text-3xl transition transform ${
-                        isFlipped ? 'bg-purple-200 rotate-y-0' : 'bg-purple-500 text-white'
-                      } ${card.matched ? 'opacity-80' : 'hover:scale-105'}`}
-                    >
-                      {isFlipped ? card.emoji : '❓'}
-                    </button>
-                  );
-                })}
-              </div>
-              {allMatched ? (
-                <div className="space-y-3 text-center">
-                  <p className="text-lg font-semibold text-purple-600">¡Perfecto! Encontraste todas las parejas.</p>
-                  <p className="text-sm text-gray-600">¿Quieres jugar otra vez?</p>
-                  <div className="flex items-center justify-center space-x-2">
-                    <button
-                      onClick={resetGame}
-                      className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
-                    >
-                      Reiniciar
-                    </button>
-                    <button
-                      onClick={onExit}
-                      className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
-                    >
-                      Salir
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Encuentra las {EMOJIS.length} parejas gatunas.</span>
-                  <button
-                    onClick={resetGame}
-                    className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium hover:bg-purple-200 transition"
+              <div
+                className="relative mx-auto rounded-3xl overflow-hidden shadow-inner"
+                style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-sky-200 via-slate-100 to-white">
+                  {platforms.map((platform, index) => (
+                    <div
+                      key={index}
+                      className="absolute bg-emerald-200 border border-emerald-400 rounded-2xl shadow-sm"
+                      style={{
+                        left: `${platform.x}px`,
+                        top: `${platform.y}px`,
+                        width: `${platform.width}px`,
+                        height: '14px'
+                      }}
+                    ></div>
+                  ))}
+                  <div
+                    className="absolute flex items-center justify-center transition-transform duration-75"
+                    style={{
+                      left: `${player.x}px`,
+                      top: `${player.y}px`,
+                      width: `${PLAYER_SIZE}px`,
+                      height: `${PLAYER_SIZE}px`,
+                      transform: `rotate(${tilt}deg)`
+                    }}
                   >
-                    Reiniciar
-                  </button>
+                    <LukisFace size={PLAYER_SIZE} className="drop-shadow-lg" />
+                  </div>
+                  {!isRunning && !isGameOver && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/75 text-center p-6 space-y-3">
+                      <span className="text-4xl">☁️</span>
+                      <p className="text-base font-semibold text-purple-600">¡Hora de saltar!</p>
+                      <p className="text-sm text-gray-600">Usa las flechas, las teclas A/D o los botones para moverte.</p>
+                      <button
+                        onClick={resetGame}
+                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                      >
+                        ¡A las nubes!
+                      </button>
+                    </div>
+                  )}
+                  {isGameOver && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
+                      <span className="text-4xl">🌧️</span>
+                      <p className="text-base font-semibold text-purple-600">¡Buen intento!</p>
+                      <p className="text-sm text-gray-600">Altura alcanzada: {score}</p>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={resetGame}
+                          className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                        >
+                          Intentar de nuevo
+                        </button>
+                        <button
+                          onClick={onExit}
+                          className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                        >
+                          Salir
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+              <div className="flex items-center justify-center space-x-4">
+                <button
+                  type="button"
+                  onMouseDown={() => handleControlStart('left')}
+                  onMouseUp={() => handleControlEnd('left')}
+                  onMouseLeave={() => handleControlEnd('left')}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    handleControlStart('left');
+                  }}
+                  onTouchEnd={() => handleControlEnd('left')}
+                  onTouchCancel={() => handleControlEnd('left')}
+                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition ${
+                    activeDirection === 'left'
+                      ? 'bg-purple-500 text-white border-purple-500'
+                      : 'bg-white text-purple-600 border-purple-200 hover:border-purple-400'
+                  }`}
+                >
+                  ◀︎
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={() => handleControlStart('right')}
+                  onMouseUp={() => handleControlEnd('right')}
+                  onMouseLeave={() => handleControlEnd('right')}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    handleControlStart('right');
+                  }}
+                  onTouchEnd={() => handleControlEnd('right')}
+                  onTouchCancel={() => handleControlEnd('right')}
+                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition ${
+                    activeDirection === 'right'
+                      ? 'bg-purple-500 text-white border-purple-500'
+                      : 'bg-white text-purple-600 border-purple-200 hover:border-purple-400'
+                  }`}
+                >
+                  ▶︎
+                </button>
+              </div>
             </div>
           );
         };
@@ -1627,8 +1878,7 @@
               {activeGame && activeGameDefinition && (
                 <GameOverlay title={activeGameDefinition.title} onClose={closeGameExperience}>
                   {activeGame === 'flappy-lukis' && <FlappyLukis onExit={closeGameExperience} />}
-                  {activeGame === 'laser-chase' && <LaserChase onExit={closeGameExperience} />}
-                  {activeGame === 'memory-cats' && <MemoryCats onExit={closeGameExperience} />}
+                  {activeGame === 'lukis-sky-jump' && <LukisSkyJump onExit={closeGameExperience} />}
                 </GameOverlay>
               )}
           </div>
