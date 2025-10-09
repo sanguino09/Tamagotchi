@@ -1358,9 +1358,12 @@
                   {type === 'siamese' ? (
                     <div className={`absolute top-1 left-3 w-10 h-9 ${colors.face} rounded-full`}></div>
                   ) : (
-                    <div>
-                      <div className="absolute top-1 left-5 w-6 h-8 bg-white rounded-full"></div>
-                      <div className="absolute top-6 left-7 w-2 h-3 bg-white transform rotate-45 rounded-sm"></div>
+                    <div className="absolute top-1 left-4 w-7 h-7 transform rotate-180">
+                      <div className="relative w-full h-full">
+                        <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-white rounded-[45%] transform -translate-x-1/2 rotate-45"></div>
+                        <div className="absolute -top-2 left-0 w-3.5 h-3.5 bg-white rounded-full"></div>
+                        <div className="absolute top-0 -left-2 w-3.5 h-3.5 bg-white rounded-full"></div>
+                      </div>
                     </div>
                   )}
                   <div className={`absolute -top-1 left-3 w-4 h-5 ${colors.ears} rounded-full transform -rotate-12`}></div>
