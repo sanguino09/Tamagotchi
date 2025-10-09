@@ -1445,24 +1445,18 @@
           return (
             <div className="space-y-4">
               <div className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-purple-50 p-5 shadow-lg border border-purple-200">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <LukisOriginalAvatar
-                      size={56}
-                      overlay={false}
-                      className="shrink-0 overflow-hidden rounded-2xl"
-                      imageClassName="shadow-lg"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl" aria-hidden="true">🍣</span>
-                      <h3 className="text-lg font-semibold text-purple-700">Lukis cazando premios</h3>
-                    </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span>Puntos: <span className="font-semibold text-purple-600">{scoreLabel}</span></span>
+                    <span>Vidas: <span className="font-semibold text-purple-600">{lives}</span></span>
+                    <span>Fallos: <span className="font-semibold text-purple-600">{misses}/{MAX_MISSES}</span></span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-purple-600">
-                    <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Puntos: {scoreLabel}</span>
-                    <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Vidas: {lives}</span>
-                    <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Fallos: {misses}/{MAX_MISSES}</span>
-                  </div>
+                  <button
+                    onClick={onExit}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-200 hover:bg-gray-300 transition"
+                  >
+                    Salir
+                  </button>
                 </div>
                 <div ref={stageContainerRef} className="mt-4">
                   <div
