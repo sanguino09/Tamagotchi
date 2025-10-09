@@ -559,9 +559,9 @@
           const BIRD_SIZE = 46;
           const BIRD_X = 60;
           const OBSTACLE_WIDTH = 60;
-          const GAP_HEIGHT = 130;
-          const GRAVITY = 0.46;
-          const OBSTACLE_SPEED = 3.2;
+          const GAP_HEIGHT = 184;
+          const GRAVITY = 0.32;
+          const OBSTACLE_SPEED = 2.15;
 
           const [bird, setBird] = useState({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
           const [obstacles, setObstacles] = useState(() => []);
@@ -636,7 +636,7 @@
 
                 while (updated.length < 3) {
                   const last = updated[updated.length - 1];
-                  const offset = last ? last.x + 180 : GAME_WIDTH;
+                  const offset = last ? last.x + 210 : GAME_WIDTH;
                   updated.push(createObstacle(offset));
                 }
 
@@ -2624,6 +2624,28 @@
                     <div className="absolute -top-1 -left-2 w-5 h-20 bg-pink-300 rounded-r-lg"></div>
                     <div className="absolute -top-1 -right-2 w-5 h-20 bg-pink-300 rounded-l-lg"></div>
                   </div>
+
+                  <figure
+                    className="absolute top-6 left-6 w-24 h-28 rounded-xl shadow-lg overflow-hidden"
+                    aria-labelledby="lukis-portrait-caption"
+                  >
+                    <div className="relative h-full w-full">
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-amber-200 via-amber-300 to-amber-100 border-4 border-amber-700"></div>
+                      <div className="absolute inset-1 rounded-lg border-2 border-amber-500 bg-amber-50/70"></div>
+                      <img
+                        src="IMG-20250924-WA0178.jpg"
+                        alt="Retrato de Lukis enmarcado"
+                        loading="lazy"
+                        className="absolute inset-2 w-[calc(100%-1rem)] h-[calc(100%-1rem)] object-cover rounded-md"
+                      />
+                    </div>
+                    <figcaption
+                      id="lukis-portrait-caption"
+                      className="sr-only"
+                    >
+                      Lukis posa con un moño rojo en un retrato familiar.
+                    </figcaption>
+                  </figure>
 
                   <div className="absolute bottom-12 left-4 w-12 h-6 bg-red-400 rounded-full border-2 border-red-500"></div>
                   <div className="absolute bottom-12 right-8 w-6 h-3 bg-gray-300 rounded-full border border-gray-400"></div>
