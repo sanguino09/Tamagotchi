@@ -20,6 +20,16 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+
+        @keyframes bubbleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes bubbleWiggle {
+            0%, 100% { transform: rotate(-4deg) scale(1); }
+            50% { transform: rotate(4deg) scale(1.05); }
+        }
     </style>
 </head>
 <body>
@@ -40,6 +50,12 @@
             title: 'Lukis Aventurero',
             emoji: '🪜',
             description: 'Salta plataformas hacia el cielo como en Pou y llega lo más alto posible.'
+          },
+          {
+            id: 'lukis-bubble-dash',
+            title: 'Lukis Cazaburbujas',
+            emoji: '🫧',
+            description: 'Explota burbujas mágicas antes de que desaparezcan y gana monedas extra.'
           }
         ];
 
@@ -85,6 +101,40 @@
             type: 'furniture',
             price: 60,
             description: 'Un adorno colgante que llena la habitación de color.'
+          },
+          {
+            id: 'sardine-feast',
+            name: 'Banquete de sardinas',
+            emoji: '🐟',
+            type: 'food',
+            price: 58,
+            description: 'Una torre de sardinas jugosas que deja bigotes brillantes.',
+            effect: { hunger: 42, happiness: 10 }
+          },
+          {
+            id: 'sparkle-toy',
+            name: 'Varita brillante',
+            emoji: '✨',
+            type: 'toy',
+            price: 48,
+            description: 'Plumas luminosas para entrenar saltos felinos y felicidad.',
+            effect: { happiness: 22, energy: 6 }
+          },
+          {
+            id: 'starlight-lamp',
+            name: 'Lámpara estelar',
+            emoji: '🛋️',
+            type: 'furniture',
+            price: 85,
+            description: 'Ilumina el cuarto con constelaciones suaves para sueños gatunos.'
+          },
+          {
+            id: 'cosmic-cushion',
+            name: 'Cojín cósmico',
+            emoji: '🪐',
+            type: 'furniture',
+            price: 70,
+            description: 'Un cojín esponjoso que parece flotar entre planetas.'
           }
         ];
 
@@ -103,29 +153,43 @@
             emoji: '🌈',
             className: 'text-4xl',
             style: { top: '18px', left: '22%' }
+          },
+          'starlight-lamp': {
+            emoji: '🛋️',
+            className: 'text-4xl drop-shadow-md',
+            style: (index) => ({
+              bottom: '46px',
+              left: index % 2 === 0 ? '8%' : '66%'
+            })
+          },
+          'cosmic-cushion': {
+            emoji: '🪐',
+            className: 'text-5xl animate-pulse',
+            style: { bottom: '38px', left: '42%' }
           }
         };
 
+        const DEFAULT_ECONOMY_STATE = { coins: 120, inventory: {}, decorations: [] };
         const ECONOMY_STORAGE_KEY = 'catagotchi-economy-v1';
 
         const loadEconomyState = () => {
           if (typeof window === 'undefined') {
-            return { coins: 120, inventory: {}, decorations: [] };
+            return { ...DEFAULT_ECONOMY_STATE };
           }
           try {
             const raw = window.localStorage.getItem(ECONOMY_STORAGE_KEY);
             if (!raw) {
-              return { coins: 120, inventory: {}, decorations: [] };
+              return { ...DEFAULT_ECONOMY_STATE };
             }
             const parsed = JSON.parse(raw);
             return {
-              coins: Number.isFinite(parsed?.coins) ? parsed.coins : 120,
+              coins: Number.isFinite(parsed?.coins) ? parsed.coins : DEFAULT_ECONOMY_STATE.coins,
               inventory: parsed?.inventory && typeof parsed.inventory === 'object' ? parsed.inventory : {},
               decorations: Array.isArray(parsed?.decorations) ? parsed.decorations : []
             };
           } catch (error) {
             console.warn('No se pudo cargar la economía guardada', error);
-            return { coins: 120, inventory: {}, decorations: [] };
+            return { ...DEFAULT_ECONOMY_STATE };
           }
         };
 
@@ -396,7 +460,7 @@
           </GameOverlay>
         );
 
-        const StoreModal = ({ coins, inventory, onBuy, onUse, message }) => (
+        const StoreModal = ({ coins, inventory, onBuy, onUse, onReset, message }) => (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600">
@@ -411,7 +475,7 @@
               {STORE_ITEMS.map((item) => {
                 const owned = inventory?.[item.id] || 0;
                 const canAfford = coins >= item.price;
-                const isFood = item.type === 'food';
+                const isConsumable = Boolean(item.effect);
                 return (
                   <div
                     key={item.id}
@@ -443,20 +507,20 @@
                         >
                           Comprar
                         </button>
-                        {isFood && (
+                        {isConsumable && (
                           <button
                             onClick={() => onUse(item)}
                             className={`px-3 py-1.5 text-xs font-semibold rounded-full transition ${
                               owned > 0
                                 ? 'bg-emerald-500 text-white hover:bg-emerald-600'
                                 : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            }`}
+                          }`}
                             disabled={owned <= 0}
                           >
-                            Dar ahora
+                            Usar ahora
                           </button>
                         )}
-                        {!isFood && owned > 0 && (
+                        {item.type === 'furniture' && owned > 0 && (
                           <span className="text-[11px] text-emerald-600 font-semibold">
                             Decoración colocada
                           </span>
@@ -470,6 +534,17 @@
             {message && (
               <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-2 text-sm text-amber-700">
                 {message}
+              </div>
+            )}
+            {typeof onReset === 'function' && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-500 bg-white border border-purple-100 rounded-2xl px-4 py-3">
+                <span>¿Quieres volver a empezar? Reinicia compras y decoraciones.</span>
+                <button
+                  onClick={onReset}
+                  className="self-start sm:self-auto px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 font-semibold hover:bg-purple-200 transition"
+                >
+                  Reiniciar tienda
+                </button>
               </div>
             )}
             <div className="text-xs text-gray-500">
@@ -1096,6 +1171,226 @@
           );
         };
 
+        const LukisBubbleDash = ({ onExit, onReward }) => {
+          const GAME_WIDTH = 320;
+          const GAME_HEIGHT = 380;
+          const GAME_DURATION = 30;
+          const SPAWN_INTERVAL = 750;
+
+          const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+          const [score, setScore] = useState(0);
+          const [isRunning, setIsRunning] = useState(false);
+          const [isFinished, setIsFinished] = useState(false);
+          const [targets, setTargets] = useState([]);
+
+          const timerRef = useRef(null);
+          const spawnRef = useRef(null);
+          const cleanupRef = useRef(null);
+          const targetIdRef = useRef(0);
+          const rewardGrantedRef = useRef(false);
+
+          const createTarget = useCallback(() => {
+            const roll = Math.random();
+            let type = 'bubble';
+            if (roll > 0.82) type = 'star';
+            else if (roll < 0.18) type = 'storm';
+            const size = type === 'star' ? 52 : type === 'storm' ? 40 : 44;
+            const lifespan = type === 'star' ? 1800 : type === 'storm' ? 1200 : 1500;
+            const id = targetIdRef.current += 1;
+            const padding = 18;
+            const x = Math.random() * (GAME_WIDTH - size - padding) + padding / 2;
+            const y = Math.random() * (GAME_HEIGHT - size - padding) + padding / 2;
+            const expiresAt = Date.now() + lifespan;
+            return { id, x, y, size, type, expiresAt };
+          }, []);
+
+          const resetGame = useCallback(() => {
+            setTimeLeft(GAME_DURATION);
+            setScore(0);
+            setTargets([]);
+            setIsFinished(false);
+            setIsRunning(true);
+            rewardGrantedRef.current = false;
+          }, []);
+
+          const stopGame = useCallback(() => {
+            setIsRunning(false);
+            setIsFinished(true);
+          }, []);
+
+          useEffect(() => {
+            if (!isRunning) {
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+              return;
+            }
+            timerRef.current = setInterval(() => {
+              setTimeLeft((prev) => {
+                if (prev <= 1) {
+                  if (timerRef.current) {
+                    clearInterval(timerRef.current);
+                    timerRef.current = null;
+                  }
+                  stopGame();
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+            return () => {
+              if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+              }
+            };
+          }, [isRunning, stopGame]);
+
+          useEffect(() => {
+            if (!isRunning) {
+              if (spawnRef.current) {
+                clearInterval(spawnRef.current);
+                spawnRef.current = null;
+              }
+              if (cleanupRef.current) {
+                clearInterval(cleanupRef.current);
+                cleanupRef.current = null;
+              }
+              return;
+            }
+            spawnRef.current = setInterval(() => {
+              setTargets((prev) => [...prev, createTarget()]);
+            }, SPAWN_INTERVAL);
+            cleanupRef.current = setInterval(() => {
+              const now = Date.now();
+              setTargets((prev) => prev.filter((target) => target.expiresAt > now));
+            }, 120);
+            return () => {
+              if (spawnRef.current) {
+                clearInterval(spawnRef.current);
+                spawnRef.current = null;
+              }
+              if (cleanupRef.current) {
+                clearInterval(cleanupRef.current);
+                cleanupRef.current = null;
+              }
+            };
+          }, [createTarget, isRunning]);
+
+          useEffect(() => () => {
+            if (spawnRef.current) clearInterval(spawnRef.current);
+            if (timerRef.current) clearInterval(timerRef.current);
+            if (cleanupRef.current) clearInterval(cleanupRef.current);
+          }, []);
+
+          useEffect(() => {
+            if (isFinished && !isRunning && !rewardGrantedRef.current && typeof onReward === 'function') {
+              rewardGrantedRef.current = true;
+              onReward('lukis-bubble-dash', score);
+            }
+          }, [isFinished, isRunning, onReward, score]);
+
+          const handleTargetClick = useCallback((targetId, type) => {
+            let delta = 0;
+            if (type === 'star') delta = 6;
+            else if (type === 'storm') delta = -4;
+            else delta = 3;
+            setScore((prev) => Math.max(0, prev + delta));
+            setTargets((prev) => prev.filter((target) => target.id !== targetId));
+          }, []);
+
+          const formatTime = (value) => value.toString().padStart(2, '0');
+
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span>
+                  Tiempo: <span className="font-semibold text-purple-600">00:{formatTime(timeLeft)}</span>
+                </span>
+                <span>
+                  Puntos: <span className="font-semibold text-purple-600">{score}</span>
+                </span>
+                <button
+                  onClick={onExit}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-200 hover:bg-gray-300 transition"
+                >
+                  Salir
+                </button>
+              </div>
+              <div
+                className="relative mx-auto rounded-3xl overflow-hidden shadow-inner bg-gradient-to-b from-cyan-200 via-sky-100 to-indigo-100"
+                style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
+              >
+                <div className="absolute inset-0">
+                  {targets.map((target) => {
+                    const emoji = target.type === 'star' ? '🌟' : target.type === 'storm' ? '💥' : '🫧';
+                    const extraClass = target.type === 'star' ? 'animate-pulse' : '';
+                    const animationStyle = target.type === 'star'
+                      ? {}
+                      : target.type === 'storm'
+                        ? { animation: 'bubbleWiggle 0.45s ease-in-out infinite' }
+                        : { animation: 'bubbleFloat 1.8s ease-in-out infinite' };
+                    return (
+                      <button
+                        key={target.id}
+                        onClick={() => handleTargetClick(target.id, target.type)}
+                        className={`absolute flex items-center justify-center text-3xl drop-shadow-lg transition-transform ${extraClass}`}
+                        style={{
+                          left: `${target.x}px`,
+                          top: `${target.y}px`,
+                          width: `${target.size}px`,
+                          height: `${target.size}px`,
+                          ...animationStyle
+                        }}
+                        aria-label="Atrapar burbuja"
+                      >
+                        <span className="pointer-events-none select-none">{emoji}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {!isRunning && !isFinished && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
+                    <span className="text-4xl">🫧</span>
+                    <p className="text-base font-semibold text-purple-600">¡Atrapa todas las burbujas que puedas!</p>
+                    <p className="text-sm text-gray-600">
+                      Las burbujas brillantes dan más puntos, pero cuidado con las tormentosas.
+                    </p>
+                    <button
+                      onClick={resetGame}
+                      className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                    >
+                      Comenzar
+                    </button>
+                  </div>
+                )}
+                {isFinished && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 text-center p-6 space-y-3">
+                    <span className="text-4xl">🎉</span>
+                    <p className="text-base font-semibold text-purple-600">Tiempo cumplido</p>
+                    <p className="text-sm text-gray-600">Puntos conseguidos: {score}</p>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={resetGame}
+                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                      >
+                        Jugar de nuevo
+                      </button>
+                      <button
+                        onClick={onExit}
+                        className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                      >
+                        Salir
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        };
+
         const SOUND_LIBRARY = {
           meow: {
             files: ['meow-1.mp3', 'meow_QO6VsE6.mp3', 'the-end-meow-by-nekocat-just-3-second-1.mp3'],
@@ -1349,6 +1644,8 @@
             if (item.type === 'furniture') {
               setDecorations((prev) => [...prev, item.id]);
               setStoreMessage(`${primaryCatName} estrena ${item.name}.`);
+            } else if (item.type === 'toy') {
+              setStoreMessage(`${primaryCatName} no puede esperar para jugar con ${item.name}.`);
             } else {
               setStoreMessage(`${primaryCatName} huele ${item.name}. ¡Qué delicia!`);
             }
@@ -1385,20 +1682,41 @@
                 lastInteraction: Date.now()
               };
             });
-            setStoreMessage(`${primaryCatName} disfrutó ${item.name}.`);
+            const enjoymentText = item.type === 'toy'
+              ? `${primaryCatName} jugó con ${item.name}.`
+              : `${primaryCatName} disfrutó ${item.name}.`;
+            setStoreMessage(enjoymentText);
           }, [inventory, primaryCatName]);
+
+          const handleResetStore = useCallback(() => {
+            let proceed = true;
+            if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+              proceed = window.confirm('¿Seguro que quieres reiniciar la tienda? Se borrarán las compras y decoraciones.');
+            }
+            if (!proceed) {
+              return;
+            }
+            setCoins(DEFAULT_ECONOMY_STATE.coins);
+            setInventory({});
+            setDecorations([]);
+            setStoreMessage('La tienda se ha reiniciado. ¡Todo vuelve a estar disponible!');
+          }, []);
 
           const handleGameReward = useCallback((gameId, scoreValue) => {
             if (!Number.isFinite(scoreValue) || scoreValue <= 0) {
               return;
             }
             let reward = 0;
+            const gameDefinition = GAME_DEFINITIONS.find((game) => game.id === gameId);
             switch (gameId) {
               case 'flappy-lukis':
                 reward = Math.max(6, Math.round(scoreValue * 2.5));
                 break;
               case 'lukis-sky-jump':
                 reward = Math.max(6, Math.round(scoreValue * 1.8));
+                break;
+              case 'lukis-bubble-dash':
+                reward = Math.max(8, Math.round(scoreValue * 2.2));
                 break;
               default:
                 reward = Math.max(4, Math.round(scoreValue));
@@ -1418,7 +1736,7 @@
                 lastInteraction: Date.now()
               };
             });
-            const gameName = gameId === 'flappy-lukis' ? 'Flappy Lukis' : 'Lukis Aventurero';
+            const gameName = gameDefinition?.title || 'el minijuego';
             setStoreMessage(`Ganaste ${reward} monedas 🪙 jugando ${gameName}.`);
           }, []);
 
@@ -1931,12 +2249,14 @@
                   {type === 'siamese' ? (
                     <div className={`absolute top-1 left-3 w-10 h-9 ${colors.face} rounded-full`}></div>
                   ) : (
-                    <div className="absolute top-1 left-4 w-7 h-7 transform rotate-180">
-                      <div className="relative w-full h-full">
-                        <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-white rounded-[45%] transform -translate-x-1/2 rotate-45"></div>
-                        <div className="absolute -top-2 left-0 w-3.5 h-3.5 bg-white rounded-full"></div>
-                        <div className="absolute top-0 -left-2 w-3.5 h-3.5 bg-white rounded-full"></div>
-                      </div>
+                    <div className="absolute top-1 left-3 w-10 h-9">
+                      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow" aria-hidden="true">
+                        <path
+                          d="M50 15 C35 -5 0 0 0 30 C0 55 25 80 50 95 C75 80 100 55 100 30 C100 0 65 -5 50 15 Z"
+                          fill="#ffffff"
+                          transform="rotate(180 50 50)"
+                        />
+                      </svg>
                     </div>
                   )}
                   <div className={`absolute -top-1 left-3 w-4 h-5 ${colors.ears} rounded-full transform -rotate-12`}></div>
@@ -2247,6 +2567,7 @@
                     inventory={inventory}
                     onBuy={handlePurchaseItem}
                     onUse={handleUseItem}
+                    onReset={handleResetStore}
                     message={storeMessage}
                   />
                 </GameOverlay>
@@ -2258,6 +2579,9 @@
                   )}
                   {activeGame === 'lukis-sky-jump' && (
                     <LukisSkyJump onExit={closeGameExperience} onReward={handleGameReward} />
+                  )}
+                  {activeGame === 'lukis-bubble-dash' && (
+                    <LukisBubbleDash onExit={closeGameExperience} onReward={handleGameReward} />
                   )}
                 </GameOverlay>
               )}
