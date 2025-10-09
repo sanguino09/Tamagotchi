@@ -52,10 +52,10 @@
             description: 'Salta plataformas hacia el cielo como en Pou y llega lo más alto posible.'
           },
           {
-            id: 'lukis-trilero',
-            title: 'Lukis Trilero',
-            emoji: '🎩',
-            description: 'Sigue al minino bajo los sombreros y adivina dónde se esconde antes de que acaben las rondas.'
+            id: 'lukis-treat-dash',
+            title: 'Lukis Cazador',
+            emoji: '🍣',
+            description: 'Deslízate por el suelo para atrapar las golosinas que caen y esquiva los juguetes traviesos.'
           }
         ];
 
@@ -1172,225 +1172,459 @@
         };
 
 
-        const LukisTrilero = ({ onExit, onReward }) => {
-          const TOTAL_ROUNDS = 5;
-          const [round, setRound] = useState(0);
-          const [score, setScore] = useState(0);
-          const [phase, setPhase] = useState('intro');
-          const [cups, setCups] = useState(() => [0, 1, 2].map((id) => ({ id, hasTreat: false })));
-          const [highlightedCups, setHighlightedCups] = useState([]);
-          const [statusMessage, setStatusMessage] = useState('¿Listo para el truco de Lukis?');
 
-          const revealTimeoutRef = useRef(null);
-          const shuffleTimeoutsRef = useRef([]);
+        const LukisTreatDash = ({ onExit, onReward }) => {
+          const GAME_WIDTH = 320;
+          const GAME_HEIGHT = 430;
+          const PLAYER_SIZE = 52;
+          const ITEM_SIZE = 34;
+          const HAZARD_SIZE = 40;
+          const MOVE_SPEED = 5.5;
+          const MAX_MISSES = 5;
+          const FLOOR_Y = GAME_HEIGHT - PLAYER_SIZE - 18;
+
+          const createInitialPlayer = useCallback(
+            () => ({ x: GAME_WIDTH / 2 - PLAYER_SIZE / 2, y: FLOOR_Y }),
+            []
+          );
+
+          const [player, setPlayer] = useState(() => createInitialPlayer());
+          const [items, setItems] = useState([]);
+          const [hazards, setHazards] = useState([]);
+          const [score, setScore] = useState(0);
+          const [misses, setMisses] = useState(0);
+          const [lives, setLives] = useState(3);
+          const [isRunning, setIsRunning] = useState(false);
+          const [isGameOver, setIsGameOver] = useState(false);
+          const [activeDirection, setActiveDirection] = useState(null);
+
+          const loopRef = useRef(null);
+          const lastTimestampRef = useRef(null);
+          const spawnAccumulatorRef = useRef(0);
+          const hazardAccumulatorRef = useRef(0);
+          const inputsRef = useRef({ left: false, right: false });
+          const playerRef = useRef(player);
+          const itemsRef = useRef(items);
+          const hazardsRef = useRef(hazards);
+          const scoreRef = useRef(score);
+          const missesRef = useRef(misses);
+          const livesRef = useRef(lives);
           const rewardGrantedRef = useRef(false);
 
-          const clearTimers = useCallback(() => {
-            if (revealTimeoutRef.current) {
-              clearTimeout(revealTimeoutRef.current);
-              revealTimeoutRef.current = null;
-            }
-            shuffleTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
-            shuffleTimeoutsRef.current = [];
-          }, []);
-
-          const startRound = useCallback(
-            (roundNumber) => {
-              clearTimers();
-              const treatIndex = Math.floor(Math.random() * 3);
-              const baseCups = [0, 1, 2].map((id, index) => ({ id, hasTreat: index === treatIndex }));
-              setRound(roundNumber);
-              setCups(baseCups);
-              setPhase('reveal');
-              setStatusMessage(`Ronda ${roundNumber} de ${TOTAL_ROUNDS}: ¡Mira dónde se esconde Lukis!`);
-              setHighlightedCups([baseCups[treatIndex].id]);
-
-              revealTimeoutRef.current = setTimeout(() => {
-                setHighlightedCups([]);
-                setPhase('shuffling');
-                setStatusMessage('Mezclando sombreros...');
-                const totalShuffles = 3 + roundNumber;
-                let step = 0;
-
-                const runShuffle = () => {
-                  let firstIndex = 0;
-                  let secondIndex = 1;
-                  setCups((prev) => {
-                    const newCups = [...prev];
-                    firstIndex = Math.floor(Math.random() * newCups.length);
-                    do {
-                      secondIndex = Math.floor(Math.random() * newCups.length);
-                    } while (secondIndex === firstIndex);
-                    const firstId = newCups[firstIndex].id;
-                    const secondId = newCups[secondIndex].id;
-                    [newCups[firstIndex], newCups[secondIndex]] = [newCups[secondIndex], newCups[firstIndex]];
-                    setHighlightedCups([firstId, secondId]);
-                    return newCups;
-                  });
-
-                  step += 1;
-                  if (step < totalShuffles) {
-                    const timeoutId = setTimeout(runShuffle, 320);
-                    shuffleTimeoutsRef.current.push(timeoutId);
-                  } else {
-                    const timeoutId = setTimeout(() => {
-                      setHighlightedCups([]);
-                      setPhase('guess');
-                      setStatusMessage('¿Dónde está Lukis? ¡Elige un sombrero!');
-                    }, 360);
-                    shuffleTimeoutsRef.current.push(timeoutId);
-                  }
-                };
-
-                runShuffle();
-              }, 1100);
-            },
-            [clearTimers]
-          );
-
-          const startGame = useCallback(() => {
-            setScore(0);
-            setStatusMessage('Observa bien al pequeño Lukis.');
-            rewardGrantedRef.current = false;
-            startRound(1);
-          }, [startRound]);
-
-          const handleGuess = useCallback(
-            (cupId) => {
-              if (phase !== 'guess') return;
-              clearTimers();
-              const guessedCup = cups.find((cup) => cup.id === cupId);
-              if (!guessedCup) return;
-
-              const success = Boolean(guessedCup.hasTreat);
-              const updatedScore = success ? score + 1 : score;
-              setScore(updatedScore);
-              setPhase('result');
-              setHighlightedCups([cupId]);
-              setStatusMessage(success ? '¡Encontraste a Lukis!' : '¡Casi! Lukis estaba en otro sombrero.');
-
-              const timeoutId = setTimeout(() => {
-                if (round >= TOTAL_ROUNDS) {
-                  setPhase('complete');
-                  setStatusMessage(`Encontraste a Lukis ${updatedScore} de ${TOTAL_ROUNDS} veces.`);
-                  setHighlightedCups([]);
-                } else {
-                  startRound(round + 1);
-                }
-              }, 1200);
-              shuffleTimeoutsRef.current.push(timeoutId);
-            },
-            [clearTimers, cups, phase, round, score, startRound]
-          );
-
-          useEffect(() => () => clearTimers(), [clearTimers]);
+          useEffect(() => {
+            playerRef.current = player;
+          }, [player]);
 
           useEffect(() => {
-            if (phase === 'complete' && !rewardGrantedRef.current && typeof onReward === 'function') {
-              rewardGrantedRef.current = true;
-              onReward('lukis-trilero', score);
-            }
-          }, [onReward, phase, score]);
+            itemsRef.current = items;
+          }, [items]);
 
-          const isGuessPhase = phase === 'guess';
-          const showInstructionButton = phase === 'intro';
-          const showSummary = phase === 'complete';
+          useEffect(() => {
+            hazardsRef.current = hazards;
+          }, [hazards]);
+
+          useEffect(() => {
+            scoreRef.current = score;
+          }, [score]);
+
+          useEffect(() => {
+            missesRef.current = misses;
+          }, [misses]);
+
+          useEffect(() => {
+            livesRef.current = lives;
+          }, [lives]);
+
+          const clampValue = useCallback((value, min, max) => Math.min(Math.max(value, min), max), []);
+
+          const prepareGame = useCallback(() => {
+            const initialPlayer = createInitialPlayer();
+            playerRef.current = initialPlayer;
+            itemsRef.current = [];
+            hazardsRef.current = [];
+            scoreRef.current = 0;
+            missesRef.current = 0;
+            livesRef.current = 3;
+            spawnAccumulatorRef.current = 0;
+            hazardAccumulatorRef.current = 0;
+            lastTimestampRef.current = null;
+            rewardGrantedRef.current = false;
+            setPlayer(initialPlayer);
+            setItems([]);
+            setHazards([]);
+            setScore(0);
+            setMisses(0);
+            setLives(3);
+          }, [createInitialPlayer]);
+
+          const startGame = useCallback(() => {
+            prepareGame();
+            setIsGameOver(false);
+            setIsRunning(true);
+          }, [prepareGame]);
+
+          const stopGame = useCallback(() => {
+            setIsRunning(false);
+            setIsGameOver(true);
+            lastTimestampRef.current = null;
+          }, []);
+
+          const handleControlStart = useCallback((direction) => {
+            inputsRef.current[direction] = true;
+            setActiveDirection(direction);
+          }, []);
+
+          const handleControlEnd = useCallback((direction) => {
+            inputsRef.current[direction] = false;
+            setActiveDirection((prev) => (prev === direction ? null : prev));
+          }, []);
+
+          const checkCollision = (ax, ay, aw, ah, bx, by, bw, bh) =>
+            ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+
+          useEffect(() => {
+            if (!isRunning) {
+              if (loopRef.current) {
+                cancelAnimationFrame(loopRef.current);
+                loopRef.current = null;
+              }
+              lastTimestampRef.current = null;
+              return;
+            }
+
+            const loop = (timestamp) => {
+              if (lastTimestampRef.current == null) {
+                lastTimestampRef.current = timestamp;
+              }
+              const delta = Math.min(3, (timestamp - lastTimestampRef.current) / 16.67);
+              lastTimestampRef.current = timestamp;
+
+              const direction = (inputsRef.current.right ? 1 : 0) - (inputsRef.current.left ? 1 : 0);
+              if (direction !== 0) {
+                const boost = 1 + Math.min(20, scoreRef.current) * 0.015;
+                const nextX = clampValue(
+                  playerRef.current.x + direction * MOVE_SPEED * boost * delta,
+                  0,
+                  GAME_WIDTH - PLAYER_SIZE
+                );
+                if (nextX !== playerRef.current.x) {
+                  const updatedPlayer = { ...playerRef.current, x: nextX };
+                  playerRef.current = updatedPlayer;
+                  setPlayer(updatedPlayer);
+                }
+              }
+
+              spawnAccumulatorRef.current += delta;
+              hazardAccumulatorRef.current += delta;
+
+              const spawnThreshold = Math.max(14, 28 - Math.floor(scoreRef.current / 1.8));
+              if (spawnAccumulatorRef.current >= spawnThreshold) {
+                spawnAccumulatorRef.current = 0;
+                const treat = {
+                  id: `${Date.now()}-${Math.random()}`,
+                  x: Math.random() * (GAME_WIDTH - ITEM_SIZE),
+                  y: -ITEM_SIZE,
+                  speed: 2.3 + Math.random() * 1.2
+                };
+                const nextItems = [...itemsRef.current, treat];
+                itemsRef.current = nextItems;
+                setItems(nextItems);
+              }
+
+              if (scoreRef.current > 4) {
+                const hazardThreshold = Math.max(32, 64 - scoreRef.current * 2);
+                if (hazardAccumulatorRef.current >= hazardThreshold) {
+                  hazardAccumulatorRef.current = 0;
+                  const hazard = {
+                    id: `${Date.now()}-hazard-${Math.random()}`,
+                    x: Math.random() * (GAME_WIDTH - HAZARD_SIZE),
+                    y: -HAZARD_SIZE,
+                    speed: 2.1 + Math.random() * 1.3
+                  };
+                  const nextHazards = [...hazardsRef.current, hazard];
+                  hazardsRef.current = nextHazards;
+                  setHazards(nextHazards);
+                }
+              }
+
+              let newScore = scoreRef.current;
+              let newMisses = missesRef.current;
+              let livesLost = 0;
+
+              const playerBox = {
+                x: playerRef.current.x,
+                y: FLOOR_Y,
+                w: PLAYER_SIZE,
+                h: PLAYER_SIZE
+              };
+
+              const updatedItems = [];
+              itemsRef.current.forEach((item) => {
+                const fallSpeed = (item.speed + Math.min(scoreRef.current * 0.08, 2.6)) * delta * 3.1;
+                const nextY = item.y + fallSpeed;
+                if (checkCollision(playerBox.x, playerBox.y, playerBox.w, playerBox.h, item.x, nextY, ITEM_SIZE, ITEM_SIZE)) {
+                  newScore += 1;
+                  return;
+                }
+                if (nextY > GAME_HEIGHT) {
+                  newMisses += 1;
+                  return;
+                }
+                updatedItems.push({ ...item, y: nextY });
+              });
+              itemsRef.current = updatedItems;
+              setItems(updatedItems);
+
+              const updatedHazards = [];
+              hazardsRef.current.forEach((hazard) => {
+                const fallSpeed = (hazard.speed + Math.min(scoreRef.current * 0.07, 2.4)) * delta * 3.4;
+                const nextY = hazard.y + fallSpeed;
+                if (
+                  checkCollision(
+                    playerBox.x + 6,
+                    playerBox.y + 6,
+                    playerBox.w - 12,
+                    playerBox.h - 12,
+                    hazard.x,
+                    nextY,
+                    HAZARD_SIZE,
+                    HAZARD_SIZE
+                  )
+                ) {
+                  livesLost += 1;
+                  return;
+                }
+                if (nextY > GAME_HEIGHT) {
+                  return;
+                }
+                updatedHazards.push({ ...hazard, y: nextY });
+              });
+              hazardsRef.current = updatedHazards;
+              setHazards(updatedHazards);
+
+              if (newScore !== scoreRef.current) {
+                scoreRef.current = newScore;
+                setScore(newScore);
+              }
+
+              if (newMisses !== missesRef.current) {
+                missesRef.current = newMisses;
+                setMisses(newMisses);
+              }
+
+              if (livesLost > 0) {
+                const remainingLives = Math.max(0, livesRef.current - livesLost);
+                livesRef.current = remainingLives;
+                setLives(remainingLives);
+                if (remainingLives <= 0) {
+                  stopGame();
+                  return;
+                }
+              }
+
+              if (missesRef.current >= MAX_MISSES) {
+                stopGame();
+                return;
+              }
+
+              loopRef.current = requestAnimationFrame(loop);
+            };
+
+            loopRef.current = requestAnimationFrame(loop);
+
+            return () => {
+              if (loopRef.current) {
+                cancelAnimationFrame(loopRef.current);
+                loopRef.current = null;
+              }
+              lastTimestampRef.current = null;
+            };
+          }, [isRunning, clampValue, stopGame]);
+
+          useEffect(() => {
+            if (isGameOver && !rewardGrantedRef.current && typeof onReward === 'function') {
+              rewardGrantedRef.current = true;
+              onReward('lukis-treat-dash', score);
+            }
+          }, [isGameOver, onReward, score]);
+
+          useEffect(() => {
+            const handleKeyDown = (event) => {
+              if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+                event.preventDefault();
+                inputsRef.current.left = true;
+                setActiveDirection('left');
+              } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+                event.preventDefault();
+                inputsRef.current.right = true;
+                setActiveDirection('right');
+              } else if (event.code === 'Space') {
+                if (!isRunning) {
+                  event.preventDefault();
+                  startGame();
+                }
+              }
+            };
+
+            const handleKeyUp = (event) => {
+              if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+                inputsRef.current.left = false;
+                setActiveDirection((prev) => (prev === 'left' ? null : prev));
+              } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+                inputsRef.current.right = false;
+                setActiveDirection((prev) => (prev === 'right' ? null : prev));
+              }
+            };
+
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            return () => {
+              window.removeEventListener('keydown', handleKeyDown);
+              window.removeEventListener('keyup', handleKeyUp);
+            };
+          }, [isRunning, startGame]);
+
+          const scoreLabel = score.toString().padStart(2, '0');
+          const missesLeft = Math.max(0, MAX_MISSES - misses);
 
           return (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>
-                  Ronda: <span className="font-semibold text-purple-600">{round > 0 ? `${round}/${TOTAL_ROUNDS}` : '-'}</span>
-                </span>
-                <span>
-                  Aciertos: <span className="font-semibold text-purple-600">{score}</span>
-                </span>
-                <button
-                  onClick={onExit}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-200 hover:bg-gray-300 transition"
-                >
-                  Salir
-                </button>
-              </div>
-              <div className="mx-auto w-full max-w-sm rounded-3xl bg-gradient-to-b from-rose-100 via-pink-50 to-purple-100 p-6 shadow-inner">
-                <div className="text-center text-sm text-purple-700 font-semibold">{statusMessage}</div>
-                <div className="mt-6 flex items-end justify-center space-x-6">
-                  {cups.map((cup) => {
-                    const isHighlighted = highlightedCups.includes(cup.id);
-                    const revealCat = (phase === 'reveal' || phase === 'result' || phase === 'complete') && cup.hasTreat;
-                    const isDisabled = !isGuessPhase;
-                    return (
-                      <button
-                        key={cup.id}
-                        type="button"
-                        onClick={() => handleGuess(cup.id)}
-                        disabled={isDisabled}
-                        className={`relative flex flex-col items-center rounded-2xl border-2 border-transparent bg-white/80 px-4 pt-4 pb-3 shadow transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-300 ${
-                          isGuessPhase ? 'hover:-translate-y-1 active:translate-y-0' : 'cursor-default'
-                        } ${
-                          isHighlighted ? 'ring-4 ring-purple-200' : 'ring-0'
-                        } ${isDisabled ? 'opacity-90' : 'cursor-pointer'}`}
-                      >
-                        <span className={`text-5xl transition-transform ${revealCat ? 'scale-110' : ''}`}>
-                          {revealCat ? '🐈‍⬛' : '🎩'}
-                        </span>
-                        <span className="pointer-events-none select-none text-xs font-semibold text-purple-500 mt-2">
-                          {revealCat ? '¡Lukis!' : 'Sombrero'}
-                        </span>
-                        <span className="mt-3 h-2 w-16 rounded-full bg-purple-200/70" />
-                      </button>
-                    );
-                  })}
-                </div>
-                {showInstructionButton && (
-                  <div className="mt-6 space-y-3 text-center">
-                    <p className="text-sm text-gray-600">
-                      Observa dónde aparece el minino y sigue los sombreros cuando se mezclen. ¡Luego elige el correcto!
-                    </p>
-                    <button
-                      onClick={startGame}
-                      className="inline-flex items-center justify-center rounded-full bg-purple-500 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-purple-600 transition"
-                    >
-                      Comenzar
-                    </button>
+            <div className="space-y-5">
+              <div className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-purple-50 p-5 shadow-lg border border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">🍣</span>
+                    <h3 className="text-lg font-semibold text-purple-700">Lukis cazando premios</h3>
                   </div>
-                )}
-                {isGuessPhase && (
-                  <p className="mt-6 text-center text-sm text-gray-600">
-                    Toca un sombrero para intentar encontrar a Lukis.
-                  </p>
-                )}
-                {phase === 'result' && round < TOTAL_ROUNDS && (
-                  <p className="mt-6 text-center text-sm text-gray-600">
-                    Prepárate, la siguiente ronda comenzará enseguida.
-                  </p>
-                )}
-                {showSummary && (
-                  <div className="mt-6 space-y-3 text-center">
-                    <p className="text-sm font-semibold text-purple-600">
-                      ¡Juego terminado! Aciertos: {score} de {TOTAL_ROUNDS}.
-                    </p>
-                    <div className="flex items-center justify-center space-x-2">
+                  <div className="flex items-center space-x-3 text-sm font-semibold text-purple-600">
+                    <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Puntos: {scoreLabel}</span>
+                    <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Vidas: {lives}</span>
+                    <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Fallos: {misses}/{MAX_MISSES}</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+                  Atrapa las golosinas que caen y esquiva los juguetes revoltosos. ¡Mantente en el suelo para ganar monedas!
+                </p>
+                <div className="mt-5 relative mx-auto h-[430px] w-[320px] overflow-hidden rounded-3xl border-4 border-purple-200 bg-gradient-to-b from-sky-100 via-amber-50 to-rose-100 shadow-inner">
+                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(to top, rgba(255, 236, 209, 0.45) 12%, transparent 48%)' }} />
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-amber-200 via-amber-100/90 to-transparent" />
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="absolute flex items-center justify-center text-3xl drop-shadow-sm"
+                      style={{
+                        left: `${item.x}px`,
+                        top: `${item.y}px`,
+                        width: `${ITEM_SIZE}px`,
+                        height: `${ITEM_SIZE}px`
+                      }}
+                    >
+                      🐟
+                    </div>
+                  ))}
+                  {hazards.map((hazard) => (
+                    <div
+                      key={hazard.id}
+                      className="absolute flex items-center justify-center text-3xl drop-shadow-sm"
+                      style={{
+                        left: `${hazard.x}px`,
+                        top: `${hazard.y}px`,
+                        width: `${HAZARD_SIZE}px`,
+                        height: `${HAZARD_SIZE}px`
+                      }}
+                    >
+                      🧶
+                    </div>
+                  ))}
+                  <div
+                    className="absolute flex items-center justify-center transition-transform duration-75"
+                    style={{
+                      left: `${player.x}px`,
+                      top: `${player.y}px`,
+                      width: `${PLAYER_SIZE}px`,
+                      height: `${PLAYER_SIZE}px`
+                    }}
+                  >
+                    <LukisFace size={PLAYER_SIZE} className="drop-shadow-lg" />
+                  </div>
+                  {!isRunning && !isGameOver && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
+                      <span className="text-4xl">🍤</span>
+                      <p className="text-base font-semibold text-purple-600">¡Hora de cazar premios!</p>
+                      <p className="text-sm text-gray-600">Usa las flechas, las teclas A/D o los botones para deslizarte. Pulsa espacio para empezar.</p>
                       <button
                         onClick={startGame}
-                        className="rounded-full bg-purple-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-purple-600 transition"
+                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
                       >
-                        Jugar de nuevo
-                      </button>
-                      <button
-                        onClick={onExit}
-                        className="rounded-full bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition"
-                      >
-                        Salir
+                        ¡Comenzar!
                       </button>
                     </div>
-                  </div>
-                )}
+                  )}
+                  {isGameOver && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 text-center p-6 space-y-3">
+                      <span className="text-4xl">🎉</span>
+                      <p className="text-base font-semibold text-purple-600">¡Buen trabajo, cazador!</p>
+                      <p className="text-sm text-gray-600">Premios atrapados: {score}. Golosinas perdidas restantes: {missesLeft === 0 ? 'ninguna' : missesLeft}</p>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={startGame}
+                          className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                        >
+                          Intentar de nuevo
+                        </button>
+                        <button
+                          onClick={onExit}
+                          className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                        >
+                          Salir
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center justify-center space-x-4 w-full">
+                <button
+                  type="button"
+                  onMouseDown={() => handleControlStart('left')}
+                  onMouseUp={() => handleControlEnd('left')}
+                  onMouseLeave={() => handleControlEnd('left')}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    handleControlStart('left');
+                  }}
+                  onTouchEnd={() => handleControlEnd('left')}
+                  onTouchCancel={() => handleControlEnd('left')}
+                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition shadow ${
+                    activeDirection === 'left'
+                      ? 'bg-purple-500 text-white border-purple-500'
+                      : 'bg-white text-purple-600 border-purple-200 hover:border-purple-400'
+                  }`}
+                >
+                  ◀︎
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={() => handleControlStart('right')}
+                  onMouseUp={() => handleControlEnd('right')}
+                  onMouseLeave={() => handleControlEnd('right')}
+                  onTouchStart={(event) => {
+                    event.preventDefault();
+                    handleControlStart('right');
+                  }}
+                  onTouchEnd={() => handleControlEnd('right')}
+                  onTouchCancel={() => handleControlEnd('right')}
+                  className={`px-5 py-3 text-lg font-semibold rounded-full border transition shadow ${
+                    activeDirection === 'right'
+                      ? 'bg-purple-500 text-white border-purple-500'
+                      : 'bg-white text-purple-600 border-purple-200 hover:border-purple-400'
+                  }`}
+                >
+                  ▶︎
+                </button>
               </div>
             </div>
           );
         };
-
         const SOUND_LIBRARY = {
           meow: {
             files: ['meow-1.mp3', 'meow_QO6VsE6.mp3', 'the-end-meow-by-nekocat-just-3-second-1.mp3'],
@@ -1715,8 +1949,8 @@
               case 'lukis-sky-jump':
                 reward = Math.max(6, Math.round(scoreValue * 1.8));
                 break;
-              case 'lukis-trilero':
-                reward = Math.max(8, Math.round(scoreValue * 2.2));
+              case 'lukis-treat-dash':
+                reward = Math.max(8, Math.round(scoreValue * 2));
                 break;
               default:
                 reward = Math.max(4, Math.round(scoreValue));
@@ -2593,8 +2827,8 @@
                   {activeGame === 'lukis-sky-jump' && (
                     <LukisSkyJump onExit={closeGameExperience} onReward={handleGameReward} />
                   )}
-                  {activeGame === 'lukis-trilero' && (
-                    <LukisTrilero onExit={closeGameExperience} onReward={handleGameReward} />
+                  {activeGame === 'lukis-treat-dash' && (
+                    <LukisTreatDash onExit={closeGameExperience} onReward={handleGameReward} />
                   )}
                 </GameOverlay>
               )}
