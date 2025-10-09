@@ -316,6 +316,19 @@
           );
         };
 
+        const LukisOriginalAvatar = ({ size = 64, className = '', style = {} }) => (
+          <div
+            className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none ${className}`}
+            style={{ width: size, height: size, ...style }}
+          >
+            <img
+              src="IMG-20250924-WA0178.jpg"
+              alt="Lukis cazando golosinas"
+              className="h-full w-full object-contain rounded-3xl shadow-lg"
+            />
+          </div>
+        );
+
         const GameMenu = ({ onSelect, onClose }) => (
           <GameOverlay title="Sala de Juegos" onClose={onClose}>
             <p className="text-sm text-gray-600">
@@ -1481,14 +1494,16 @@
                         height: `${scaledPlayerSize}px`
                       }}
                     >
-                      <CatAvatar
-                        type="tuxedo"
-                        eyeColorClass="bg-amber-300"
-                        name="Lukis"
-                        size={scaledPlayerSize}
-                        className="drop-shadow-lg"
-                      />
-                      <LukisOriginalAvatar size={scaledPlayerSize} className="drop-shadow-lg" />
+                      <div className="relative h-full w-full">
+                        <CatAvatar
+                          type="tuxedo"
+                          eyeColorClass="bg-amber-300"
+                          name="Lukis"
+                          size={scaledPlayerSize}
+                          className="drop-shadow-lg"
+                        />
+                        <LukisOriginalAvatar size={scaledPlayerSize} className="rounded-3xl" />
+                      </div>
                     </div>
                     {!isRunning && !isGameOver && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
@@ -2655,43 +2670,45 @@
                   </button>
                 </div>
 
-                <div className="p-6 bg-gray-50 flex flex-wrap justify-center gap-4">
-                  <button
-                    onClick={() => handleAction('feed')}
-                    disabled={isAnimating}
-                    className="flex flex-col items-center space-y-2 px-4 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
-                  >
-                    <span className="text-2xl" role="img" aria-hidden="true">🍲</span>
-                    <span className="text-xs font-medium">Comer</span>
-                  </button>
+                <div className="px-6 pt-4 pb-5 bg-gray-50">
+                  <div className="grid grid-cols-4 gap-3">
+                    <button
+                      onClick={() => handleAction('feed')}
+                      disabled={isAnimating}
+                      className="flex w-full flex-col items-center space-y-1.5 px-3 py-2.5 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
+                    >
+                      <span className="text-2xl" role="img" aria-hidden="true">🍲</span>
+                      <span className="text-[11px] font-medium">Comer</span>
+                    </button>
 
-                  <button
-                    onClick={() => handleAction('play')}
-                    disabled={isAnimating}
-                    className="flex flex-col items-center space-y-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
-                  >
-                    <span className="text-2xl" role="img" aria-hidden="true">🧶</span>
-                    <span className="text-xs font-medium">Jugar</span>
-                  </button>
+                    <button
+                      onClick={() => handleAction('play')}
+                      disabled={isAnimating}
+                      className="flex w-full flex-col items-center space-y-1.5 px-3 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
+                    >
+                      <span className="text-2xl" role="img" aria-hidden="true">🧶</span>
+                      <span className="text-[11px] font-medium">Jugar</span>
+                    </button>
 
-                  <button
-                    onClick={() => handleAction('sleep')}
-                    disabled={isAnimating}
-                    className="flex flex-col items-center space-y-2 px-4 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
-                  >
-                    <span className="text-2xl" role="img" aria-hidden="true">🌙</span>
-                    <span className="text-xs font-medium">Dormir</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      playActionSound('play');
-                      openGameMenu();
-                    }}
-                    className="flex flex-col items-center space-y-2 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105"
-                  >
-                    <span className="text-2xl" role="img" aria-hidden="true">🎮</span>
-                    <span className="text-xs font-medium">Juegos</span>
-                  </button>
+                    <button
+                      onClick={() => handleAction('sleep')}
+                      disabled={isAnimating}
+                      className="flex w-full flex-col items-center space-y-1.5 px-3 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
+                    >
+                      <span className="text-2xl" role="img" aria-hidden="true">🌙</span>
+                      <span className="text-[11px] font-medium">Dormir</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        playActionSound('play');
+                        openGameMenu();
+                      }}
+                      className="flex w-full flex-col items-center space-y-1.5 px-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <span className="text-2xl" role="img" aria-hidden="true">🎮</span>
+                      <span className="text-[11px] font-medium">Juegos</span>
+                    </button>
+                  </div>
                 </div>
 
                 {storeMessage && !isStoreOpen && (
