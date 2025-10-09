@@ -2417,8 +2417,8 @@
             }
           }, [isIosDevice, showInstallStatus]);
 
-          const showQuickInstallButton = !isStandalone;
-          const shouldShowInstallButton = showQuickInstallButton && (canInstall || isIosDevice);
+          const showQuickInstallButton = !isStandalone && (canInstall || isIosDevice);
+          const shouldShowInstallButton = !isStandalone;
 
           const getStatColor = (value) => {
             if (value > 70) return 'bg-green-500';
@@ -2767,9 +2767,9 @@
                         type="button"
                         onClick={handleInstallClick}
                         className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg transition-all duration-300 bg-pink-500 hover:bg-pink-600 text-white"
-                        title="Guardar en pantalla de inicio"
+                        title="Guardar en pantalla de inicio (atajo rápido)"
                       >
-                        <span aria-hidden="true">⬇️</span>
+                        <span aria-hidden="true">📲</span>
                         <span className="sr-only">Guardar Catagotchi en la pantalla de inicio</span>
                       </button>
                     )}
