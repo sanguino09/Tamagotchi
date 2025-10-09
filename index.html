@@ -52,10 +52,10 @@
             description: 'Salta plataformas hacia el cielo como en Pou y llega lo más alto posible.'
           },
           {
-            id: 'lukis-bubble-dash',
-            title: 'Lukis Cazaburbujas',
-            emoji: '🫧',
-            description: 'Explota burbujas mágicas antes de que desaparezcan y gana monedas extra.'
+            id: 'lukis-trilero',
+            title: 'Lukis Trilero',
+            emoji: '🎩',
+            description: 'Sigue al minino bajo los sombreros y adivina dónde se esconde antes de que acaben las rondas.'
           }
         ];
 
@@ -1171,145 +1171,139 @@
           );
         };
 
-        const LukisBubbleDash = ({ onExit, onReward }) => {
-          const GAME_WIDTH = 320;
-          const GAME_HEIGHT = 380;
-          const GAME_DURATION = 30;
-          const SPAWN_INTERVAL = 750;
 
-          const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+        const LukisTrilero = ({ onExit, onReward }) => {
+          const TOTAL_ROUNDS = 5;
+          const [round, setRound] = useState(0);
           const [score, setScore] = useState(0);
-          const [isRunning, setIsRunning] = useState(false);
-          const [isFinished, setIsFinished] = useState(false);
-          const [targets, setTargets] = useState([]);
+          const [phase, setPhase] = useState('intro');
+          const [cups, setCups] = useState(() => [0, 1, 2].map((id) => ({ id, hasTreat: false })));
+          const [highlightedCups, setHighlightedCups] = useState([]);
+          const [statusMessage, setStatusMessage] = useState('¿Listo para el truco de Lukis?');
 
-          const timerRef = useRef(null);
-          const spawnRef = useRef(null);
-          const cleanupRef = useRef(null);
-          const targetIdRef = useRef(0);
+          const revealTimeoutRef = useRef(null);
+          const shuffleTimeoutsRef = useRef([]);
           const rewardGrantedRef = useRef(false);
 
-          const createTarget = useCallback(() => {
-            const roll = Math.random();
-            let type = 'bubble';
-            if (roll > 0.82) type = 'star';
-            else if (roll < 0.18) type = 'storm';
-            const size = type === 'star' ? 52 : type === 'storm' ? 40 : 44;
-            const lifespan = type === 'star' ? 1800 : type === 'storm' ? 1200 : 1500;
-            const id = targetIdRef.current += 1;
-            const padding = 18;
-            const x = Math.random() * (GAME_WIDTH - size - padding) + padding / 2;
-            const y = Math.random() * (GAME_HEIGHT - size - padding) + padding / 2;
-            const expiresAt = Date.now() + lifespan;
-            return { id, x, y, size, type, expiresAt };
-          }, []);
-
-          const resetGame = useCallback(() => {
-            setTimeLeft(GAME_DURATION);
-            setScore(0);
-            setTargets([]);
-            setIsFinished(false);
-            setIsRunning(true);
-            rewardGrantedRef.current = false;
-          }, []);
-
-          const stopGame = useCallback(() => {
-            setIsRunning(false);
-            setIsFinished(true);
-          }, []);
-
-          useEffect(() => {
-            if (!isRunning) {
-              if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-              }
-              return;
+          const clearTimers = useCallback(() => {
+            if (revealTimeoutRef.current) {
+              clearTimeout(revealTimeoutRef.current);
+              revealTimeoutRef.current = null;
             }
-            timerRef.current = setInterval(() => {
-              setTimeLeft((prev) => {
-                if (prev <= 1) {
-                  if (timerRef.current) {
-                    clearInterval(timerRef.current);
-                    timerRef.current = null;
+            shuffleTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+            shuffleTimeoutsRef.current = [];
+          }, []);
+
+          const startRound = useCallback(
+            (roundNumber) => {
+              clearTimers();
+              const treatIndex = Math.floor(Math.random() * 3);
+              const baseCups = [0, 1, 2].map((id, index) => ({ id, hasTreat: index === treatIndex }));
+              setRound(roundNumber);
+              setCups(baseCups);
+              setPhase('reveal');
+              setStatusMessage(`Ronda ${roundNumber} de ${TOTAL_ROUNDS}: ¡Mira dónde se esconde Lukis!`);
+              setHighlightedCups([baseCups[treatIndex].id]);
+
+              revealTimeoutRef.current = setTimeout(() => {
+                setHighlightedCups([]);
+                setPhase('shuffling');
+                setStatusMessage('Mezclando sombreros...');
+                const totalShuffles = 3 + roundNumber;
+                let step = 0;
+
+                const runShuffle = () => {
+                  let firstIndex = 0;
+                  let secondIndex = 1;
+                  setCups((prev) => {
+                    const newCups = [...prev];
+                    firstIndex = Math.floor(Math.random() * newCups.length);
+                    do {
+                      secondIndex = Math.floor(Math.random() * newCups.length);
+                    } while (secondIndex === firstIndex);
+                    const firstId = newCups[firstIndex].id;
+                    const secondId = newCups[secondIndex].id;
+                    [newCups[firstIndex], newCups[secondIndex]] = [newCups[secondIndex], newCups[firstIndex]];
+                    setHighlightedCups([firstId, secondId]);
+                    return newCups;
+                  });
+
+                  step += 1;
+                  if (step < totalShuffles) {
+                    const timeoutId = setTimeout(runShuffle, 320);
+                    shuffleTimeoutsRef.current.push(timeoutId);
+                  } else {
+                    const timeoutId = setTimeout(() => {
+                      setHighlightedCups([]);
+                      setPhase('guess');
+                      setStatusMessage('¿Dónde está Lukis? ¡Elige un sombrero!');
+                    }, 360);
+                    shuffleTimeoutsRef.current.push(timeoutId);
                   }
-                  stopGame();
-                  return 0;
+                };
+
+                runShuffle();
+              }, 1100);
+            },
+            [clearTimers]
+          );
+
+          const startGame = useCallback(() => {
+            setScore(0);
+            setStatusMessage('Observa bien al pequeño Lukis.');
+            rewardGrantedRef.current = false;
+            startRound(1);
+          }, [startRound]);
+
+          const handleGuess = useCallback(
+            (cupId) => {
+              if (phase !== 'guess') return;
+              clearTimers();
+              const guessedCup = cups.find((cup) => cup.id === cupId);
+              if (!guessedCup) return;
+
+              const success = Boolean(guessedCup.hasTreat);
+              const updatedScore = success ? score + 1 : score;
+              setScore(updatedScore);
+              setPhase('result');
+              setHighlightedCups([cupId]);
+              setStatusMessage(success ? '¡Encontraste a Lukis!' : '¡Casi! Lukis estaba en otro sombrero.');
+
+              const timeoutId = setTimeout(() => {
+                if (round >= TOTAL_ROUNDS) {
+                  setPhase('complete');
+                  setStatusMessage(`Encontraste a Lukis ${updatedScore} de ${TOTAL_ROUNDS} veces.`);
+                  setHighlightedCups([]);
+                } else {
+                  startRound(round + 1);
                 }
-                return prev - 1;
-              });
-            }, 1000);
-            return () => {
-              if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-              }
-            };
-          }, [isRunning, stopGame]);
+              }, 1200);
+              shuffleTimeoutsRef.current.push(timeoutId);
+            },
+            [clearTimers, cups, phase, round, score, startRound]
+          );
+
+          useEffect(() => () => clearTimers(), [clearTimers]);
 
           useEffect(() => {
-            if (!isRunning) {
-              if (spawnRef.current) {
-                clearInterval(spawnRef.current);
-                spawnRef.current = null;
-              }
-              if (cleanupRef.current) {
-                clearInterval(cleanupRef.current);
-                cleanupRef.current = null;
-              }
-              return;
-            }
-            spawnRef.current = setInterval(() => {
-              setTargets((prev) => [...prev, createTarget()]);
-            }, SPAWN_INTERVAL);
-            cleanupRef.current = setInterval(() => {
-              const now = Date.now();
-              setTargets((prev) => prev.filter((target) => target.expiresAt > now));
-            }, 120);
-            return () => {
-              if (spawnRef.current) {
-                clearInterval(spawnRef.current);
-                spawnRef.current = null;
-              }
-              if (cleanupRef.current) {
-                clearInterval(cleanupRef.current);
-                cleanupRef.current = null;
-              }
-            };
-          }, [createTarget, isRunning]);
-
-          useEffect(() => () => {
-            if (spawnRef.current) clearInterval(spawnRef.current);
-            if (timerRef.current) clearInterval(timerRef.current);
-            if (cleanupRef.current) clearInterval(cleanupRef.current);
-          }, []);
-
-          useEffect(() => {
-            if (isFinished && !isRunning && !rewardGrantedRef.current && typeof onReward === 'function') {
+            if (phase === 'complete' && !rewardGrantedRef.current && typeof onReward === 'function') {
               rewardGrantedRef.current = true;
-              onReward('lukis-bubble-dash', score);
+              onReward('lukis-trilero', score);
             }
-          }, [isFinished, isRunning, onReward, score]);
+          }, [onReward, phase, score]);
 
-          const handleTargetClick = useCallback((targetId, type) => {
-            let delta = 0;
-            if (type === 'star') delta = 6;
-            else if (type === 'storm') delta = -4;
-            else delta = 3;
-            setScore((prev) => Math.max(0, prev + delta));
-            setTargets((prev) => prev.filter((target) => target.id !== targetId));
-          }, []);
-
-          const formatTime = (value) => value.toString().padStart(2, '0');
+          const isGuessPhase = phase === 'guess';
+          const showInstructionButton = phase === 'intro';
+          const showSummary = phase === 'complete';
 
           return (
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <span>
-                  Tiempo: <span className="font-semibold text-purple-600">00:{formatTime(timeLeft)}</span>
+                  Ronda: <span className="font-semibold text-purple-600">{round > 0 ? `${round}/${TOTAL_ROUNDS}` : '-'}</span>
                 </span>
                 <span>
-                  Puntos: <span className="font-semibold text-purple-600">{score}</span>
+                  Aciertos: <span className="font-semibold text-purple-600">{score}</span>
                 </span>
                 <button
                   onClick={onExit}
@@ -1318,68 +1312,74 @@
                   Salir
                 </button>
               </div>
-              <div
-                className="relative mx-auto rounded-3xl overflow-hidden shadow-inner bg-gradient-to-b from-cyan-200 via-sky-100 to-indigo-100"
-                style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
-              >
-                <div className="absolute inset-0">
-                  {targets.map((target) => {
-                    const emoji = target.type === 'star' ? '🌟' : target.type === 'storm' ? '💥' : '🫧';
-                    const extraClass = target.type === 'star' ? 'animate-pulse' : '';
-                    const animationStyle = target.type === 'star'
-                      ? {}
-                      : target.type === 'storm'
-                        ? { animation: 'bubbleWiggle 0.45s ease-in-out infinite' }
-                        : { animation: 'bubbleFloat 1.8s ease-in-out infinite' };
+              <div className="mx-auto w-full max-w-sm rounded-3xl bg-gradient-to-b from-rose-100 via-pink-50 to-purple-100 p-6 shadow-inner">
+                <div className="text-center text-sm text-purple-700 font-semibold">{statusMessage}</div>
+                <div className="mt-6 flex items-end justify-center space-x-6">
+                  {cups.map((cup) => {
+                    const isHighlighted = highlightedCups.includes(cup.id);
+                    const revealCat = (phase === 'reveal' || phase === 'result' || phase === 'complete') && cup.hasTreat;
+                    const isDisabled = !isGuessPhase;
                     return (
                       <button
-                        key={target.id}
-                        onClick={() => handleTargetClick(target.id, target.type)}
-                        className={`absolute flex items-center justify-center text-3xl drop-shadow-lg transition-transform ${extraClass}`}
-                        style={{
-                          left: `${target.x}px`,
-                          top: `${target.y}px`,
-                          width: `${target.size}px`,
-                          height: `${target.size}px`,
-                          ...animationStyle
-                        }}
-                        aria-label="Atrapar burbuja"
+                        key={cup.id}
+                        type="button"
+                        onClick={() => handleGuess(cup.id)}
+                        disabled={isDisabled}
+                        className={`relative flex flex-col items-center rounded-2xl border-2 border-transparent bg-white/80 px-4 pt-4 pb-3 shadow transition-transform focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-300 ${
+                          isGuessPhase ? 'hover:-translate-y-1 active:translate-y-0' : 'cursor-default'
+                        } ${
+                          isHighlighted ? 'ring-4 ring-purple-200' : 'ring-0'
+                        } ${isDisabled ? 'opacity-90' : 'cursor-pointer'}`}
                       >
-                        <span className="pointer-events-none select-none">{emoji}</span>
+                        <span className={`text-5xl transition-transform ${revealCat ? 'scale-110' : ''}`}>
+                          {revealCat ? '🐈‍⬛' : '🎩'}
+                        </span>
+                        <span className="pointer-events-none select-none text-xs font-semibold text-purple-500 mt-2">
+                          {revealCat ? '¡Lukis!' : 'Sombrero'}
+                        </span>
+                        <span className="mt-3 h-2 w-16 rounded-full bg-purple-200/70" />
                       </button>
                     );
                   })}
                 </div>
-                {!isRunning && !isFinished && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
-                    <span className="text-4xl">🫧</span>
-                    <p className="text-base font-semibold text-purple-600">¡Atrapa todas las burbujas que puedas!</p>
+                {showInstructionButton && (
+                  <div className="mt-6 space-y-3 text-center">
                     <p className="text-sm text-gray-600">
-                      Las burbujas brillantes dan más puntos, pero cuidado con las tormentosas.
+                      Observa dónde aparece el minino y sigue los sombreros cuando se mezclen. ¡Luego elige el correcto!
                     </p>
                     <button
-                      onClick={resetGame}
-                      className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                      onClick={startGame}
+                      className="inline-flex items-center justify-center rounded-full bg-purple-500 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-purple-600 transition"
                     >
                       Comenzar
                     </button>
                   </div>
                 )}
-                {isFinished && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 text-center p-6 space-y-3">
-                    <span className="text-4xl">🎉</span>
-                    <p className="text-base font-semibold text-purple-600">Tiempo cumplido</p>
-                    <p className="text-sm text-gray-600">Puntos conseguidos: {score}</p>
-                    <div className="flex space-x-2">
+                {isGuessPhase && (
+                  <p className="mt-6 text-center text-sm text-gray-600">
+                    Toca un sombrero para intentar encontrar a Lukis.
+                  </p>
+                )}
+                {phase === 'result' && round < TOTAL_ROUNDS && (
+                  <p className="mt-6 text-center text-sm text-gray-600">
+                    Prepárate, la siguiente ronda comenzará enseguida.
+                  </p>
+                )}
+                {showSummary && (
+                  <div className="mt-6 space-y-3 text-center">
+                    <p className="text-sm font-semibold text-purple-600">
+                      ¡Juego terminado! Aciertos: {score} de {TOTAL_ROUNDS}.
+                    </p>
+                    <div className="flex items-center justify-center space-x-2">
                       <button
-                        onClick={resetGame}
-                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                        onClick={startGame}
+                        className="rounded-full bg-purple-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-purple-600 transition"
                       >
                         Jugar de nuevo
                       </button>
                       <button
                         onClick={onExit}
-                        className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                        className="rounded-full bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition"
                       >
                         Salir
                       </button>
@@ -1715,7 +1715,7 @@
               case 'lukis-sky-jump':
                 reward = Math.max(6, Math.round(scoreValue * 1.8));
                 break;
-              case 'lukis-bubble-dash':
+              case 'lukis-trilero':
                 reward = Math.max(8, Math.round(scoreValue * 2.2));
                 break;
               default:
@@ -2580,8 +2580,8 @@
                   {activeGame === 'lukis-sky-jump' && (
                     <LukisSkyJump onExit={closeGameExperience} onReward={handleGameReward} />
                   )}
-                  {activeGame === 'lukis-bubble-dash' && (
-                    <LukisBubbleDash onExit={closeGameExperience} onReward={handleGameReward} />
+                  {activeGame === 'lukis-trilero' && (
+                    <LukisTrilero onExit={closeGameExperience} onReward={handleGameReward} />
                   )}
                 </GameOverlay>
               )}

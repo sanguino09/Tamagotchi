@@ -2352,22 +2352,23 @@ function tickProfile(profile, rates) {
     function drawChestTuft() {
       const bellyColor = palette.belly || shiftColor(palette.furMain, 0.24);
       ctx.save();
-      ctx.translate(-metrics.body.rx * 0.68, -metrics.body.ry * 0.08);
+      ctx.translate(-metrics.body.rx * 0.64, -metrics.body.ry * 0.22);
+      ctx.scale(0.7, 0.64);
       ctx.beginPath();
-      ctx.moveTo(-metrics.body.rx * 0.05, -metrics.body.ry * 0.28);
+      ctx.moveTo(-metrics.body.rx * 0.04, -metrics.body.ry * 0.18);
       ctx.quadraticCurveTo(
-        -metrics.body.rx * 0.16,
-        -metrics.body.ry * 0.62,
-        metrics.body.rx * 0.12,
-        -metrics.body.ry * 0.48
+        -metrics.body.rx * 0.12,
+        -metrics.body.ry * 0.4,
+        metrics.body.rx * 0.08,
+        -metrics.body.ry * 0.34
       );
       ctx.quadraticCurveTo(
-        metrics.body.rx * 0.36,
-        -metrics.body.ry * 0.12,
-        metrics.body.rx * 0.26,
-        metrics.body.ry * 0.34
+        metrics.body.rx * 0.22,
+        -metrics.body.ry * 0.08,
+        metrics.body.rx * 0.16,
+        metrics.body.ry * 0.22
       );
-      ctx.quadraticCurveTo(metrics.body.rx * 0.06, metrics.body.ry * 0.26, -metrics.body.rx * 0.06, metrics.body.ry * 0.36);
+      ctx.quadraticCurveTo(metrics.body.rx * 0.04, metrics.body.ry * 0.18, -metrics.body.rx * 0.04, metrics.body.ry * 0.26);
       ctx.closePath();
       const tuftGrad = ctx.createLinearGradient(
         -metrics.body.rx * 0.12,
@@ -2383,15 +2384,15 @@ function tickProfile(profile, rates) {
       ctx.globalAlpha = 1;
 
       ctx.beginPath();
-      ctx.moveTo(-metrics.body.rx * 0.02, -metrics.body.ry * 0.18);
+      ctx.moveTo(-metrics.body.rx * 0.015, -metrics.body.ry * 0.12);
       ctx.quadraticCurveTo(
-        metrics.body.rx * 0.1,
-        -metrics.body.ry * 0.16,
-        metrics.body.rx * 0.18,
-        metrics.body.ry * 0.26
+        metrics.body.rx * 0.08,
+        -metrics.body.ry * 0.08,
+        metrics.body.rx * 0.14,
+        metrics.body.ry * 0.2
       );
       ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
-      ctx.lineWidth = Math.max(1, metrics.body.ry * 0.08);
+      ctx.lineWidth = Math.max(0.8, metrics.body.ry * 0.06);
       ctx.lineCap = "round";
       ctx.stroke();
       ctx.restore();
