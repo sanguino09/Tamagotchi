@@ -3094,7 +3094,7 @@ function tickProfile(profile, rates) {
           if (!force && Math.abs(newX - catMotion.x) < sceneWidth * 0.1) {
             newX = Math.sign(newX || 1) * Math.min(maxOffset, Math.abs(newX) + sceneWidth * 0.18);
           }
-          const newY = -Math.random() * 18;
+          const newY = 0;
           const previousX = catMotion.x;
           newX = snapToGrid(newX);
           const direction = newX < previousX ? -1 : 1;
