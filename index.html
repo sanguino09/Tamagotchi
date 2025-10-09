@@ -61,15 +61,6 @@
 
         const STORE_ITEMS = [
           {
-            id: 'gourmet-salmon',
-            name: 'Sashimi estelar',
-            emoji: '🌠',
-            type: 'food',
-            price: 52,
-            description: 'Filetes suaves marinados en luz de luna para banquetes dignos de Lukis.',
-            effect: { hunger: 36, happiness: 14 }
-          },
-          {
             id: 'rainbow-sushi',
             name: 'Sushi arcoíris',
             emoji: '🍣',
@@ -88,31 +79,15 @@
             effect: { hunger: 32, happiness: 10 }
           },
           {
-            id: 'catnip-cookies',
-            name: 'Macarons galácticos',
-            emoji: '🌌',
-            type: 'food',
-            price: 40,
-            description: 'Pequeños bocados crujientes con relleno de nebulosa dulce.',
-            effect: { happiness: 20, energy: 10 }
-          },
-          {
             id: 'stardust-latte',
             name: 'Café de Starbucks',
             emoji: '☕',
+            image: 'tumblr_4015c40cad25a9236ccd49afae824e7e_12b5cf63_640.png',
+            imageAlt: 'Vaso de café helado de Starbucks con tapa verde',
             type: 'food',
             price: 44,
             description: 'Espuma celestial de vainilla con chispas que despiertan ronroneos.',
             effect: { happiness: 16, energy: 12 }
-          },
-          {
-            id: 'sardine-feast',
-            name: 'Banquete nebuloso',
-            emoji: '☁️',
-            type: 'food',
-            price: 60,
-            description: 'Cascada de sardinas glaseadas con brillo astral.',
-            effect: { hunger: 44, happiness: 12 }
           },
           {
             id: 'burger-king-duo',
@@ -124,38 +99,15 @@
             effect: { hunger: 46, happiness: 18 }
           },
           {
-            id: 'sparkle-toy',
-            name: 'Varita holográfica',
-            emoji: '🪄',
-            type: 'toy',
-            price: 55,
-            description: 'Cambia de color y proyecta destellos para saltos ninja.',
-            effect: { happiness: 24, energy: 8 }
-          },
-          {
             id: 'labubu-plush',
             name: 'Labubu travieso',
             emoji: '🧸',
+            image: 'labubu-brown.png',
+            imageAlt: 'Muñeco Labubu marrón con cara traviesa',
             type: 'toy',
             price: 72,
             description: 'Muñeco coleccionable que cuenta chismes felinos al apretarlo.',
             effect: { happiness: 30, energy: 6 }
-          },
-          {
-            id: 'cloud-bed',
-            name: 'Hamaca aurora',
-            emoji: '🪺',
-            type: 'furniture',
-            price: 98,
-            description: 'Se balancea entre luces boreales para siestas flotantes.'
-          },
-          {
-            id: 'scratching-tree',
-            name: 'Árbol prisma',
-            emoji: '🗼',
-            type: 'furniture',
-            price: 110,
-            description: 'Torres translúcidas para trepar y afilar garras con estilo.'
           },
           {
             id: 'rainbow-mobile',
@@ -169,39 +121,15 @@
             id: 'ugly-magnet',
             name: 'Imán feo',
             emoji: '🧲',
+            image: 'iman-de-nevera-madrid-de-madera.png',
+            imageAlt: 'Imán de madera de Madrid con forma de casa',
             type: 'furniture',
             price: 34,
             description: 'Un imán tan feo que da la vuelta completa a la nevera de la sala.'
-          },
-          {
-            id: 'starlight-lamp',
-            name: 'Farol boreal',
-            emoji: '🏮',
-            type: 'furniture',
-            price: 95,
-            description: 'Ilumina el cuarto con reflejos verdes y violetas en movimiento.'
-          },
-          {
-            id: 'cosmic-cushion',
-            name: 'Cojín ingrávido',
-            emoji: '✨',
-            type: 'furniture',
-            price: 85,
-            description: 'Un puff que levita unos centímetros y ronronea suavemente.'
           }
         ];
 
         const DECORATION_CONFIG = {
-          'cloud-bed': {
-            emoji: '🪺',
-            className: 'text-5xl drop-shadow-lg animate-pulse',
-            style: { bottom: '60px', left: '16%' }
-          },
-          'scratching-tree': {
-            emoji: '🗼',
-            className: 'text-4xl drop-shadow-lg',
-            style: { bottom: '54px', right: '12%' }
-          },
           'rainbow-mobile': {
             emoji: '🪐',
             className: 'text-4xl animate-spin',
@@ -211,19 +139,6 @@
             emoji: '🧲',
             className: 'text-3xl rotate-12 drop-shadow-sm',
             style: { top: '24px', right: '22%' }
-          },
-          'starlight-lamp': {
-            emoji: '🏮',
-            className: 'text-4xl drop-shadow-md',
-            style: (index) => ({
-              bottom: '46px',
-              left: index % 2 === 0 ? '12%' : '64%'
-            })
-          },
-          'cosmic-cushion': {
-            emoji: '✨',
-            className: 'text-5xl animate-bounce',
-            style: { bottom: '38px', left: '42%' }
           }
         };
 
@@ -440,6 +355,7 @@
                 const owned = inventory?.[item.id] || 0;
                 const canAfford = coins >= item.price;
                 const isConsumable = Boolean(item.effect);
+                const displayAlt = item.imageAlt || item.name;
                 return (
                   <div
                     key={item.id}
@@ -448,7 +364,18 @@
                     <div className="flex items-start justify-between space-x-3">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={displayAlt}
+                              loading="lazy"
+                              className="h-10 w-10 rounded-xl object-cover shadow-sm ring-1 ring-white/70"
+                            />
+                          ) : (
+                            <span className="text-2xl" aria-hidden="true">
+                              {item.emoji}
+                            </span>
+                          )}
                           <h3 className="text-base font-semibold text-purple-700">{item.name}</h3>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">{item.description}</p>
