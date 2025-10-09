@@ -249,6 +249,96 @@
               aria-hidden="true"
             >
               <div
+                className="absolute"
+                style={{
+                  bottom: 0,
+                  left: unit * 2,
+                  width: unit * 12,
+                  height: unit * 12,
+                  background: tuxedoColor,
+                  borderRadius: '9999px'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  bottom: unit,
+                  left: unit * 4,
+                  width: unit * 8,
+                  height: unit * 9,
+                  background: chestColor,
+                  borderRadius: '9999px'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: 0,
+                  left: unit * 2,
+                  width: unit * 12,
+                  height: unit * 12,
+                  background: tuxedoColor,
+                  borderRadius: '9999px'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: unit,
+                  left: unit * 3,
+                  width: unit * 10,
+                  height: unit * 9
+                }}
+              >
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full drop-shadow"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M50 15 C35 -5 0 0 0 30 C0 55 25 80 50 95 C75 80 100 55 100 30 C100 0 65 -5 50 15 Z"
+                    fill="#ffffff"
+                    transform="rotate(180 50 50)"
+                  />
+                </svg>
+              </div>
+              <div
+                className="absolute"
+                style={{
+                  top: -unit,
+                  left: unit * 3,
+                  width: unit * 4,
+                  height: unit * 5,
+                  background: tuxedoColor,
+                  borderRadius: '9999px',
+                  transform: 'rotate(-12deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: -unit,
+                  right: unit * 3,
+                  width: unit * 4,
+                  height: unit * 5,
+                  background: tuxedoColor,
+                  borderRadius: '9999px',
+                  transform: 'rotate(12deg)'
+                }}
+              ></div>
+              <div
+                className="absolute"
+                style={{
+                  top: 0,
+                  left: unit * 4,
+                  width: unit * 2,
+                  height: unit * 3,
+                  background: '#f9a8d4',
+                  borderRadius: '9999px',
+                  transform: 'rotate(-12deg)'
+                }}
+              ></div>
+              <div
                 className="absolute top-0 left-0"
                 style={{
                   width: 64,
@@ -1485,6 +1575,7 @@
                         size={scaledPlayerSize}
                         className="drop-shadow-lg"
                       />
+                      <LukisOriginalAvatar size={scaledPlayerSize} className="drop-shadow-lg" />
                     </div>
                     {!isRunning && !isGameOver && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
