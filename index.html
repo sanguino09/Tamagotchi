@@ -81,13 +81,11 @@
           {
             id: 'stardust-latte',
             name: 'Café de Starbucks',
-            emoji: '☕',
             image: 'tumblr_4015c40cad25a9236ccd49afae824e7e_12b5cf63_640.png',
             imageAlt: 'Vaso de café helado de Starbucks con tapa verde',
-            type: 'food',
+            type: 'furniture',
             price: 44,
-            description: 'Espuma celestial de vainilla con chispas que despiertan ronroneos.',
-            effect: { happiness: 16, energy: 12 }
+            description: 'Espuma celestial de vainilla con chispas que despiertan ronroneos.'
           },
           {
             id: 'burger-king-duo',
@@ -101,13 +99,11 @@
           {
             id: 'labubu-plush',
             name: 'Labubu travieso',
-            emoji: '🧸',
             image: 'labubu-brown.png',
             imageAlt: 'Muñeco Labubu marrón con cara traviesa',
-            type: 'toy',
+            type: 'furniture',
             price: 72,
-            description: 'Muñeco coleccionable que cuenta chismes felinos al apretarlo.',
-            effect: { happiness: 30, energy: 6 }
+            description: 'Muñeco coleccionable que cuenta chismes felinos al apretarlo.'
           },
           {
             id: 'rainbow-mobile',
@@ -135,10 +131,26 @@
             className: 'text-4xl animate-spin',
             style: { top: '18px', left: '24%' }
           },
+          'stardust-latte': {
+            image: 'tumblr_4015c40cad25a9236ccd49afae824e7e_12b5cf63_640.png',
+            imageAlt: 'Vaso real de café helado de Starbucks',
+            className: 'drop-shadow-lg',
+            imageClassName: 'h-16 w-16 object-cover rounded-xl',
+            style: { bottom: '74px', left: '18%' }
+          },
+          'labubu-plush': {
+            image: 'labubu-brown.png',
+            imageAlt: 'Figura coleccionable Labubu color marrón sentada',
+            className: 'drop-shadow-xl',
+            imageClassName: 'h-24 w-20 object-contain',
+            style: { bottom: '68px', right: '24%' }
+          },
           'ugly-magnet': {
-            emoji: '🧲',
-            className: 'text-3xl rotate-12 drop-shadow-sm',
-            style: { top: '24px', right: '22%' }
+            image: 'iman-de-nevera-madrid-de-madera.png',
+            imageAlt: 'Imán de madera con la palabra Madrid',
+            className: 'drop-shadow-md',
+            imageClassName: 'h-14 w-14 object-contain',
+            style: { top: '22px', right: '18%' }
           }
         };
 
@@ -354,7 +366,7 @@
               {STORE_ITEMS.map((item) => {
                 const owned = inventory?.[item.id] || 0;
                 const canAfford = coins >= item.price;
-                const isConsumable = Boolean(item.effect);
+                const isConsumable = Boolean(item.effect) && item.type !== 'furniture';
                 const displayAlt = item.imageAlt || item.name;
                 return (
                   <div
@@ -1932,6 +1944,10 @@
           }, [coins, primaryCatName]);
 
           const handleUseItem = useCallback((item) => {
+            if (item.type === 'furniture') {
+              setStoreMessage('Esa decoración ya está colocada en la habitación.');
+              return;
+            }
             const owned = inventory?.[item.id] || 0;
             if (owned <= 0) {
               setStoreMessage('No te queda ninguna unidad de ese artículo.');
@@ -2611,6 +2627,26 @@
                       position: 'absolute',
                       ...(typeof config.style === 'function' ? config.style(index) : config.style)
                     };
+                    let content = null;
+                    if (config.image) {
+                      content = (
+                        <img
+                          src={config.image}
+                          alt={config.imageAlt || ''}
+                          loading="lazy"
+                          className={config.imageClassName || 'h-16 w-16 object-contain'}
+                        />
+                      );
+                    } else if (config.emoji) {
+                      content = (
+                        <span className={config.emojiClassName || ''} aria-hidden="true">
+                          {config.emoji}
+                        </span>
+                      );
+                    } else if (typeof config.render === 'function') {
+                      content = config.render({ index });
+                    }
+                    if (!content) return null;
                     return (
                       <div
                         key={`${decorId}-${index}`}
@@ -2618,7 +2654,7 @@
                         style={style}
                         aria-hidden="true"
                       >
-                        {config.emoji}
+                        {content}
                       </div>
                     );
                   })}
