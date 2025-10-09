@@ -2227,7 +2227,7 @@
                 break;
             }
 
-            const CatBody = ({ type, eyeColorClass }) => {
+            const CatBody = ({ type, eyeColorClass, name }) => {
               const colors = {
                 tuxedo: { body: 'bg-gray-900', chest: 'bg-white', ears: 'bg-gray-900' },
                 gris: { body: 'bg-gray-400', chest: 'bg-white', ears: 'bg-gray-400' },
@@ -2235,6 +2235,7 @@
               }[type];
 
               const isSleeping = cat.actionState === 'sleep';
+              const isHeartSmall = name === 'Lukis' || name === 'Arwen';
               const resolvedEyeClass =
                 eyeColorClass ||
                 (type === 'siamese' ? 'bg-blue-500' : type === 'gris' ? 'bg-blue-400' : 'bg-green-400');
@@ -2250,7 +2251,19 @@
                     <div className={`absolute top-1 left-3 w-10 h-9 ${colors.face} rounded-full`}></div>
                   ) : (
                     <div className="absolute top-1 left-3 w-10 h-9">
-                      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 100 100"
+                        className="w-full h-full drop-shadow"
+                        aria-hidden="true"
+                        style={
+                          isHeartSmall
+                            ? {
+                                transform: 'translateY(10%) scale(0.6)',
+                                transformOrigin: 'center'
+                              }
+                            : undefined
+                        }
+                      >
                         <path
                           d="M50 15 C35 -5 0 0 0 30 C0 55 25 80 50 95 C75 80 100 55 100 30 C100 0 65 -5 50 15 Z"
                           fill="#ffffff"
@@ -2287,7 +2300,7 @@
                 className="absolute transition-all duration-1000"
                 style={{ left: `${cat.position.x}%`, top: `${cat.position.y}%`, transform }}
               >
-                <CatBody type={cat.type} eyeColorClass={cat.eyeColor} />
+                <CatBody type={cat.type} eyeColorClass={cat.eyeColor} name={cat.name} />
                 {extraElements}
               </div>
             );
