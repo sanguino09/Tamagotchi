@@ -2761,6 +2761,17 @@
                         </span>
                       </button>
                     )}
+                    {shouldShowInstallButton && (
+                      <button
+                        type="button"
+                        onClick={handleInstallClick}
+                        className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg transition-all duration-300 bg-pink-500 hover:bg-pink-600 text-white"
+                        title="Guardar en pantalla de inicio"
+                      >
+                        <span aria-hidden="true">⬇️</span>
+                        <span className="sr-only">Guardar Catagotchi en la pantalla de inicio</span>
+                      </button>
+                    )}
                   </div>
                   {notificationsSupported && !notificationsEnabled && !isStandalone && Notification?.permission !== 'granted' && (
                     <p className="mt-3 text-xs text-center text-gray-600">
