@@ -70,6 +70,24 @@
             effect: { hunger: 36, happiness: 14 }
           },
           {
+            id: 'rainbow-sushi',
+            name: 'Sushi arcoíris',
+            emoji: '🍣',
+            type: 'food',
+            price: 48,
+            description: 'Rollitos brillantes rellenos de atún mágico y crocante de estrellas.',
+            effect: { hunger: 28, happiness: 12 }
+          },
+          {
+            id: 'tacobell-crunch',
+            name: 'Taco Bell supremo',
+            emoji: '🌮',
+            type: 'food',
+            price: 46,
+            description: 'Crujiente, con queso extra y salsa lunar para un antojo nocturno.',
+            effect: { hunger: 32, happiness: 10 }
+          },
+          {
             id: 'catnip-cookies',
             name: 'Macarons galácticos',
             emoji: '🌌',
@@ -77,6 +95,15 @@
             price: 40,
             description: 'Pequeños bocados crujientes con relleno de nebulosa dulce.',
             effect: { happiness: 20, energy: 10 }
+          },
+          {
+            id: 'stardust-latte',
+            name: 'Café de Starbucks',
+            emoji: '☕',
+            type: 'food',
+            price: 44,
+            description: 'Espuma celestial de vainilla con chispas que despiertan ronroneos.',
+            effect: { happiness: 16, energy: 12 }
           },
           {
             id: 'sardine-feast',
@@ -88,6 +115,15 @@
             effect: { hunger: 44, happiness: 12 }
           },
           {
+            id: 'burger-king-duo',
+            name: 'Burger King 2x1',
+            emoji: '🍔',
+            type: 'food',
+            price: 62,
+            description: 'Dos mega hamburguesas jugosas para compartir entre maullidos.',
+            effect: { hunger: 46, happiness: 18 }
+          },
+          {
             id: 'sparkle-toy',
             name: 'Varita holográfica',
             emoji: '🪄',
@@ -95,6 +131,15 @@
             price: 55,
             description: 'Cambia de color y proyecta destellos para saltos ninja.',
             effect: { happiness: 24, energy: 8 }
+          },
+          {
+            id: 'labubu-plush',
+            name: 'Labubu travieso',
+            emoji: '🧸',
+            type: 'toy',
+            price: 72,
+            description: 'Muñeco coleccionable que cuenta chismes felinos al apretarlo.',
+            effect: { happiness: 30, energy: 6 }
           },
           {
             id: 'cloud-bed',
@@ -119,6 +164,14 @@
             type: 'furniture',
             price: 88,
             description: 'Planetas miniatura que orbitan sobre la habitación con destellos suaves.'
+          },
+          {
+            id: 'ugly-magnet',
+            name: 'Imán feo',
+            emoji: '🧲',
+            type: 'furniture',
+            price: 34,
+            description: 'Un imán tan feo que da la vuelta completa a la nevera de la sala.'
           },
           {
             id: 'starlight-lamp',
@@ -153,6 +206,11 @@
             emoji: '🪐',
             className: 'text-4xl animate-spin',
             style: { top: '18px', left: '24%' }
+          },
+          'ugly-magnet': {
+            emoji: '🧲',
+            className: 'text-3xl rotate-12 drop-shadow-sm',
+            style: { top: '24px', right: '22%' }
           },
           'starlight-lamp': {
             emoji: '🏮',
@@ -459,15 +517,17 @@
           </div>
         );
 
-        const FlappyLukis = ({ onExit, onReward }) => {
+        const FlappyLukis = ({ onExit, onReward, onCatInteract }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 420;
           const BIRD_SIZE = 46;
           const BIRD_X = 60;
           const OBSTACLE_WIDTH = 60;
-          const GAP_HEIGHT = 184;
-          const GRAVITY = 0.32;
-          const OBSTACLE_SPEED = 2.15;
+          const GAP_HEIGHT = 220;
+          const GRAVITY = 0.26;
+          const OBSTACLE_SPEED = 1.85;
+          const OBSTACLE_SPACING = 240;
+          const FLAP_STRENGTH = -10.5;
 
           const [bird, setBird] = useState({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
           const [obstacles, setObstacles] = useState(() => []);
@@ -479,7 +539,8 @@
           const rewardGrantedRef = useRef(false);
 
           const createObstacle = useCallback((offset = 0) => {
-            const gapTop = Math.random() * (GAME_HEIGHT - GAP_HEIGHT - 120) + 60;
+            const gapRange = GAME_HEIGHT - GAP_HEIGHT - 160;
+            const gapTop = Math.random() * Math.max(gapRange, 40) + 80;
             return {
               x: GAME_WIDTH + offset,
               gapTop,
@@ -495,7 +556,7 @@
 
           const resetGame = useCallback(() => {
             setBird({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
-            setObstacles([createObstacle(), createObstacle(GAME_WIDTH / 2 + 140)]);
+            setObstacles([createObstacle(), createObstacle(GAME_WIDTH / 2 + OBSTACLE_SPACING / 2)]);
             setScore(0);
             setIsGameOver(false);
             setIsRunning(true);
@@ -542,7 +603,7 @@
 
                 while (updated.length < 3) {
                   const last = updated[updated.length - 1];
-                  const offset = last ? last.x + 210 : GAME_WIDTH;
+                  const offset = last ? last.x + OBSTACLE_SPACING : GAME_WIDTH;
                   updated.push(createObstacle(offset));
                 }
 
@@ -600,8 +661,19 @@
 
           const flap = useCallback(() => {
             if (!isRunning) return;
-            setBird((prev) => ({ y: prev.y, velocity: -9.5 }));
-          }, [isRunning]);
+            setBird((prev) => ({ y: prev.y, velocity: FLAP_STRENGTH }));
+          }, [isRunning, FLAP_STRENGTH]);
+
+          const handleCatTap = useCallback((event) => {
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            if (typeof onCatInteract === 'function') {
+              onCatInteract();
+            }
+            flap();
+          }, [flap, onCatInteract]);
 
           useEffect(() => {
             const handleKey = (event) => {
@@ -648,7 +720,7 @@
                   }}
                 >
                   {(() => {
-                    const tilt = Math.max(Math.min(bird.velocity * 2.8, 35), -35);
+                    const tilt = Math.max(Math.min(bird.velocity * 2.6, 32), -32);
                     return (
                       <div
                         className="absolute flex items-center justify-center"
@@ -659,6 +731,8 @@
                           height: `${BIRD_SIZE}px`,
                           transform: `rotate(${tilt}deg)`
                         }}
+                        onClick={handleCatTap}
+                        onTouchStart={handleCatTap}
                       >
                         <CatAvatar
                           type="tuxedo"
@@ -732,7 +806,7 @@
           );
         };
 
-        const LukisSkyJump = ({ onExit, onReward }) => {
+        const LukisSkyJump = ({ onExit, onReward, onCatInteract }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 430;
           const PLAYER_SIZE = 44;
@@ -963,6 +1037,16 @@
 
           const tilt = Math.max(Math.min(player.vy * 1.8, 24), -24);
 
+          const handleCatTap = useCallback((event) => {
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            if (typeof onCatInteract === 'function') {
+              onCatInteract();
+            }
+          }, [onCatInteract]);
+
           return (
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm text-gray-600">
@@ -1000,6 +1084,8 @@
                       height: `${PLAYER_SIZE}px`,
                       transform: `rotate(${tilt}deg)`
                     }}
+                    onClick={handleCatTap}
+                    onTouchStart={handleCatTap}
                   >
                     <CatAvatar
                       type="tuxedo"
@@ -1091,7 +1177,7 @@
 
 
 
-        const LukisTreatDash = ({ onExit, onReward }) => {
+        const LukisTreatDash = ({ onExit, onReward, onCatInteract }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 430;
           const PLAYER_SIZE = 52;
@@ -1442,6 +1528,16 @@
           const scaledHazardSize = HAZARD_SIZE * safeScale;
           const scaledPlayerSize = PLAYER_SIZE * safeScale;
 
+          const handleCatTap = useCallback((event) => {
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            if (typeof onCatInteract === 'function') {
+              onCatInteract();
+            }
+          }, [onCatInteract]);
+
           return (
             <div className="space-y-4">
               <div className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-purple-50 p-5 shadow-lg border border-purple-200">
@@ -1509,6 +1605,8 @@
                         width: `${scaledPlayerSize}px`,
                         height: `${scaledPlayerSize}px`
                       }}
+                      onClick={handleCatTap}
+                      onTouchStart={handleCatTap}
                     >
                       <div className="relative h-full w-full">
                         <CatAvatar
@@ -1912,6 +2010,14 @@
               setStoreMessage('No te queda ninguna unidad de ese artículo.');
               return;
             }
+            const isDecoration = item.type === 'furniture';
+            const baseEffect = item.effect || {};
+            let hungerBoost = Number(baseEffect.hunger) || 0;
+            let energyBoost = Number(baseEffect.energy) || 0;
+            let happinessBoost = Number(baseEffect.happiness) || 0;
+            if (!isDecoration && hungerBoost === 0 && happinessBoost === 0) {
+              happinessBoost = 6;
+            }
             setInventory((prev) => {
               const safePrev = prev || {};
               const current = safePrev[item.id] || 0;
@@ -1925,9 +2031,9 @@
               return next;
             });
             setGameState((prev) => {
-              const hunger = clamp(prev.hunger + (item.effect?.hunger || 0), 0, 100);
-              const energy = clamp(prev.energy + (item.effect?.energy || 0), 0, 100);
-              const happiness = clamp(prev.happiness + (item.effect?.happiness || 0), 0, 100);
+              const hunger = clamp(prev.hunger + hungerBoost, 0, 100);
+              const energy = clamp(prev.energy + energyBoost, 0, 100);
+              const happiness = clamp(prev.happiness + happinessBoost, 0, 100);
               return {
                 ...prev,
                 hunger,
@@ -2131,6 +2237,10 @@
             if (!controller) return;
             controller.playForAction(actionKey);
           }, []);
+
+          const handleCatGameInteract = useCallback(() => {
+            playActionSound('play');
+          }, [playActionSound]);
 
           useEffect(() => {
             if (typeof window === 'undefined') {
@@ -2837,13 +2947,25 @@
               {activeGame && activeGameDefinition && (
                 <GameOverlay title={activeGameDefinition.title} onClose={closeGameExperience}>
                   {activeGame === 'flappy-lukis' && (
-                    <FlappyLukis onExit={closeGameExperience} onReward={handleGameReward} />
+                    <FlappyLukis
+                      onExit={closeGameExperience}
+                      onReward={handleGameReward}
+                      onCatInteract={handleCatGameInteract}
+                    />
                   )}
                   {activeGame === 'lukis-sky-jump' && (
-                    <LukisSkyJump onExit={closeGameExperience} onReward={handleGameReward} />
+                    <LukisSkyJump
+                      onExit={closeGameExperience}
+                      onReward={handleGameReward}
+                      onCatInteract={handleCatGameInteract}
+                    />
                   )}
                   {activeGame === 'lukis-treat-dash' && (
-                    <LukisTreatDash onExit={closeGameExperience} onReward={handleGameReward} />
+                    <LukisTreatDash
+                      onExit={closeGameExperience}
+                      onReward={handleGameReward}
+                      onCatInteract={handleCatGameInteract}
+                    />
                   )}
                 </GameOverlay>
               )}
