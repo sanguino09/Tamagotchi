@@ -559,9 +559,9 @@
           const BIRD_SIZE = 46;
           const BIRD_X = 60;
           const OBSTACLE_WIDTH = 60;
-          const GAP_HEIGHT = 130;
-          const GRAVITY = 0.46;
-          const OBSTACLE_SPEED = 3.2;
+          const GAP_HEIGHT = 160;
+          const GRAVITY = 0.4;
+          const OBSTACLE_SPEED = 2.6;
 
           const [bird, setBird] = useState({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
           const [obstacles, setObstacles] = useState(() => []);
@@ -2623,6 +2623,15 @@
                     </div>
                     <div className="absolute -top-1 -left-2 w-5 h-20 bg-pink-300 rounded-r-lg"></div>
                     <div className="absolute -top-1 -right-2 w-5 h-20 bg-pink-300 rounded-l-lg"></div>
+                  </div>
+
+                  <div className="absolute top-6 left-6 w-24 h-28 bg-amber-200 border-4 border-amber-700 rounded-lg shadow-lg overflow-hidden">
+                    <div className="absolute inset-1 border-2 border-amber-500 rounded-md pointer-events-none"></div>
+                    <img
+                      src="IMG-20250924-WA0178.jpg"
+                      alt="Retrato de Lukis enmarcado"
+                      className="w-full h-full object-cover rounded-sm"
+                    />
                   </div>
 
                   <div className="absolute bottom-12 left-4 w-12 h-6 bg-red-400 rounded-full border-2 border-red-500"></div>
