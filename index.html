@@ -62,109 +62,109 @@
         const STORE_ITEMS = [
           {
             id: 'gourmet-salmon',
-            name: 'Salmón Deluxe',
-            emoji: '🍣',
+            name: 'Sashimi estelar',
+            emoji: '🌠',
             type: 'food',
-            price: 45,
-            description: 'Un banquete jugoso que deja a cualquier gato ronroneando.',
-            effect: { hunger: 35, happiness: 12 }
+            price: 52,
+            description: 'Filetes suaves marinados en luz de luna para banquetes dignos de Lukis.',
+            effect: { hunger: 36, happiness: 14 }
           },
           {
             id: 'catnip-cookies',
-            name: 'Galletas de catnip',
-            emoji: '🍪',
+            name: 'Macarons galácticos',
+            emoji: '🌌',
             type: 'food',
-            price: 32,
-            description: 'Crujientes galletas de hierba gatera para subir el ánimo al instante.',
-            effect: { happiness: 18, energy: 8 }
-          },
-          {
-            id: 'cloud-bed',
-            name: 'Cama nube',
-            emoji: '☁️',
-            type: 'furniture',
-            price: 75,
-            description: 'Una cama suave como el algodón para siestas infinitas.'
-          },
-          {
-            id: 'scratching-tree',
-            name: 'Árbol rascador',
-            emoji: '🌳',
-            type: 'furniture',
-            price: 95,
-            description: 'Ideal para estirar las garras y presumir territorio felino.'
-          },
-          {
-            id: 'rainbow-mobile',
-            name: 'Móvil arcoíris',
-            emoji: '🌈',
-            type: 'furniture',
-            price: 60,
-            description: 'Un adorno colgante que llena la habitación de color.'
+            price: 40,
+            description: 'Pequeños bocados crujientes con relleno de nebulosa dulce.',
+            effect: { happiness: 20, energy: 10 }
           },
           {
             id: 'sardine-feast',
-            name: 'Banquete de sardinas',
-            emoji: '🐟',
+            name: 'Banquete nebuloso',
+            emoji: '☁️',
             type: 'food',
-            price: 58,
-            description: 'Una torre de sardinas jugosas que deja bigotes brillantes.',
-            effect: { hunger: 42, happiness: 10 }
+            price: 60,
+            description: 'Cascada de sardinas glaseadas con brillo astral.',
+            effect: { hunger: 44, happiness: 12 }
           },
           {
             id: 'sparkle-toy',
-            name: 'Varita brillante',
-            emoji: '✨',
+            name: 'Varita holográfica',
+            emoji: '🪄',
             type: 'toy',
-            price: 48,
-            description: 'Plumas luminosas para entrenar saltos felinos y felicidad.',
-            effect: { happiness: 22, energy: 6 }
+            price: 55,
+            description: 'Cambia de color y proyecta destellos para saltos ninja.',
+            effect: { happiness: 24, energy: 8 }
+          },
+          {
+            id: 'cloud-bed',
+            name: 'Hamaca aurora',
+            emoji: '🪺',
+            type: 'furniture',
+            price: 98,
+            description: 'Se balancea entre luces boreales para siestas flotantes.'
+          },
+          {
+            id: 'scratching-tree',
+            name: 'Árbol prisma',
+            emoji: '🗼',
+            type: 'furniture',
+            price: 110,
+            description: 'Torres translúcidas para trepar y afilar garras con estilo.'
+          },
+          {
+            id: 'rainbow-mobile',
+            name: 'Planetario flotante',
+            emoji: '🪐',
+            type: 'furniture',
+            price: 88,
+            description: 'Planetas miniatura que orbitan sobre la habitación con destellos suaves.'
           },
           {
             id: 'starlight-lamp',
-            name: 'Lámpara estelar',
-            emoji: '🛋️',
+            name: 'Farol boreal',
+            emoji: '🏮',
             type: 'furniture',
-            price: 85,
-            description: 'Ilumina el cuarto con constelaciones suaves para sueños gatunos.'
+            price: 95,
+            description: 'Ilumina el cuarto con reflejos verdes y violetas en movimiento.'
           },
           {
             id: 'cosmic-cushion',
-            name: 'Cojín cósmico',
-            emoji: '🪐',
+            name: 'Cojín ingrávido',
+            emoji: '✨',
             type: 'furniture',
-            price: 70,
-            description: 'Un cojín esponjoso que parece flotar entre planetas.'
+            price: 85,
+            description: 'Un puff que levita unos centímetros y ronronea suavemente.'
           }
         ];
 
         const DECORATION_CONFIG = {
           'cloud-bed': {
-            emoji: '☁️',
-            className: 'text-5xl drop-shadow-lg',
-            style: { bottom: '58px', left: '18%' }
+            emoji: '🪺',
+            className: 'text-5xl drop-shadow-lg animate-pulse',
+            style: { bottom: '60px', left: '16%' }
           },
           'scratching-tree': {
-            emoji: '🪵',
-            className: 'text-4xl',
+            emoji: '🗼',
+            className: 'text-4xl drop-shadow-lg',
             style: { bottom: '54px', right: '12%' }
           },
           'rainbow-mobile': {
-            emoji: '🌈',
-            className: 'text-4xl',
-            style: { top: '18px', left: '22%' }
+            emoji: '🪐',
+            className: 'text-4xl animate-spin',
+            style: { top: '18px', left: '24%' }
           },
           'starlight-lamp': {
-            emoji: '🛋️',
+            emoji: '🏮',
             className: 'text-4xl drop-shadow-md',
             style: (index) => ({
               bottom: '46px',
-              left: index % 2 === 0 ? '8%' : '66%'
+              left: index % 2 === 0 ? '12%' : '64%'
             })
           },
           'cosmic-cushion': {
-            emoji: '🪐',
-            className: 'text-5xl animate-pulse',
+            emoji: '✨',
+            className: 'text-5xl animate-bounce',
             style: { bottom: '38px', left: '42%' }
           }
         };
@@ -316,18 +316,32 @@
           );
         };
 
-        const LukisOriginalAvatar = ({ size = 64, className = '', style = {} }) => (
-          <div
-            className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none ${className}`}
-            style={{ width: size, height: size, ...style }}
-          >
-            <img
-              src="IMG-20250924-WA0178.jpg"
-              alt="Lukis cazando golosinas"
-              className="h-full w-full object-contain rounded-3xl shadow-lg"
-            />
-          </div>
-        );
+        const LukisOriginalAvatar = ({
+          size = 64,
+          className = '',
+          style = {},
+          overlay = true,
+          imageClassName = ''
+        }) => {
+          const wrapperBase = overlay ? 'absolute inset-0' : 'relative';
+          const imageBaseClass = overlay
+            ? 'object-contain rounded-3xl shadow-lg'
+            : 'object-cover rounded-2xl ring-2 ring-white/70';
+
+          return (
+            <div
+              className={`${wrapperBase} pointer-events-none select-none flex items-center justify-center ${className}`}
+              style={{ width: size, height: size, ...style }}
+              aria-hidden={overlay}
+            >
+              <img
+                src="IMG-20250924-WA0178.jpg"
+                alt="Lukis cazando golosinas"
+                className={`h-full w-full ${imageBaseClass} ${imageClassName}`}
+              />
+            </div>
+          );
+        };
 
         const GameMenu = ({ onSelect, onClose }) => (
           <GameOverlay title="Sala de Juegos" onClose={onClose}>
@@ -1429,12 +1443,20 @@
           const scaledPlayerSize = PLAYER_SIZE * safeScale;
 
           return (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-purple-50 p-5 shadow-lg border border-purple-200">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl">🍣</span>
-                    <h3 className="text-lg font-semibold text-purple-700">Lukis cazando premios</h3>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <LukisOriginalAvatar
+                      size={56}
+                      overlay={false}
+                      className="shrink-0 overflow-hidden rounded-2xl"
+                      imageClassName="shadow-lg"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl" aria-hidden="true">🍣</span>
+                      <h3 className="text-lg font-semibold text-purple-700">Lukis cazando premios</h3>
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-purple-600">
                     <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Puntos: {scoreLabel}</span>
@@ -1442,7 +1464,7 @@
                     <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Fallos: {misses}/{MAX_MISSES}</span>
                   </div>
                 </div>
-                <div ref={stageContainerRef} className="mt-5">
+                <div ref={stageContainerRef} className="mt-4">
                   <div
                     className="relative mx-auto overflow-hidden rounded-3xl border-4 border-purple-200 bg-gradient-to-b from-sky-100 via-amber-50 to-rose-100 shadow-inner"
                     style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
@@ -1502,7 +1524,6 @@
                           size={scaledPlayerSize}
                           className="drop-shadow-lg"
                         />
-                        <LukisOriginalAvatar size={scaledPlayerSize} className="rounded-3xl" />
                       </div>
                     </div>
                     {!isRunning && !isGameOver && (
@@ -1542,7 +1563,7 @@
                   </div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+              <div className="flex flex-wrap items-center justify-center gap-3 w-full -mt-2">
                 <button
                   type="button"
                   onMouseDown={() => handleControlStart('left')}
@@ -2497,11 +2518,6 @@
                 className="hidden"
               ></audio>
               <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white text-center">
-                  <h1 className="text-2xl font-bold">🐱 Los Tres Gatitos 🐱</h1>
-                  <p className="text-sm opacity-90">Lukis, Arwen e Iria</p>
-                </div>
-
                 <div className={`relative h-64 ${isNightTime ? 'bg-gradient-to-b from-indigo-900 to-purple-900' : 'bg-gradient-to-b from-blue-100 to-green-200'} overflow-hidden transition-all duration-1000`}>
                   <div className="absolute bottom-0 w-full h-12 bg-amber-200"></div>
                   <div className="absolute left-0 top-0 w-2 h-full bg-amber-300"></div>
