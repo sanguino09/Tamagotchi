@@ -241,6 +241,9 @@
             (type === 'siamese' ? 'bg-blue-500' : type === 'gris' ? 'bg-blue-400' : 'bg-green-400');
           const isHeartSmall = name === 'Lukis' || name === 'Arwen';
           const scale = size / 64;
+          const faceClass = colors.face || colors.body;
+          const chestClass = colors.chest || colors.body;
+          const pawClass = type === 'siamese' ? 'bg-amber-800' : colors.body;
 
           return (
             <div
@@ -248,96 +251,6 @@
               style={{ width: size, height: size, ...style }}
               aria-hidden="true"
             >
-              <div
-                className="absolute"
-                style={{
-                  bottom: 0,
-                  left: unit * 2,
-                  width: unit * 12,
-                  height: unit * 12,
-                  background: tuxedoColor,
-                  borderRadius: '9999px'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  bottom: unit,
-                  left: unit * 4,
-                  width: unit * 8,
-                  height: unit * 9,
-                  background: chestColor,
-                  borderRadius: '9999px'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  top: 0,
-                  left: unit * 2,
-                  width: unit * 12,
-                  height: unit * 12,
-                  background: tuxedoColor,
-                  borderRadius: '9999px'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  top: unit,
-                  left: unit * 3,
-                  width: unit * 10,
-                  height: unit * 9
-                }}
-              >
-                <svg
-                  viewBox="0 0 100 100"
-                  className="w-full h-full drop-shadow"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M50 15 C35 -5 0 0 0 30 C0 55 25 80 50 95 C75 80 100 55 100 30 C100 0 65 -5 50 15 Z"
-                    fill="#ffffff"
-                    transform="rotate(180 50 50)"
-                  />
-                </svg>
-              </div>
-              <div
-                className="absolute"
-                style={{
-                  top: -unit,
-                  left: unit * 3,
-                  width: unit * 4,
-                  height: unit * 5,
-                  background: tuxedoColor,
-                  borderRadius: '9999px',
-                  transform: 'rotate(-12deg)'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  top: -unit,
-                  right: unit * 3,
-                  width: unit * 4,
-                  height: unit * 5,
-                  background: tuxedoColor,
-                  borderRadius: '9999px',
-                  transform: 'rotate(12deg)'
-                }}
-              ></div>
-              <div
-                className="absolute"
-                style={{
-                  top: 0,
-                  left: unit * 4,
-                  width: unit * 2,
-                  height: unit * 3,
-                  background: '#f9a8d4',
-                  borderRadius: '9999px',
-                  transform: 'rotate(-12deg)'
-                }}
-              ></div>
               <div
                 className="absolute top-0 left-0"
                 style={{
@@ -350,11 +263,11 @@
                 <div className="relative w-16 h-16">
                   <div className={`absolute bottom-0 left-2 w-12 h-12 ${colors.body} rounded-full`}></div>
                   {(type === 'tuxedo' || type === 'gris') && (
-                    <div className={`absolute bottom-1 left-4 w-8 h-9 ${colors.chest} rounded-full`}></div>
+                    <div className={`absolute bottom-1 left-4 w-8 h-9 ${chestClass} rounded-full`}></div>
                   )}
                   <div className={`absolute top-0 left-2 w-12 h-12 ${colors.body} rounded-full`}></div>
                   {type === 'siamese' ? (
-                    <div className={`absolute top-1 left-3 w-10 h-9 ${colors.face} rounded-full`}></div>
+                    <div className={`absolute top-1 left-3 w-10 h-9 ${faceClass} rounded-full`}></div>
                   ) : (
                     <div className="absolute top-1 left-3 w-10 h-9">
                       <svg
@@ -395,8 +308,8 @@
                   )}
                   <div className="absolute top-5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-pink-400 rounded-full"></div>
                   <div className={`absolute -right-1 bottom-3 w-3 h-8 ${colors.body} rounded-full transform rotate-45`}></div>
-                  <div className={`absolute bottom-0 left-3 w-1.5 h-4 ${type === 'siamese' ? 'bg-amber-800' : colors.body} rounded-full`}></div>
-                  <div className={`absolute bottom-0 right-3 w-1.5 h-4 ${type === 'siamese' ? 'bg-amber-800' : colors.body} rounded-full`}></div>
+                  <div className={`absolute bottom-0 left-3 w-1.5 h-4 ${pawClass} rounded-full`}></div>
+                  <div className={`absolute bottom-0 right-3 w-1.5 h-4 ${pawClass} rounded-full`}></div>
                 </div>
               </div>
             </div>
@@ -680,7 +593,7 @@
 
           useEffect(() => () => {
             if (loopRef.current) {
-              clearInterval(loopRef.current);
+              cancelAnimationFrame(loopRef.current);
             }
           }, []);
 
