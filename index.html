@@ -301,7 +301,7 @@
                   top: size * 0.38,
                   width: eyeSize,
                   height: eyeSize,
-                  background: '#bef264',
+                  background: '#86efac',
                   borderRadius: '50%'
                 }}
               >
@@ -336,7 +336,7 @@
                   top: size * 0.38,
                   width: eyeSize,
                   height: eyeSize,
-                  background: '#bef264',
+                  background: '#86efac',
                   borderRadius: '50%'
                 }}
               >
@@ -1127,7 +1127,7 @@
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-center space-x-4 w-full">
+              <div className="flex flex-wrap items-center justify-center gap-3 w-full">
                 <button
                   type="button"
                   onMouseDown={() => handleControlStart('left')}
@@ -1197,6 +1197,8 @@
           const [isRunning, setIsRunning] = useState(false);
           const [isGameOver, setIsGameOver] = useState(false);
           const [activeDirection, setActiveDirection] = useState(null);
+          const stageContainerRef = useRef(null);
+          const [stageScale, setStageScale] = useState(1);
 
           const loopRef = useRef(null);
           const lastTimestampRef = useRef(null);
@@ -1234,6 +1236,35 @@
           useEffect(() => {
             livesRef.current = lives;
           }, [lives]);
+
+          useEffect(() => {
+            const updateScale = () => {
+              if (!stageContainerRef.current) {
+                return;
+              }
+              const availableWidth = stageContainerRef.current.offsetWidth;
+              if (!availableWidth) {
+                setStageScale(1);
+                return;
+              }
+              const nextScale = Math.min(1, availableWidth / GAME_WIDTH);
+              setStageScale(nextScale);
+            };
+
+            updateScale();
+
+            if (typeof ResizeObserver !== 'undefined') {
+              const observer = new ResizeObserver(updateScale);
+              const container = stageContainerRef.current;
+              if (container) {
+                observer.observe(container);
+              }
+              return () => observer.disconnect();
+            }
+
+            window.addEventListener('resize', updateScale);
+            return () => window.removeEventListener('resize', updateScale);
+          }, []);
 
           const clampValue = useCallback((value, min, max) => Math.min(Math.max(value, min), max), []);
 
@@ -1486,16 +1517,22 @@
 
           const scoreLabel = score.toString().padStart(2, '0');
           const missesLeft = Math.max(0, MAX_MISSES - misses);
+          const safeScale = Number.isFinite(stageScale) && stageScale > 0 ? stageScale : 1;
+          const scaledWidth = GAME_WIDTH * safeScale;
+          const scaledHeight = GAME_HEIGHT * safeScale;
+          const scaledItemSize = ITEM_SIZE * safeScale;
+          const scaledHazardSize = HAZARD_SIZE * safeScale;
+          const scaledPlayerSize = PLAYER_SIZE * safeScale;
 
           return (
             <div className="space-y-5">
               <div className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-purple-50 p-5 shadow-lg border border-purple-200">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center space-x-2">
                     <span className="text-2xl">🍣</span>
                     <h3 className="text-lg font-semibold text-purple-700">Lukis cazando premios</h3>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm font-semibold text-purple-600">
+                  <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-purple-600">
                     <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Puntos: {scoreLabel}</span>
                     <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Vidas: {lives}</span>
                     <span className="rounded-full bg-white/80 px-3 py-1 shadow-inner">Fallos: {misses}/{MAX_MISSES}</span>
@@ -1504,85 +1541,98 @@
                 <p className="mt-3 text-sm text-gray-600 leading-relaxed">
                   Atrapa las golosinas que caen y esquiva los juguetes revoltosos. ¡Mantente en el suelo para ganar monedas!
                 </p>
-                <div className="mt-5 relative mx-auto h-[430px] w-[320px] overflow-hidden rounded-3xl border-4 border-purple-200 bg-gradient-to-b from-sky-100 via-amber-50 to-rose-100 shadow-inner">
-                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(to top, rgba(255, 236, 209, 0.45) 12%, transparent 48%)' }} />
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-amber-200 via-amber-100/90 to-transparent" />
-                  {items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="absolute flex items-center justify-center text-3xl drop-shadow-sm"
-                      style={{
-                        left: `${item.x}px`,
-                        top: `${item.y}px`,
-                        width: `${ITEM_SIZE}px`,
-                        height: `${ITEM_SIZE}px`
-                      }}
-                    >
-                      🐟
-                    </div>
-                  ))}
-                  {hazards.map((hazard) => (
-                    <div
-                      key={hazard.id}
-                      className="absolute flex items-center justify-center text-3xl drop-shadow-sm"
-                      style={{
-                        left: `${hazard.x}px`,
-                        top: `${hazard.y}px`,
-                        width: `${HAZARD_SIZE}px`,
-                        height: `${HAZARD_SIZE}px`
-                      }}
-                    >
-                      🧶
-                    </div>
-                  ))}
+                <div ref={stageContainerRef} className="mt-5">
                   <div
-                    className="absolute flex items-center justify-center transition-transform duration-75"
-                    style={{
-                      left: `${player.x}px`,
-                      top: `${player.y}px`,
-                      width: `${PLAYER_SIZE}px`,
-                      height: `${PLAYER_SIZE}px`
-                    }}
+                    className="relative mx-auto overflow-hidden rounded-3xl border-4 border-purple-200 bg-gradient-to-b from-sky-100 via-amber-50 to-rose-100 shadow-inner"
+                    style={{ width: `${scaledWidth}px`, height: `${scaledHeight}px` }}
                   >
-                    <LukisFace size={PLAYER_SIZE} className="drop-shadow-lg" />
-                  </div>
-                  {!isRunning && !isGameOver && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
-                      <span className="text-4xl">🍤</span>
-                      <p className="text-base font-semibold text-purple-600">¡Hora de cazar premios!</p>
-                      <p className="text-sm text-gray-600">Usa las flechas, las teclas A/D o los botones para deslizarte. Pulsa espacio para empezar.</p>
-                      <button
-                        onClick={startGame}
-                        className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ backgroundImage: 'linear-gradient(to top, rgba(255, 236, 209, 0.45) 12%, transparent 48%)' }}
+                    />
+                    <div
+                      className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-amber-200 via-amber-100/90 to-transparent"
+                      style={{ height: `${64 * safeScale}px` }}
+                    />
+                    {items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="absolute flex items-center justify-center text-3xl drop-shadow-sm"
+                        style={{
+                          left: `${item.x * safeScale}px`,
+                          top: `${item.y * safeScale}px`,
+                          width: `${scaledItemSize}px`,
+                          height: `${scaledItemSize}px`,
+                          fontSize: `${Math.max(18, 28 * safeScale)}px`
+                        }}
                       >
-                        ¡Comenzar!
-                      </button>
+                        🐟
+                      </div>
+                    ))}
+                    {hazards.map((hazard) => (
+                      <div
+                        key={hazard.id}
+                        className="absolute flex items-center justify-center text-3xl drop-shadow-sm"
+                        style={{
+                          left: `${hazard.x * safeScale}px`,
+                          top: `${hazard.y * safeScale}px`,
+                          width: `${scaledHazardSize}px`,
+                          height: `${scaledHazardSize}px`,
+                          fontSize: `${Math.max(18, 28 * safeScale)}px`
+                        }}
+                      >
+                        🧶
+                      </div>
+                    ))}
+                    <div
+                      className="absolute flex items-center justify-center transition-transform duration-75"
+                      style={{
+                        left: `${player.x * safeScale}px`,
+                        top: `${player.y * safeScale}px`,
+                        width: `${scaledPlayerSize}px`,
+                        height: `${scaledPlayerSize}px`
+                      }}
+                    >
+                      <LukisFace size={scaledPlayerSize} className="drop-shadow-lg" />
                     </div>
-                  )}
-                  {isGameOver && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 text-center p-6 space-y-3">
-                      <span className="text-4xl">🎉</span>
-                      <p className="text-base font-semibold text-purple-600">¡Buen trabajo, cazador!</p>
-                      <p className="text-sm text-gray-600">Premios atrapados: {score}. Golosinas perdidas restantes: {missesLeft === 0 ? 'ninguna' : missesLeft}</p>
-                      <div className="flex space-x-2">
+                    {!isRunning && !isGameOver && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 text-center p-6 space-y-3">
+                        <span className="text-4xl">🍤</span>
+                        <p className="text-base font-semibold text-purple-600">¡Hora de cazar premios!</p>
+                        <p className="text-sm text-gray-600">Usa las flechas, las teclas A/D o los botones para deslizarte. Pulsa espacio para empezar.</p>
                         <button
                           onClick={startGame}
                           className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
                         >
-                          Intentar de nuevo
-                        </button>
-                        <button
-                          onClick={onExit}
-                          className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
-                        >
-                          Salir
+                          ¡Comenzar!
                         </button>
                       </div>
-                    </div>
-                  )}
+                    )}
+                    {isGameOver && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 text-center p-6 space-y-3">
+                        <span className="text-4xl">🎉</span>
+                        <p className="text-base font-semibold text-purple-600">¡Buen trabajo, cazador!</p>
+                        <p className="text-sm text-gray-600">Premios atrapados: {score}. Golosinas perdidas restantes: {missesLeft === 0 ? 'ninguna' : missesLeft}</p>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={startGame}
+                            className="px-4 py-2 rounded-full bg-purple-500 text-white text-sm font-semibold hover:bg-purple-600 transition"
+                          >
+                            Intentar de nuevo
+                          </button>
+                          <button
+                            onClick={onExit}
+                            className="px-4 py-2 rounded-full bg-gray-200 text-sm font-semibold hover:bg-gray-300 transition"
+                          >
+                            Salir
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center justify-center space-x-4 w-full">
+              <div className="flex flex-wrap items-center justify-center gap-3 w-full">
                 <button
                   type="button"
                   onMouseDown={() => handleControlStart('left')}
