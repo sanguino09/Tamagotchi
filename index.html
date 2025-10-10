@@ -1364,7 +1364,7 @@
 
               const updatedItems = [];
               itemsRef.current.forEach((item) => {
-                const fallSpeed = (item.speed + Math.min(scoreRef.current * 0.08, 2.6)) * delta * 3.1;
+                const fallSpeed = (item.speed + Math.min(scoreRef.current * 0.05, 1.8)) * delta * 2.2;
                 const nextY = item.y + fallSpeed;
                 if (checkCollision(playerBox.x, playerBox.y, playerBox.w, playerBox.h, item.x, nextY, ITEM_SIZE, ITEM_SIZE)) {
                   newScore += 1;
@@ -1381,7 +1381,7 @@
 
               const updatedHazards = [];
               hazardsRef.current.forEach((hazard) => {
-                const fallSpeed = (hazard.speed + Math.min(scoreRef.current * 0.07, 2.4)) * delta * 3.4;
+                const fallSpeed = (hazard.speed + Math.min(scoreRef.current * 0.05, 1.6)) * delta * 2.4;
                 const nextY = hazard.y + fallSpeed;
                 if (
                   checkCollision(
