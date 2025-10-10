@@ -338,9 +338,9 @@ function playMoodSound(moodKey) {
 }
 
 const baseDegradeRates = {
-  hunger: -2.4,
-  energy: -2,
-  fun: -2.2,
+  hunger: -0.6,
+  energy: -0.5,
+  fun: -0.55,
 };
 
 let degradeRates = { ...baseDegradeRates };
