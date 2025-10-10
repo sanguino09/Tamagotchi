@@ -338,10 +338,11 @@ function playMoodSound(moodKey) {
 }
 
 const baseDegradeRates = {
-  hunger: -0.002,
-  energy: -0.0015,
-  fun: -0.0016666666666666668,
-};
+
+  hunger: -0.0005,
+  energy: -0.000375,
+  fun: -0.0004166666666666667,
+
 
 let degradeRates = { ...baseDegradeRates };
 const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
@@ -3056,7 +3057,7 @@ function tickProfile(profile, rates) {
             );
             dayEmoji.textContent = "🌙";
             dayLabel.textContent = "Modo noche";
-            degradeRates = { ...baseDegradeRates, energy: -0.11666666666666667 };
+            degradeRates = { ...baseDegradeRates, energy: -0.029166666666666667 };
           }
         }
 
