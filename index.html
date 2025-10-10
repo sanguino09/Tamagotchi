@@ -461,7 +461,7 @@
           </div>
         );
 
-        const FlappyLukis = ({ onExit, onReward, onCatInteract }) => {
+        const FlappyLukis = ({ onExit, onReward, onCatInteract, onMovementSound }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 420;
           const BIRD_SIZE = 46;
@@ -606,7 +606,10 @@
           const flap = useCallback(() => {
             if (!isRunning) return;
             setBird((prev) => ({ y: prev.y, velocity: FLAP_STRENGTH }));
-          }, [isRunning, FLAP_STRENGTH]);
+            if (typeof onMovementSound === 'function') {
+              onMovementSound();
+            }
+          }, [isRunning, FLAP_STRENGTH, onMovementSound]);
 
           const handleCatTap = useCallback((event) => {
             if (event) {
@@ -750,7 +753,7 @@
           );
         };
 
-        const LukisSkyJump = ({ onExit, onReward, onCatInteract }) => {
+        const LukisSkyJump = ({ onExit, onReward, onCatInteract, onMovementSound }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 430;
           const PLAYER_SIZE = 44;
@@ -835,7 +838,10 @@
           const handleControlStart = useCallback((direction) => {
             inputsRef.current[direction] = true;
             setActiveDirection(direction);
-          }, []);
+            if (typeof onMovementSound === 'function') {
+              onMovementSound();
+            }
+          }, [onMovementSound]);
 
           const handleControlEnd = useCallback((direction) => {
             inputsRef.current[direction] = false;
@@ -845,11 +851,21 @@
           useEffect(() => {
             const handleKeyDown = (event) => {
               if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
-                inputsRef.current.left = true;
-                setActiveDirection('left');
+                if (!inputsRef.current.left) {
+                  inputsRef.current.left = true;
+                  setActiveDirection('left');
+                  if (typeof onMovementSound === 'function') {
+                    onMovementSound();
+                  }
+                }
               } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
-                inputsRef.current.right = true;
-                setActiveDirection('right');
+                if (!inputsRef.current.right) {
+                  inputsRef.current.right = true;
+                  setActiveDirection('right');
+                  if (typeof onMovementSound === 'function') {
+                    onMovementSound();
+                  }
+                }
               } else if (event.code === 'Space') {
                 if (!isRunning) {
                   event.preventDefault();
@@ -874,13 +890,14 @@
               window.removeEventListener('keydown', handleKeyDown);
               window.removeEventListener('keyup', handleKeyUp);
             };
-          }, [isRunning, resetGame]);
+          }, [isRunning, onMovementSound, resetGame]);
 
           const updateGame = useCallback(() => {
             const currentPlayer = playerRef.current;
             const currentPlatforms = platformsRef.current;
             let newVelocity = currentPlayer.vy + GRAVITY;
             let newX = currentPlayer.x;
+            let jumped = false;
 
             if (inputsRef.current.left) {
               newX -= MOVE_SPEED;
@@ -909,8 +926,13 @@
               ) {
                 newVelocity = -JUMP_FORCE;
                 newY = platform.y - PLAYER_SIZE;
+                jumped = true;
                 break;
               }
+            }
+
+            if (jumped && typeof onMovementSound === 'function') {
+              onMovementSound();
             }
 
             let verticalShift = 0;
@@ -964,7 +986,7 @@
 
             setPlayer(nextPlayer);
             setPlatforms(updatedPlatforms);
-          }, []);
+          }, [onMovementSound]);
 
           useEffect(() => {
             if (!isRunning) return;
@@ -1121,7 +1143,7 @@
 
 
 
-        const LukisTreatDash = ({ onExit, onReward, onCatInteract }) => {
+        const LukisTreatDash = ({ onExit, onReward, onCatInteract, onMovementSound }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 430;
           const PLAYER_SIZE = 52;
@@ -1251,7 +1273,10 @@
           const handleControlStart = useCallback((direction) => {
             inputsRef.current[direction] = true;
             setActiveDirection(direction);
-          }, []);
+            if (typeof onMovementSound === 'function') {
+              onMovementSound();
+            }
+          }, [onMovementSound]);
 
           const handleControlEnd = useCallback((direction) => {
             inputsRef.current[direction] = false;
@@ -1430,13 +1455,23 @@
           useEffect(() => {
             const handleKeyDown = (event) => {
               if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
-                event.preventDefault();
-                inputsRef.current.left = true;
-                setActiveDirection('left');
+                if (!inputsRef.current.left) {
+                  event.preventDefault();
+                  inputsRef.current.left = true;
+                  setActiveDirection('left');
+                  if (typeof onMovementSound === 'function') {
+                    onMovementSound();
+                  }
+                }
               } else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
-                event.preventDefault();
-                inputsRef.current.right = true;
-                setActiveDirection('right');
+                if (!inputsRef.current.right) {
+                  event.preventDefault();
+                  inputsRef.current.right = true;
+                  setActiveDirection('right');
+                  if (typeof onMovementSound === 'function') {
+                    onMovementSound();
+                  }
+                }
               } else if (event.code === 'Space') {
                 if (!isRunning) {
                   event.preventDefault();
@@ -1461,7 +1496,7 @@
               window.removeEventListener('keydown', handleKeyDown);
               window.removeEventListener('keyup', handleKeyUp);
             };
-          }, [isRunning, startGame]);
+          }, [isRunning, onMovementSound, startGame]);
 
           const scoreLabel = score.toString().padStart(2, '0');
           const missesLeft = Math.max(0, MAX_MISSES - misses);
@@ -1650,6 +1685,10 @@
           purr: {
             files: ['cat-purr.mp3', 'little-puff-purr.mp3', 'little-puff-purr-brr.mp3'],
             volume: 0.45
+          },
+          gameMove: {
+            files: ['sound1.wav'],
+            volume: 0.28
           }
         };
 
@@ -2184,6 +2223,12 @@
             const controller = soundControllerRef.current;
             if (!controller) return;
             controller.playForAction(actionKey);
+          }, []);
+
+          const playGameMovementSound = useCallback(() => {
+            const controller = soundControllerRef.current;
+            if (!controller) return;
+            controller.playEffect('gameMove');
           }, []);
 
           const handleCatGameInteract = useCallback(() => {
@@ -2919,6 +2964,7 @@
                       onExit={closeGameExperience}
                       onReward={handleGameReward}
                       onCatInteract={handleCatGameInteract}
+                      onMovementSound={playGameMovementSound}
                     />
                   )}
                   {activeGame === 'lukis-sky-jump' && (
@@ -2926,6 +2972,7 @@
                       onExit={closeGameExperience}
                       onReward={handleGameReward}
                       onCatInteract={handleCatGameInteract}
+                      onMovementSound={playGameMovementSound}
                     />
                   )}
                   {activeGame === 'lukis-treat-dash' && (
@@ -2933,6 +2980,7 @@
                       onExit={closeGameExperience}
                       onReward={handleGameReward}
                       onCatInteract={handleCatGameInteract}
+                      onMovementSound={playGameMovementSound}
                     />
                   )}
                 </GameOverlay>
