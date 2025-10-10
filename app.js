@@ -338,10 +338,11 @@ function playMoodSound(moodKey) {
 }
 
 const baseDegradeRates = {
-  hunger: -0.005,
-  energy: -0.00375,
-  fun: -0.004166666666666667,
-};
+
+  hunger: -0.0005,
+  energy: -0.000375,
+  fun: -0.0004166666666666667,
+
 
 let degradeRates = { ...baseDegradeRates };
 const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
