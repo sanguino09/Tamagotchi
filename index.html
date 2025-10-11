@@ -464,14 +464,14 @@
         const FlappyLukis = ({ onExit, onReward, onCatInteract, onMovementSound }) => {
           const GAME_WIDTH = 320;
           const GAME_HEIGHT = 420;
-          const BIRD_SIZE = 46;
+          const BIRD_SIZE = 40;
           const BIRD_X = 60;
           const OBSTACLE_WIDTH = 60;
           const GAP_HEIGHT = 220;
           const GRAVITY = 0.26;
           const OBSTACLE_SPEED = 1.85;
           const OBSTACLE_SPACING = 240;
-          const FLAP_STRENGTH = -8.5;
+          const FLAP_STRENGTH = -5.5;
 
           const [bird, setBird] = useState({ y: GAME_HEIGHT / 2 - BIRD_SIZE / 2, velocity: 0 });
           const [obstacles, setObstacles] = useState(() => []);
