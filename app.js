@@ -337,17 +337,21 @@ function playMoodSound(moodKey) {
   }
 }
 
+const TICK_INTERVAL_MS = 1000 * 30;
+const STAT_DECREASE_PER_TICK = 5;
+const STAT_DECREASE_PER_SECOND =
+  -STAT_DECREASE_PER_TICK / (TICK_INTERVAL_MS / 1000);
+
 const baseDegradeRates = {
-
-  hunger: -0.000005,
-  energy: -0.00000375,
-  fun: -0.000004166666666666667,
-
+  hunger: STAT_DECREASE_PER_SECOND,
+  energy: STAT_DECREASE_PER_SECOND,
+  fun: STAT_DECREASE_PER_SECOND,
+};
 
 let degradeRates = { ...baseDegradeRates };
 const DAY_MODE_CHECK_INTERVAL = 60 * 1000;
 let dayModeIntervalId;
-const tickInterval = 30000;
+const tickInterval = TICK_INTERVAL_MS;
 let tickIntervalId = null;
 const WANDER_DELAY = 4200;
 let catWanderTimeoutId;
@@ -3057,7 +3061,7 @@ function tickProfile(profile, rates) {
             );
             dayEmoji.textContent = "🌙";
             dayLabel.textContent = "Modo noche";
-            degradeRates = { ...baseDegradeRates, energy: -0.029166666666666667 };
+            degradeRates = { ...baseDegradeRates };
           }
         }
 
