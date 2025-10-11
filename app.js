@@ -339,9 +339,9 @@ function playMoodSound(moodKey) {
 
 const baseDegradeRates = {
 
-  hunger: -0.0005,
-  energy: -0.000375,
-  fun: -0.0004166666666666667,
+  hunger: -0.000005,
+  energy: -0.00000375,
+  fun: -0.000004166666666666667,
 
 
 let degradeRates = { ...baseDegradeRates };
@@ -1010,13 +1010,13 @@ function tickProfile(profile, rates) {
   });
 
   if ((profile.hunger ?? 0) < 30) {
-    modifyStat("fun", -0.1 * delta, profile);
+    modifyStat("fun", -0.0001 * delta, profile);
   }
   if ((profile.energy ?? 0) < 25) {
-    modifyStat("fun", -0.075 * delta, profile);
+    modifyStat("fun", -0.00075 * delta, profile);
   }
   if ((profile.fun ?? 0) < 25) {
-    modifyStat("energy", -0.058333333333333334 * delta, profile);
+    modifyStat("energy", -0.000058333333333333334 * delta, profile);
   }
 
   return delta;
